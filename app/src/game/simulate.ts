@@ -110,7 +110,7 @@ function runOneGame(seed: number, maxTurns = 200): GameStats {
       else if (e.includes('bojuje s Čertem')) events.devilCombatStarted++;
       else if (e.includes('zranil Čerta')) events.devilWoundsApplied++;
       else if (e.includes('zasadil') || e.includes('obsadil') || e.includes('Kakej') ||
-               e.includes('získal 1k') || e.includes('naučil') || e.includes('vrtal'))
+               e.includes('získal 1k') || e.includes('naučil'))
         events.fieldUses++;
       else if (e.includes('spí') || e.includes('downgradnul') || e.includes('výměnu') ||
                e.includes('prospal'))

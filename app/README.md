@@ -43,7 +43,9 @@ npm run preview
 - Pouze 2 hráči (rozšíření na 3-4 si vyžádá další tile templates a layout 10/13 dílků).
 - Pouze vítězný cíl "Rozmačkej Čerta" (formace přímka/obklíčení/průzkumník zatím neimplementovány).
 - Obrana kostkou na Záhonu/Stromě je zjednodušená (záměrná takeover bez ověření vyšší kostky).
-- "Vrtej" označí pole bobkem, ale nezapočítává se do žádného úkolu (úkoly nejsou v MVP).
+- Akce "Vrtej" byla odstraněna (bez úkolů nemělo využití).
+- Dovednosti "Žonglování" a "Zácpa" byly sloučeny do "Kapacita" (1 strom, ruší oba limity).
+- Spánek má novou akci "Teleport" (5 brambor → kamkoli mimo Čerta/živé Kočky/jiného Vombata).
 
 ## Pravidla — připomenutí
 

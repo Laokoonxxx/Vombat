@@ -212,14 +212,14 @@ export function finishSetup(state: GameState): GameState {
 // =============================================================================
 
 export function canAddDieToHand(p: PlayerState, level: DiceLevel): boolean {
-  if (p.skills.has('zonglovani')) return true;
+  if (p.skills.has('kapacita')) return true;
   // Max 2 of same level
   const count = p.hand.filter((d) => d === level).length;
   return count < 2;
 }
 
 export function canAddDieToReserve(p: PlayerState): boolean {
-  if (p.skills.has('zacpa')) return true;
+  if (p.skills.has('kapacita')) return true;
   return p.reserve.length < 3;
 }
 
@@ -474,7 +474,7 @@ export function canUseField(state: GameState, hex: Hex): boolean {
 }
 
 // Use a field: dispatch by type
-export function useField(state: GameState, hex: Hex, opts?: { dirtAction?: 'plant' | 'poop' | 'learn' | 'drill'; }): GameState {
+export function useField(state: GameState, hex: Hex, opts?: { dirtAction?: 'plant' | 'poop' | 'learn'; }): GameState {
   const cell = state.board.get(hexKey(hex));
   if (!cell) return state;
   switch (cell.type) {
@@ -580,7 +580,7 @@ function thornThreshold(lvl: 2 | 4 | 6 | 8): number {
 }
 
 // --- DIRT (Hlína) / DESERT (Poušť with Koupel) ---
-function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn' | 'drill'): GameState {
+function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   const cell = s.board.get(hexKey(hex))!;
@@ -609,7 +609,6 @@ function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'
     case 'plant':  return dirtPlant(s, p, cell);
     case 'poop':   return dirtPoop(s, p, cell);
     case 'learn':  s.pendingChoice = { kind: 'pick_skill', hex }; return s;
-    case 'drill':  return dirtDrill(s, p, cell);
   }
 }
 
@@ -661,22 +660,9 @@ function poopResult(score: number): DiceLevel | null {
   return 20;
 }
 
-function dirtDrill(s: GameState, p: PlayerState, cell: BoardCell): GameState {
-  // "Vrtej" — place bobek but field is NOT considered occupied (for goals).
-  // For MVP we still mark the field so it can't be reused, but don't count toward goals.
-  cell.marker = { playerId: p.id, kind: 'bobek' };
-  // Note: don't count toward markers/bobekTrack since not used for goals
-  s.usedFieldThisTurn = true;
-  s.pendingChoice = null;
-  logEntry(s, `${p.name} vrtal v Hlíně (pole nebude počítáno do žádného úkolu).`);
-  endTurn(s);
-  return s;
-}
-
 // --- LEARN SKILL ---
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
-  zonglovani:   { trees: 1, label: 'Žonglování',         desc: 'Žádný limit "max 2 stejného lvl" v Ruce.' },
-  zacpa:        { trees: 1, label: 'Zácpa',              desc: 'Žádný limit 3 kostek v Zásobě.' },
+  kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Ruší oba limity: "max 2 stejného lvl" v Ruce i "max 3" v Zásobě.' },
   koupel:       { trees: 2, label: 'Koupel',             desc: 'Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+).' },
   klystyr:      { trees: 2, label: 'Klystýr',            desc: 'Při Spánku: výměna Ruka↔Zásoba až 3x.' },
   masaz_strev:  { trees: 2, label: 'Masáž Střev',        desc: 'Při Spánku: Upgrade 1 kostky o 1 lvl.' },
@@ -729,7 +715,10 @@ export type SleepAction =
   | { kind: 'swap'; ops: SwapOp[] }
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
   | { kind: 'upgrade_die_2x'; location: 'hand' | 'reserve'; index: number }
+  | { kind: 'teleport'; vombatId: string; targetHex: Hex }
   | { kind: 'skip' };
+
+export const TELEPORT_COST = 5;
 
 export type SwapOp =
   | { op: 'hand_to_reserve'; index: number }
@@ -806,6 +795,24 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       }
       arr[action.index] = nu;
       logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Ajurvéda).`);
+      break;
+    }
+    case 'teleport': {
+      if (p.potatoes < TELEPORT_COST) return state;
+      const targetCell = s.board.get(hexKey(action.targetHex));
+      if (!targetCell) return state;
+      // Cannot teleport onto a live cat, a devil, or another vombat
+      if (targetCell.type === 'cat' && targetCell.catAlive) return state;
+      if (targetCell.type === 'devil') return state;
+      if (isHexOccupiedByVombat(s, action.targetHex)) return state;
+      const v = p.vombats.find((vv) => vv.id === action.vombatId);
+      if (!v) return state;
+      p.potatoes -= TELEPORT_COST;
+      v.hex = { ...action.targetHex };
+      logEntry(
+        s,
+        `${p.name} teleportoval Vombata na ${targetCell.type} (${action.targetHex.q},${action.targetHex.r}) za ${TELEPORT_COST} brambor.`
+      );
       break;
     }
     case 'skip':

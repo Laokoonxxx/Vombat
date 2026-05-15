@@ -338,8 +338,8 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
 }
 
 function canAddDieAnywhere(p: PlayerState, lvl: DiceLevel): boolean {
-  const handLimit = p.skills.has('zonglovani') || p.hand.filter((d) => d === lvl).length < 2;
-  const reserveLimit = p.skills.has('zacpa') || p.reserve.length < 3;
+  const handLimit = p.skills.has('kapacita') || p.hand.filter((d) => d === lvl).length < 2;
+  const reserveLimit = p.skills.has('kapacita') || p.reserve.length < 3;
   return handLimit || reserveLimit;
 }
 
@@ -404,8 +404,7 @@ function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
 // ----- Skill picking --------------------------------------------------------
 
 const SKILL_PRIORITY: SkillId[] = [
-  'zonglovani',    // 1 tree, easy first pick
-  'zacpa',         // 1 tree, second pick (capacity unlock)
+  'kapacita',      // 1 tree, easy first pick (capacity unlock)
   'sprint',        // 2 trees, movement boost
   'masaz_strev',   // 2 trees, dice upgrade
   'ajurveda',      // 3 trees, big upgrade

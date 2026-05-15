@@ -198,9 +198,6 @@ Učení vyžaduje kontrolu nad určitým počtem **Eukalyptových stromů** (mod
 
 Každou dovednost lze naučit pouze 1×.
 
-#### Vrtej 🕳️
-Polož na Hlínu svůj žeton **Bobku**. Pole se nezapočítává do žádného úkolu (formace).
-
 ---
 
 ### 6.2. Záhon 🌱 (šedá, aktivace 4–6)
@@ -267,8 +264,7 @@ Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušt
 
 | Dovednost | 🌳 | Účinek |
 |---|---|---|
-| **Žonglování** | 1 | Ruší limit "max 2 kostky stejného levelu" v Ruce. |
-| **Zácpa** | 1 | Ruší limit 3 kostek v Zásobě. |
+| **Kapacita** | 1 | Ruší oba limity: max 2 kostky stejného lvl v Ruce **i** max 3 kostky v Zásobě. |
 | **Koupel** | 2 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
 | **Klystýr** | 2 | Při Spánku: výměna Ruka ↔ Zásoba až 3× (místo 1×). |
 | **Masáž Střev** | 2 | Při Spánku: Upgrade 1 kostky o 1 lvl. |
@@ -310,6 +306,7 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Přesuň kostku z Ruky do Zásoby.
   - Přesuň kostku ze Zásoby do Ruky.
   - Vyměň kostku v Ruce s kostkou v Zásobě.
+- **Teleport (5 🥔)** — přemísti Vombata na libovolné pole mapy. Cílem nesmí být pole Čerta ani živé Kočky a nesmí na něm stát jiný Vombat.
 
 ### Možnosti s dovednostmi
 - **Klystýr** → Výměna se Zásobou až 3×.
@@ -439,6 +436,9 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Pole 1× za hru | ano, kromě převzetí Záhonu/Eukalyptu a Hlíny s Mrkví soupeře |
 | Tunely | všechna černá pole + pole bývalé Kočky |
 | 1k12 cena v setupu | 12 🥔 (v pravidlech neuvedeno, doplněno rozumně) |
+| Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
+| Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
+| Teleport (Spánek) | **přidáno** — 5 🥔 → přemístění Vombata kamkoli (mimo Čerta/živé Kočky/jiného Vombata). Řeší dead-end stavy. |
 
 ---
 
@@ -448,7 +448,6 @@ Tyto věci jsou v aktuální digitální verzi zjednodušené:
 
 1. **Obrana kostkou** na Záhonu/Eukalyptu — takeover lze provést bez ověření vyšší kostky.
 2. **Investice brambor do Kakej** — UI dialog zatím nenabízí; počítá se jen carrotTrack + sousední markery.
-3. **Vrtej** označí pole, ale nezapočítává se nikam (úkoly nejsou v MVP).
-4. **Úkoly (formace)** — celá sekce neimplementována.
-5. **3–4 hráči** — neimplementováno (vyžaduje další šablony a layout 10/13 dílků).
-6. **Vítězné cíle 2 a 3** — neimplementováno.
+3. **Úkoly (formace)** — celá sekce neimplementována.
+4. **3–4 hráči** — neimplementováno (vyžaduje další šablony a layout 10/13 dílků).
+5. **Vítězné cíle 2 a 3** — neimplementováno.

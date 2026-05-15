@@ -54,8 +54,7 @@ export interface BoardCell {
 }
 
 export type SkillId =
-  | 'zonglovani'
-  | 'zacpa'
+  | 'kapacita'    // merged Žonglování + Zácpa — removes both hand & reserve limits
   | 'koupel'
   | 'klystyr'
   | 'masaz_strev'

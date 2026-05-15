@@ -9,7 +9,7 @@ import {
   rollDice, legalMoveTargets, moveVombat, canUseField, useField,
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
-  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill,
+  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST,
 } from '../game/engine';
 import { aiStep } from '../game/ai';
 
@@ -19,7 +19,7 @@ export interface GameScreenProps {
   onNewGame?: () => void;
 }
 
-type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu';
+type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu' | 'pickTeleport';
 
 export function GameScreen({ state, setState, onNewGame }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
@@ -61,6 +61,17 @@ export function GameScreen({ state, setState, onNewGame }: GameScreenProps) {
       });
       return hexes;
     }
+    if (mode === 'pickTeleport') {
+      // any non-cat-alive, non-devil, non-vombat hex
+      const hexes: Hex[] = [];
+      state.board.forEach((c) => {
+        if (c.type === 'devil') return;
+        if (c.type === 'cat' && c.catAlive) return;
+        if (state.players.some((pl) => pl.vombats.some((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r))) return;
+        hexes.push(c.hex);
+      });
+      return hexes;
+    }
     return [];
   }, [mode, selectedVombatId, p, state]);
 
@@ -86,6 +97,16 @@ export function GameScreen({ state, setState, onNewGame }: GameScreenProps) {
       const after = useField(state, hex);
       setState(after);
       setMode('idle');
+      return;
+    }
+    if (mode === 'pickTeleport') {
+      // Use first vombat if no selection; otherwise the selected one.
+      const vombatId = selectedVombatId || p.vombats[0]?.id;
+      if (!vombatId) return;
+      const after = sleep(state, { kind: 'teleport', vombatId, targetHex: hex });
+      setState(after);
+      setMode('idle');
+      setSelectedVombatId(null);
       return;
     }
   }
@@ -183,7 +204,15 @@ export function GameScreen({ state, setState, onNewGame }: GameScreenProps) {
             <SkillModal state={state} setState={setState} />
           )}
           {mode === 'sleepMenu' && (
-            <SleepModal state={state} setState={setState} close={() => setMode('idle')} />
+            <SleepModal
+              state={state}
+              setState={setState}
+              close={() => setMode('idle')}
+              onPickTeleport={(vombatId) => {
+                setSelectedVombatId(vombatId);
+                setMode('pickTeleport');
+              }}
+            />
           )}
         </div>
         <div className="panel">
@@ -264,9 +293,6 @@ function DirtActionModal({ state, setState }: { state: GameState; setState: (s: 
           <button onClick={() => setState(useField(state, pc.hex, { dirtAction: 'learn' }))}>
             🧠 Uč se dovednost
           </button>
-          <button onClick={() => setState(useField(state, pc.hex, { dirtAction: 'drill' }))}>
-            🕳️ Vrtej (bez bonusu)
-          </button>
         </div>
       </div>
     </div>
@@ -318,7 +344,17 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
   );
 }
 
-function SleepModal({ state, setState, close }: { state: GameState; setState: (s: GameState) => void; close: () => void }) {
+function SleepModal({
+  state,
+  setState,
+  close,
+  onPickTeleport,
+}: {
+  state: GameState;
+  setState: (s: GameState) => void;
+  close: () => void;
+  onPickTeleport: (vombatId: string) => void;
+}) {
   const p = currentPlayer(state);
   return (
     <div className="modal-backdrop">
@@ -329,8 +365,20 @@ function SleepModal({ state, setState, close }: { state: GameState; setState: (s
           <button onClick={() => setState(sleep(state, { kind: 'gain_potato' }))}>
             🥔 Získej 1 bramboru
           </button>
+          {p.vombats.map((v, i) => (
+            <button
+              key={`tp${i}`}
+              disabled={p.potatoes < TELEPORT_COST}
+              onClick={() => {
+                close();
+                onPickTeleport(v.id);
+              }}
+              title="Teleport Vombata na libovolné pole (kromě Čerta a živé Kočky) za 5 brambor"
+            >
+              🌀 Teleport {p.vombats.length > 1 ? `Vombata #${i + 1} ` : ''}({TELEPORT_COST} 🥔)
+            </button>
+          ))}
           <button onClick={() => {
-            // Quick: downgrade all dice with value > 2 by 1
             const targets = p.hand.map((_, i) => ({ location: 'hand' as const, index: i }));
             setState(sleep(state, { kind: 'downgrade_dice', targets }));
           }}>

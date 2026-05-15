@@ -78,8 +78,7 @@ const ICON_LEGEND = [
 ];
 
 const SKILL_ORDER: SkillId[] = [
-  'zonglovani',
-  'zacpa',
+  'kapacita',
   'koupel',
   'klystyr',
   'masaz_strev',
