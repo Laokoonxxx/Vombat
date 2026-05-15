@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { GameState, Hex, DiceLevel, SkillId, WoundType } from '../game/types';
 import { hexKey, WOUND_TYPES } from '../game/types';
 import { HexBoard } from './HexBoard';
@@ -11,6 +11,7 @@ import {
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill,
 } from '../game/engine';
+import { aiStep } from '../game/ai';
 
 export interface GameScreenProps {
   state: GameState;
@@ -23,6 +24,21 @@ export function GameScreen({ state, setState }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
+
+  // Auto-run AI: when current player is AI, dispatch one step every ~700ms
+  // so the user can see each move land.
+  useEffect(() => {
+    if (state.phase === 'game_over') return;
+    const isAITurn = p.kind === 'ai';
+    // Also handle: AI is in a pending choice from a human-triggered effect
+    const aiHasPending = state.pendingChoice && state.players.some((pl) => pl.kind === 'ai' && pl.id === (state.pendingChoice as any).playerId);
+    if (!isAITurn && !aiHasPending) return;
+    const t = setTimeout(() => {
+      const next = aiStep(state);
+      if (next && next !== state) setState(next);
+    }, 700);
+    return () => clearTimeout(t);
+  }, [state, p, setState]);
 
   // Compute clickable hexes per mode
   const clickable = useMemo(() => {

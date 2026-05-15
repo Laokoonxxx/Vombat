@@ -66,6 +66,7 @@ export interface PlayerState {
   id: string;
   name: string;
   color: string;             // hex color
+  kind: 'human' | 'ai';      // controls who decides this player's actions
   hand: DiceLevel[];         // kostky v Ruce
   reserve: DiceLevel[];      // kostky v Zásobě
   potatoes: number;

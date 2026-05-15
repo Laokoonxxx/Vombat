@@ -15,6 +15,7 @@ const PLAYER_COLORS = ['#d94a4a', '#4a7fd9', '#5fb04a', '#d9a14a'];
 
 export interface SetupPlayer {
   name: string;
+  kind?: 'human' | 'ai';
 }
 
 export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameState {
@@ -41,6 +42,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
       id: `p${posIdx}`,
       name: sp.name || `Hráč ${posIdx + 1}`,
       color: PLAYER_COLORS[posIdx],
+      kind: sp.kind ?? 'human',
       hand: [],
       reserve: [],
       potatoes: 10, // starting potatoes for shop
@@ -275,6 +277,8 @@ export function resolveAttackWithPotato(state: GameState): GameState {
   p.potatoes -= 1;
   logEntry(s, `${p.name} odevzdal bramboru jako obranu před ${pc.from === 'cat' ? 'Kočkou' : 'Čertem'}.`);
   s.pendingChoice = null;
+  // If this attack came from failed devil combat, the turn ends now.
+  if (pc.from === 'devil') endTurn(s);
   return s;
 }
 
@@ -303,6 +307,8 @@ export function resolveAttackWithDie(state: GameState, location: 'hand' | 'reser
     logEntry(s, `${p.name} odevzdal kostku 1k${lvl} jako obranu před ${pc.from === 'cat' ? 'Kočkou' : 'Čertem'}.`);
   }
   s.pendingChoice = null;
+  // If this attack came from failed devil combat, the turn ends now.
+  if (pc.from === 'devil') endTurn(s);
   return s;
 }
 

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { GameState, DiceLevel, Hex } from '../game/types';
 import { ALL_DICE_LEVELS, DICE_PRICES } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { Legend } from './Legend';
 import { buyDie, buySecondVombat, finishSetup, placeStartingVombat } from '../game/engine';
+import { aiSetupStep } from '../game/ai';
 
 export interface SetupScreenProps {
   state: GameState;
@@ -16,6 +17,24 @@ export function SetupScreen({ state, setState }: SetupScreenProps) {
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
   const placingPlayer = playersWithoutVombat[0];
 
+  // Auto-run AI setup actions (placement + buying)
+  useEffect(() => {
+    const nextHumanPlacer = state.players.find((p) => p.kind === 'human' && p.vombats.length === 0);
+    // If a human still needs to place, wait for them before AI does anything.
+    // We only auto-run AI when:
+    //   - the next placer is an AI, or
+    //   - all players are placed and an AI still needs to buy
+    const aiPlacerWaiting = state.players.find((p) => p.kind === 'ai' && p.vombats.length === 0);
+    const aiBuyerWaiting = state.players.find((p) => p.kind === 'ai' && p.vombats.length > 0 && p.hand.length === 0);
+    const shouldRun = (!!aiPlacerWaiting && !nextHumanPlacer) || (!!aiBuyerWaiting && !nextHumanPlacer);
+    if (!shouldRun) return;
+    const t = setTimeout(() => {
+      const next = aiSetupStep(state);
+      if (next) setState(next);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [state, setState]);
+
   // For shop phase we let players take turns: first the one who hasn't bought; once all bought >=1, we let any player continue to add more until "Hotovo".
   const allBought = state.players.every((p) => p.hand.length > 0);
   const [shopPlayerIdx, setShopPlayerIdx] = useState(0);
@@ -27,9 +46,9 @@ export function SetupScreen({ state, setState }: SetupScreenProps) {
     }
   }
 
-  // Build clickable hex list during placement: any non-cat non-devil empty cell
+  // Build clickable hex list during placement: only when a HUMAN is placing
   const clickable: Hex[] = [];
-  if (placingPlayer) {
+  if (placingPlayer && placingPlayer.kind === 'human') {
     state.board.forEach((c) => {
       if (c.type === 'cat' || c.type === 'devil') return;
       const occupied = state.players.some((p) => p.vombats.some((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r));
@@ -50,11 +69,21 @@ export function SetupScreen({ state, setState }: SetupScreenProps) {
         {placingPlayer ? (
           <div className="panel">
             <h3>Umístění Vombatů</h3>
-            <p>
-              <strong style={{ color: placingPlayer.color }}>{placingPlayer.name}</strong>: klikni na pole na mapě.
-              (Nelze začít na Kočce nebo Čertovi.)
-            </p>
-            <p style={{ fontSize: 12, color: 'var(--muted)' }}>Tip: Pole sousedící s Kočkou nejsou úplně bezpečná.</p>
+            {placingPlayer.kind === 'human' ? (
+              <>
+                <p>
+                  <strong style={{ color: placingPlayer.color }}>{placingPlayer.name}</strong>: klikni na pole na mapě.
+                  (Nelze začít na Kočce nebo Čertovi.)
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+                  Tip: Pole sousedící s Kočkou nejsou úplně bezpečná.
+                </p>
+              </>
+            ) : (
+              <p>
+                🤖 <strong style={{ color: placingPlayer.color }}>{placingPlayer.name}</strong> přemýšlí kde se umístit…
+              </p>
+            )}
           </div>
         ) : (
           <div className="panel">
