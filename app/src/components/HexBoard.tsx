@@ -35,6 +35,60 @@ const ACTIVATION_LABEL: Record<BoardCell['type'], string> = {
   devil:  '12+',
 };
 
+const TYPE_NAME: Record<BoardCell['type'], string> = {
+  dirt:   'Hlína',
+  bed:    'Záhon',
+  desert: 'Poušť',
+  tree:   'Eukalyptus',
+  thorn:  'Houští',
+  cat:    'Kočka',
+  devil:  'Tasmánský Čert',
+};
+
+function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
+  const parts: string[] = [TYPE_NAME[c.type]];
+  switch (c.type) {
+    case 'dirt':
+      parts.push('Aktivace 2-4. Akce: Zasaď / Kakej / Uč se / Vrtej.');
+      break;
+    case 'bed':
+      parts.push('Aktivace 4-6. Akce: Zasaď mrkev (zvyšuje skóre Kakej).');
+      break;
+    case 'desert':
+      parts.push('Aktivace 7+. Akce jako Hlína - vyžaduje dovednost Koupel.');
+      break;
+    case 'tree':
+      parts.push('Aktivace 7-8. Obsaď - kapitál pro učení dovedností.');
+      break;
+    case 'thorn':
+      if (isBlockedThorn) {
+        parts.push(`🚫 Blokováno kostkou 1k${c.thornDieLevel}. Nelze projít, dokud kostka leží na poli.`);
+        const thresh = c.thornDieLevel === 4 ? 5 : c.thornDieLevel === 6 ? 7 : 9;
+        parts.push(`Pro získání kostky: hodem ${thresh}+ na Využití pole.`);
+      } else {
+        parts.push('Aktivace 5-9 (pohyb). Volný - lze projít.');
+      }
+      break;
+    case 'cat':
+      if (c.catAlive) {
+        parts.push('Aktivace 11-14 (rozmačkání → 1k20). Pozor: útok při hodu <5 v sousedství.');
+      } else {
+        parts.push('Mrtvá kočka - tunel.');
+      }
+      break;
+    case 'devil':
+      parts.push('Aktivace 12+ (pohyb). Boj se vyhlašuje PŘED hodem.');
+      break;
+  }
+  if (c.isTunnel) {
+    parts.push('🕳️ Tunel: lze sem vstoupit z libovolného jiného tunelu.');
+  }
+  if (c.marker) {
+    parts.push(`Obsazeno ${c.marker.kind === 'bobek' ? 'bobkem 💩' : 'mrkví 🥕'}.`);
+  }
+  return parts.join('\n');
+}
+
 export interface HexBoardProps {
   state: GameState;
   clickableHexes?: Hex[]; // for current action — highlighted & clickable
@@ -77,6 +131,13 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
       viewBox={`${bounds.minX} ${bounds.minY} ${bounds.width} ${bounds.height}`}
       style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }}
     >
+      {/* SVG pattern for "blocked thorn" diagonal hatching */}
+      <defs>
+        <pattern id="thorn-block-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+          <rect width="8" height="8" fill="transparent" />
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
+        </pattern>
+      </defs>
       {cells.map((c) => {
         const { x, y } = hexToPixel(c.hex, HEX_SIZE);
         const points = corners.map((p) => `${x + p.x},${y + p.y}`).join(' ');
@@ -92,12 +153,19 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
         const fill = TYPE_FILL[c.type];
         const opacity = (c.type === 'cat' && !c.catAlive) ? 0.5 : 1;
 
+        // Thorn with a die is impassable for movement until cleared
+        const isBlockedThorn = c.type === 'thorn' && c.thornDieLevel != null && !c.marker;
+
+        // Build a tooltip explaining what this cell does
+        const tooltip = buildTooltip(c, isBlockedThorn);
+
         return (
           <g
             key={k}
             className={`hex-cell ${clickable ? 'clickable' : ''} ${isSelected ? 'highlighted' : ''}`}
             onClick={() => clickable && onHexClick && onHexClick(c.hex)}
           >
+            <title>{tooltip}</title>
             <polygon
               points={points}
               fill={fill}
@@ -105,6 +173,14 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
               stroke={isSelected ? '#ffd95e' : '#3d2f1a'}
               strokeWidth={isSelected ? 3 : 1}
             />
+            {/* Diagonal-hatch overlay marking blocked thorn (impassable until die is taken) */}
+            {isBlockedThorn && (
+              <polygon
+                points={points}
+                fill="url(#thorn-block-hatch)"
+                pointerEvents="none"
+              />
+            )}
             {/* Activation hint */}
             <text x={x} y={y - HEX_SIZE * 0.55} className="hex-label" fontSize={9} fill="#1c150a">
               {ACTIVATION_LABEL[c.type]}
@@ -121,6 +197,17 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
                   k{c.thornDieLevel}
                 </text>
               </g>
+            )}
+            {/* "No entry" badge in upper-left corner of blocked thorn */}
+            {isBlockedThorn && (
+              <text
+                x={x - HEX_SIZE * 0.45}
+                y={y - HEX_SIZE * 0.4}
+                className="hex-label"
+                fontSize={12}
+              >
+                🚫
+              </text>
             )}
             {/* Marker (bobek/mrkev) */}
             {c.marker && (

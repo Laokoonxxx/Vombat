@@ -44,7 +44,7 @@ const LEGEND: LegendRow[] = [
     name: 'Houští',
     color: 'var(--hex-thorn)',
     activation: '5+/7+/9+',
-    description: 'Získej kostku z pole (k4 → 5+, k6 → 7+, k8 → 9+). Pohyb 5–9.',
+    description: 'Získej kostku z pole (k4 → 5+, k6 → 7+, k8 → 9+). Dokud kostka leží na poli 🚫 neprojdeš (i když hod 5-9 sedí). Po využití lze projít hodem 5-9.',
   },
   {
     emoji: '🐱',
