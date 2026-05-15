@@ -19,15 +19,14 @@ export function SetupScreen({ state, setState }: SetupScreenProps) {
 
   // Auto-run AI setup actions (placement + buying)
   useEffect(() => {
-    const nextHumanPlacer = state.players.find((p) => p.kind === 'human' && p.vombats.length === 0);
-    // If a human still needs to place, wait for them before AI does anything.
-    // We only auto-run AI when:
-    //   - the next placer is an AI, or
-    //   - all players are placed and an AI still needs to buy
-    const aiPlacerWaiting = state.players.find((p) => p.kind === 'ai' && p.vombats.length === 0);
-    const aiBuyerWaiting = state.players.find((p) => p.kind === 'ai' && p.vombats.length > 0 && p.hand.length === 0);
-    const shouldRun = (!!aiPlacerWaiting && !nextHumanPlacer) || (!!aiBuyerWaiting && !nextHumanPlacer);
-    if (!shouldRun) return;
+    // The *next* player who needs to place — placement happens in turn order.
+    const firstPlacer = state.players.find((p) => p.vombats.length === 0);
+    const shouldPlace = !!firstPlacer && firstPlacer.kind === 'ai';
+    // After all placed: shop is open to everyone in parallel, so auto-buy any
+    // AI player that hasn't bought a die yet.
+    const shouldBuy =
+      !firstPlacer && state.players.some((p) => p.kind === 'ai' && p.hand.length === 0);
+    if (!shouldPlace && !shouldBuy) return;
     const t = setTimeout(() => {
       const next = aiSetupStep(state);
       if (next) setState(next);
