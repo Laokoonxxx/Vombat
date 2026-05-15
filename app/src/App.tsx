@@ -1,19 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createGame } from './game/engine';
 import type { GameState } from './game/types';
 import { SetupScreen } from './components/SetupScreen';
 import { GameScreen } from './components/GameScreen';
+import { loadFromStorage, saveToStorage, clearStorage, getSaveMeta } from './game/persistence';
 
 type Mode = 'hotseat' | 'vs_ai';
 
 export function App() {
-  const [state, setState] = useState<GameState | null>(null);
+  // Try to restore a saved game on mount.
+  const [state, setStateInternal] = useState<GameState | null>(() => loadFromStorage());
   const [mode, setMode] = useState<Mode>('hotseat');
   const [p1Name, setP1Name] = useState('Hráč 1');
   const [p2Name, setP2Name] = useState('Hráč 2');
   const [aiName, setAiName] = useState('AI');
 
+  // Wrapper that always persists.
+  const setState = (s: GameState | null) => {
+    setStateInternal(s);
+    saveToStorage(s);
+  };
+
+  // Defensive: if state changes by any path, mirror it to storage.
+  useEffect(() => {
+    saveToStorage(state);
+  }, [state]);
+
+  function startNewGame() {
+    clearStorage();
+    setStateInternal(null);
+  }
+
   if (!state) {
+    const meta = getSaveMeta();
     return (
       <div className="setup-screen">
         <h1>🐾 Vombat</h1>
@@ -21,6 +40,11 @@ export function App() {
           Vítej v digitální verzi deskové hry Vombat. MVP podporuje 2 hráče a cíl{' '}
           <strong>Rozmačkej Tasmánského Čerta</strong>.
         </p>
+        {meta && (
+          <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+            (Žádná rozehraná partie - poslední uložení smazáno.)
+          </p>
+        )}
 
         <label>Režim hry</label>
         <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
@@ -80,12 +104,15 @@ export function App() {
         >
           Vytvořit hru
         </button>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 14 }}>
+          💾 Stav hry se automaticky ukládá do prohlížeče - po obnovení stránky pokračuješ, kde jsi skončil.
+        </p>
       </div>
     );
   }
 
   if (state.phase === 'setup') {
-    return <SetupScreen state={state} setState={setState} />;
+    return <SetupScreen state={state} setState={setState} onNewGame={startNewGame} />;
   }
-  return <GameScreen state={state} setState={setState} />;
+  return <GameScreen state={state} setState={setState} onNewGame={startNewGame} />;
 }

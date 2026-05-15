@@ -16,11 +16,12 @@ import { aiStep } from '../game/ai';
 export interface GameScreenProps {
   state: GameState;
   setState: (s: GameState) => void;
+  onNewGame?: () => void;
 }
 
 type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu';
 
-export function GameScreen({ state, setState }: GameScreenProps) {
+export function GameScreen({ state, setState, onNewGame }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
@@ -99,8 +100,19 @@ export function GameScreen({ state, setState }: GameScreenProps) {
     <div className="app">
       <div className="topbar">
         <h1>🐾 Vombat</h1>
-        <div className="turn-badge" style={{ color: p.color }}>
-          Tah: {p.name}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div className="turn-badge" style={{ color: p.color }}>
+            Tah: {p.name}
+          </div>
+          {onNewGame && (
+            <button
+              onClick={() => {
+                if (confirm('Opravdu zahodit rozehranou hru a začít novou?')) onNewGame();
+              }}
+            >
+              ↺ Nová hra
+            </button>
+          )}
         </div>
       </div>
       <div className="board-area">
