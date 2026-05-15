@@ -393,15 +393,16 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   const targets = legalMoveTargets(s, v.hex);
   if (!targets.some((t) => hexEq(t, targetHex))) return state;
   const targetCell = s.board.get(hexKey(targetHex))!;
-  // If moving onto a cat with 11-14 → kill it
-  if (targetCell.type === 'cat' && targetCell.catAlive) {
+  const smashedCat = targetCell.type === 'cat' && targetCell.catAlive;
+  if (smashedCat) {
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
-    // Add 1k20 to player (Ruka or Zásoba, default Ruka if possible)
     if (canAddDieToHand(p, 20)) p.hand.push(20);
     else if (canAddDieToReserve(p)) p.reserve.push(20);
     else logEntry(s, `${p.name} nemá kam umístit 1k20 - kostka propadá.`);
     logEntry(s, `🎉 ${p.name} rozmačkal Kočku! Získává 1k20 a pole se mění na tunel.`);
+  } else {
+    logEntry(s, `${p.name} přesunul Vombata na ${targetCell.type} (${targetHex.q},${targetHex.r}).`);
   }
   v.hex = { ...targetHex };
   s.movedThisTurn = true;
@@ -456,7 +457,13 @@ export function canUseField(state: GameState, hex: Hex): boolean {
     case 'bed':    if (sum < 4 || sum > 6) return false; break;
     case 'desert': if (sum < 7) return false; if (!p.skills.has('koupel')) return false; break;
     case 'tree':   if (sum < 7 || sum > 8) return false; break;
-    case 'thorn':  if (sum < 5) return false; break;   // 5+/7+/9+ depending on die there
+    case 'thorn': {
+      // Need actual threshold for the die present: k4→5, k6→7, k8→9
+      if (!cell.thornDieLevel) return false; // already cleared, no use
+      const need = cell.thornDieLevel === 4 ? 5 : cell.thornDieLevel === 6 ? 7 : 9;
+      if (sum < need) return false;
+      break;
+    }
     case 'cat':    return false; // can't "use" a cat field for placement; smashing is via move
     case 'devil':  return false; // devil uses per-die logic, handled separately
   }
