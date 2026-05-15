@@ -9,7 +9,7 @@ import {
   rollDice, legalMoveTargets, moveVombat, canUseField, useField,
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
-  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST,
+  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
 } from '../game/engine';
 import { aiStep } from '../game/ai';
 
@@ -409,6 +409,34 @@ function SleepModal({
           </button>
           <button onClick={close}>Zrušit</button>
         </div>
+        {/* Skill shop */}
+        {(Object.keys(SKILL_REQUIREMENTS) as SkillId[]).filter((s) => !p.skills.has(s)).length > 0 && (
+          <div style={{ marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 13, textTransform: 'uppercase', color: 'var(--muted)' }}>
+              🧠 Skill shop (Sleep)
+            </h3>
+            <p style={{ fontSize: 11, color: 'var(--muted)', margin: '4px 0 8px' }}>
+              Cena: 5 🥔 za každý vyžadovaný strom.
+            </p>
+            <div className="actions">
+              {(Object.keys(SKILL_REQUIREMENTS) as SkillId[]).map((sid) => {
+                const req = SKILL_REQUIREMENTS[sid];
+                if (p.skills.has(sid)) return null;
+                const cost = skillBuyCost(sid);
+                return (
+                  <button
+                    key={sid}
+                    disabled={p.potatoes < cost}
+                    onClick={() => setState(sleep(state, { kind: 'buy_skill', skill: sid }))}
+                    title={req.desc}
+                  >
+                    🛒 {req.label} ({cost} 🥔)
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

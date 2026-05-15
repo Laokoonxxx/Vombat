@@ -37,6 +37,7 @@ import {
   canFightDevil,
   allWoundsTaken,
   learnSkill,
+  skillBuyCost,
   SKILL_REQUIREMENTS,
 } from './engine';
 
@@ -214,9 +215,9 @@ function aiStartTurn(state: GameState): GameState {
     return beginDevilCombat(state);
   }
 
-  // No dice → sleep for potato (gain economy)
+  // No dice → sleep (buy a skill if we can, else gain potato)
   if (p.hand.length === 0) {
-    return sleep(state, { kind: 'gain_potato' });
+    return aiSleep(state);
   }
   return rollDice(state);
 }
@@ -285,6 +286,19 @@ function aiChooseAction(state: GameState): GameState {
   }
   if (bestMove && moveScore >= sleepScore) {
     return moveVombat(state, bestMove.vombatId, bestMove.hex);
+  }
+  return aiSleep(state);
+}
+
+// Smarter Sleep choice: buy a skill if affordable, else gain potato.
+function aiSleep(state: GameState): GameState {
+  const p = currentPlayer(state);
+  for (const sid of SKILL_PRIORITY) {
+    if (p.skills.has(sid)) continue;
+    const cost = skillBuyCost(sid);
+    if (p.potatoes >= cost) {
+      return sleep(state, { kind: 'buy_skill', skill: sid });
+    }
   }
   return sleep(state, { kind: 'gain_potato' });
 }

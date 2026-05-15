@@ -150,6 +150,8 @@ Tunely jsou: **všechna černá pole** + **pole bývalé Kočky** (po rozmačká
 ### Rozmačkání Kočky
 Hod 11–14 + sousední Kočka → Vombat vstoupí na pole Kočky. Kočka je odstraněna z herního plánu. Hráč získá **1k20**. Pole se mění na **tunel**.
 
+🎁 **Milestone bonus:** Pokud je tohle tvoje **první rozmačkaná Kočka** ve hře, automaticky získáš dovednost **Koupel** zdarma (i bez Eukalyptů).
+
 ### Konec tahu při pohybu
 Posunutí Vombata **ukončí tvůj tah** (kromě případu Sprintu, viz § 6.7).
 
@@ -307,6 +309,11 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Přesuň kostku ze Zásoby do Ruky.
   - Vyměň kostku v Ruce s kostkou v Zásobě.
 - **Teleport (5 🥔)** — přemísti Vombata na libovolné pole mapy. Cílem nesmí být pole Čerta ani živé Kočky a nesmí na něm stát jiný Vombat.
+- **Skill shop** — kup libovolnou dovednost za **5 🥔 × počet požadovaných stromů**:
+  - 1-strom dovednost (Kapacita) = **5 🥔**
+  - 2-strom dovednost (Koupel, Klystýr, Masáž Střev, Sprint) = **10 🥔**
+  - 3-strom dovednost (Ajurvédská Medicína) = **15 🥔**
+  - Skill shop je alternativa k tradičnímu "Uč se" na Hlíně — nepotřebuje Eukalypty ani vybavení Hlíny.
 
 ### Možnosti s dovednostmi
 - **Klystýr** → Výměna se Zásobou až 3×.
@@ -341,6 +348,8 @@ Kostka může způsobit zranění pokud její hodnota přesně odpovídá:
 - **10+** → kostka padla ≥ 10
 
 Kostky použité na zranění **propadají natrvalo** (znázorňují, že Čert je zraněn).
+
+🎁 **Milestone bonus:** Při tvém **prvním zaneseném zranění** Čerta (jakémkoli ze 4 typů) automaticky získáš dovednost **Kapacita** zdarma. Tedy: poškoď Čerta jednou → odměna v podobě neomezené kapacity Ruky i Zásoby.
 
 Každý hráč má **vlastní 4 sloty zranění** (každý hráč bojuje se "svým" Čertem). Jeden hráč může mít v každém slotu maximálně 1 kostku.
 
@@ -439,6 +448,9 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
 | Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
 | Teleport (Spánek) | **přidáno** — 5 🥔 → přemístění Vombata kamkoli (mimo Čerta/živé Kočky/jiného Vombata). Řeší dead-end stavy. |
+| Skill shop (Spánek) | **přidáno** — 5 🥔 × počet stromů → koupíš libovolnou dovednost. Alternativa k tradičnímu Uč se. |
+| Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
+| Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
 
 ---
 

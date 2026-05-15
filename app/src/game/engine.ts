@@ -401,6 +401,11 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
     else if (canAddDieToReserve(p)) p.reserve.push(20);
     else logEntry(s, `${p.name} nemá kam umístit 1k20 - kostka propadá.`);
     logEntry(s, `🎉 ${p.name} rozmačkal Kočku! Získává 1k20 a pole se mění na tunel.`);
+    // Milestone: first cat smash → grant Koupel
+    if (!p.skills.has('koupel')) {
+      p.skills.add('koupel');
+      logEntry(s, `✨ ${p.name} získává dovednost Koupel zdarma (1. rozmačkaná Kočka)!`);
+    }
   } else {
     logEntry(s, `${p.name} přesunul Vombata na ${targetCell.type} (${targetHex.q},${targetHex.r}).`);
   }
@@ -716,9 +721,14 @@ export type SleepAction =
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
   | { kind: 'upgrade_die_2x'; location: 'hand' | 'reserve'; index: number }
   | { kind: 'teleport'; vombatId: string; targetHex: Hex }
+  | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
 export const TELEPORT_COST = 5;
+export const SKILL_BUY_COST_PER_TREE = 5;
+export function skillBuyCost(skill: SkillId): number {
+  return SKILL_REQUIREMENTS[skill].trees * SKILL_BUY_COST_PER_TREE;
+}
 
 export type SwapOp =
   | { op: 'hand_to_reserve'; index: number }
@@ -797,6 +807,15 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Ajurvéda).`);
       break;
     }
+    case 'buy_skill': {
+      if (p.skills.has(action.skill)) return state;
+      const cost = skillBuyCost(action.skill);
+      if (p.potatoes < cost) return state;
+      p.potatoes -= cost;
+      p.skills.add(action.skill);
+      logEntry(s, `${p.name} koupil dovednost "${SKILL_REQUIREMENTS[action.skill].label}" za ${cost} 🥔.`);
+      break;
+    }
     case 'teleport': {
       if (p.potatoes < TELEPORT_COST) return state;
       const targetCell = s.board.get(hexKey(action.targetHex));
@@ -872,6 +891,11 @@ export function applyDevilWound(state: GameState, diceIndex: number, wound: Woun
   p.lastRoll.splice(diceIndex, 1);
   s.devilWounds.woundsByPlayer[p.id][wound] = dieLvl;
   logEntry(s, `${p.name} zranil Čerta na ${wound} (kostka 1k${dieLvl}, hod ${val}).`);
+  // Milestone: first wound applied → grant Kapacita
+  if (!p.skills.has('kapacita')) {
+    p.skills.add('kapacita');
+    logEntry(s, `✨ ${p.name} získává dovednost Kapacita zdarma (1. zranění Čerta)!`);
+  }
   // Killing-blow check: if all 4 wounds are now taken AND the dice that
   // remain in THIS roll already sum to >=25, the player has effectively
   // delivered the final blow in one go — no need to re-roll.

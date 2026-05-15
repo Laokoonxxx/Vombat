@@ -175,9 +175,10 @@ export function Legend() {
       {skillsOpen && (
         <div style={{ marginTop: 8 }}>
           <p style={{ fontSize: 11, color: 'var(--muted)', margin: '0 0 8px' }}>
-            Získáš akcí <strong>Uč se</strong> na 🟫 Hlíně (nebo 🏜️ Poušti s Koupelí). Vyžaduje
-            obsazené 🌳 Eukalypty. 1 chybějící strom lze nahradit 3 🥔 brambory nebo odhozením
-            libovolné kostky. Každou dovednost lze získat pouze 1×.
+            <strong>3 cesty k dovednosti:</strong> (1) Akce <strong>Uč se</strong> na 🟫 Hlíně
+            s 🌳 Eukalypty (chybějící strom = 3 🥔 nebo odhozená kostka). (2) <strong>Skill
+            shop</strong> ve Spánku: 5 🥔 × počet stromů. (3) <strong>Milestone bonusy:</strong>
+            1. rozmačkaná 🐱 = Koupel zdarma, 1. zranění 👹 = Kapacita zdarma.
           </p>
           <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
             <thead>
