@@ -342,10 +342,15 @@ export function legalMoveTargets(state: GameState, vombatHex: Hex): Hex[] {
     if (!c) return;
     if (matchesMoveValue(c, sum)) targets.push(h);
   });
-  // Tunnel: if standing on or adjacent to a tunnel cell, can teleport to any other tunnel
+  // Tunnel: if we ALREADY stand on a tunnel, or we are adjacent to a tunnel
+  // that we could ENTER with the current roll, we may redirect into any tunnel
+  // on the board. (Rule: "místo vstupu na toto pole můžeš vstoupit na
+  // jakékoliv jiné pole s tunelem" — entry into the source tunnel must be
+  // valid per normal movement rules; only the destination is unrestricted.)
   const standingOn = state.board.get(hexKey(vombatHex));
-  const adjTunnels = adjacentTo(state, vombatHex).filter((c) => c.isTunnel);
-  if (standingOn?.isTunnel || adjTunnels.length > 0) {
+  const enterableAdjTunnels = adjacentTo(state, vombatHex)
+    .filter((c) => c.isTunnel && matchesMoveValue(c, sum));
+  if (standingOn?.isTunnel || enterableAdjTunnels.length > 0) {
     state.board.forEach((c) => {
       if (c.isTunnel && !hexEq(c.hex, vombatHex)) {
         if (!targets.some((t) => hexEq(t, c.hex))) targets.push(c.hex);
