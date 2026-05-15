@@ -352,11 +352,12 @@ export function legalMoveTargets(state: GameState, vombatHex: Hex): Hex[] {
       }
     });
   }
-  // Filter: cannot land on cell occupied by another vombat or live cat
+  // Filter: cannot land on cell occupied by another vombat.
+  // (Live cats with sum 11-14 are allowed — that's the smashing move,
+  //  handled in moveVombat. matchesMoveValue already gated the sum range.)
   return targets.filter((h) => {
     const c = state.board.get(hexKey(h));
     if (!c) return false;
-    if (c.type === 'cat' && c.catAlive) return false;
     if (isHexOccupiedByVombat(state, h)) return false;
     // Cannot enter green field that holds a die
     if (c.type === 'thorn' && c.thornDieLevel != null && !c.marker) return false;
@@ -371,7 +372,10 @@ function matchesMoveValue(c: BoardCell, sum: number): boolean {
     case 'desert': return sum >= 7;
     case 'tree':   return sum >= 7 && sum <= 8;
     case 'thorn':  return sum >= 5 && sum <= 9;
-    case 'cat':    return sum >= 11 && sum <= 14; // smash cat
+    case 'cat':
+      // Live cat: smashing roll 11-14. Dead cat (tunnel): any roll allowed
+      // as direct neighbor (tunnel teleport also works from any other tunnel).
+      return c.catAlive ? (sum >= 11 && sum <= 14) : true;
     case 'devil':  return sum >= 12;
   }
 }
