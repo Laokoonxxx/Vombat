@@ -4,6 +4,7 @@ import { hexKey, WOUND_TYPES } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { PlayerBoard } from './PlayerBoard';
 import { DiceTray } from './DiceTray';
+import { Legend } from './Legend';
 import {
   rollDice, legalMoveTargets, moveVombat, canUseField, useField,
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
@@ -94,6 +95,7 @@ export function GameScreen({ state, setState }: GameScreenProps) {
         />
       </div>
       <div className="sidebar">
+        <Legend />
         {state.players.map((pl) => (
           <PlayerBoard key={pl.id} player={pl} active={pl.id === p.id} />
         ))}

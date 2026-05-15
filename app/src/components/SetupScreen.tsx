@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { GameState, DiceLevel, Hex } from '../game/types';
 import { ALL_DICE_LEVELS, DICE_PRICES } from '../game/types';
 import { HexBoard } from './HexBoard';
+import { Legend } from './Legend';
 import { buyDie, buySecondVombat, finishSetup, placeStartingVombat } from '../game/engine';
 
 export interface SetupScreenProps {
@@ -45,6 +46,7 @@ export function SetupScreen({ state, setState }: SetupScreenProps) {
         <HexBoard state={state} clickableHexes={clickable} onHexClick={onHexClick} />
       </div>
       <div className="sidebar">
+        <Legend />
         {placingPlayer ? (
           <div className="panel">
             <h3>Umístění Vombatů</h3>
