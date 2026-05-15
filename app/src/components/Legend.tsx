@@ -1,6 +1,11 @@
 import { useState } from 'react';
-import { SKILL_REQUIREMENTS } from '../game/engine';
+import { SKILL_REQUIREMENTS, skillBuyCost } from '../game/engine';
 import type { SkillId } from '../game/types';
+
+const SKILL_MILESTONE: Partial<Record<SkillId, string>> = {
+  kapacita: '🎁 1. zranění Čerta',
+  koupel: '🎁 1. rozmačkaná Kočka',
+};
 
 interface LegendRow {
   emoji: string;
@@ -184,20 +189,28 @@ export function Legend() {
             <thead>
               <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
                 <th style={{ paddingBottom: 4 }}>Dovednost</th>
-                <th style={{ paddingBottom: 4, whiteSpace: 'nowrap' }}>🌳</th>
+                <th style={{ paddingBottom: 4, whiteSpace: 'nowrap', textAlign: 'center' }} title="Počet potřebných stromů">🌳</th>
+                <th style={{ paddingBottom: 4, whiteSpace: 'nowrap', textAlign: 'center' }} title="Cena ve Sleep skill shopu">🛒</th>
               </tr>
             </thead>
             <tbody>
               {SKILL_ORDER.map((sid) => {
                 const req = SKILL_REQUIREMENTS[sid];
+                const milestone = SKILL_MILESTONE[sid];
                 return (
                   <tr key={sid} style={{ borderTop: '1px solid #eee', verticalAlign: 'top' }}>
                     <td style={{ padding: '6px 4px' }}>
                       <strong>{req.label}</strong>
                       <div style={{ color: 'var(--muted)', fontSize: 11 }}>{req.desc}</div>
+                      {milestone && (
+                        <div style={{ color: '#a05e2e', fontSize: 11, marginTop: 2 }}>{milestone}</div>
+                      )}
                     </td>
                     <td style={{ padding: '6px 4px', whiteSpace: 'nowrap', textAlign: 'center' }}>
                       <code>{req.trees}×</code>
+                    </td>
+                    <td style={{ padding: '6px 4px', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                      <code>{skillBuyCost(sid)} 🥔</code>
                     </td>
                   </tr>
                 );

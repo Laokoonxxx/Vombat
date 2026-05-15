@@ -1,5 +1,20 @@
-import type { PlayerState } from '../game/types';
-import { SKILL_REQUIREMENTS } from '../game/engine';
+import type { PlayerState, SkillId } from '../game/types';
+import { SKILL_REQUIREMENTS, skillBuyCost } from '../game/engine';
+
+const ALL_SKILLS: SkillId[] = [
+  'kapacita',
+  'koupel',
+  'sprint',
+  'masaz_strev',
+  'klystyr',
+  'ajurveda',
+];
+
+// Optional milestone trigger for skills that have one
+const MILESTONE: Partial<Record<SkillId, string>> = {
+  kapacita: '🎁 1. zranění Čerta',
+  koupel: '🎁 1. rozmačkaná Kočka',
+};
 
 export function PlayerBoard({ player, active }: { player: PlayerState; active: boolean }) {
   return (
@@ -27,15 +42,34 @@ export function PlayerBoard({ player, active }: { player: PlayerState; active: b
           {player.reserve.length === 0 ? '—' : player.reserve.map((d, i) => <span key={i} style={{ marginRight: 4 }}>1k{d}</span>)}
         </span>
       </div>
-      {player.skills.size > 0 && (
-        <div className="skills-list">
-          {Array.from(player.skills).map((s) => (
-            <span key={s} className="skill-chip" title={SKILL_REQUIREMENTS[s].desc}>
-              {SKILL_REQUIREMENTS[s].label}
-            </span>
-          ))}
+      <div style={{ marginTop: 8 }}>
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          🧠 Dovednosti
         </div>
-      )}
+        <div className="skills-list">
+          {ALL_SKILLS.map((sid) => {
+            const req = SKILL_REQUIREMENTS[sid];
+            const learned = player.skills.has(sid);
+            const cost = skillBuyCost(sid);
+            const milestone = MILESTONE[sid];
+            const tipParts = [
+              req.desc,
+              `🌳 stromy: ${req.trees}`,
+              `🛒 Spánek shop: ${cost} 🥔`,
+              milestone ? `Milestone: ${milestone}` : null,
+            ].filter(Boolean);
+            return (
+              <span
+                key={sid}
+                className={`skill-chip ${learned ? 'learned' : 'unlearned'}`}
+                title={tipParts.join('\n')}
+              >
+                {learned ? '✓' : '○'} {req.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

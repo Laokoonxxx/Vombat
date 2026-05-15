@@ -166,6 +166,22 @@ button.primary:hover:not(:disabled) { background: #a05e2e; }
   padding: 2px 6px;
   font-size: 11px;
   border-radius: 12px;
+  cursor: help;
+}
+.skill-chip.learned {
+  background: #c6e9b8;
+  border-color: #6db347;
+  color: #2d4f1a;
+  font-weight: 600;
+}
+.skill-chip.unlearned {
+  background: #f5efe0;
+  border-color: var(--border);
+  color: #999;
+}
+.skill-chip.unlearned:hover {
+  background: #ebe3cd;
+  color: #555;
 }
 
 .modal-backdrop {
