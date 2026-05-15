@@ -858,7 +858,18 @@ export function applyDevilWound(state: GameState, diceIndex: number, wound: Woun
   p.lastRoll.splice(diceIndex, 1);
   s.devilWounds.woundsByPlayer[p.id][wound] = dieLvl;
   logEntry(s, `${p.name} zranil Čerta na ${wound} (kostka 1k${dieLvl}, hod ${val}).`);
-  // Check if all 4 wounds done → next roll needs 25+
+  // Killing-blow check: if all 4 wounds are now taken AND the dice that
+  // remain in THIS roll already sum to >=25, the player has effectively
+  // delivered the final blow in one go — no need to re-roll.
+  if (allWoundsTaken(s, p.id)) {
+    const sum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
+    if (sum >= 25) {
+      s.winnerId = p.id;
+      s.phase = 'game_over';
+      p.fighting = false;
+      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Zbylé kostky dávají ${sum} (≥25). Vítězí!`);
+    }
+  }
   return s;
 }
 
@@ -872,6 +883,19 @@ export function devilContinueRoll(state: GameState, rng?: RNG): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   if (!p.fighting) return state;
+  // Pre-check: if all wounds are already taken AND the current roll's
+  // remaining dice already sum to >=25, the killing blow is in — no need
+  // to roll again.
+  if (allWoundsTaken(s, p.id) && p.lastRoll) {
+    const sum = p.lastRoll.reduce((a, b) => a + b, 0);
+    if (sum >= 25) {
+      s.winnerId = p.id;
+      s.phase = 'game_over';
+      p.fighting = false;
+      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Zbylé kostky dávají ${sum} (≥25).`);
+      return s;
+    }
+  }
   if (p.hand.length === 0) {
     // Cannot continue — counts as failed attack
     devilFailAttack(s);

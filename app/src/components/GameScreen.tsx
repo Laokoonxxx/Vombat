@@ -369,12 +369,22 @@ function SleepModal({ state, setState, close }: { state: GameState; setState: (s
 function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
   const p = currentPlayer(state);
   const taken = state.devilWounds.woundsByPlayer[p.id];
+  const allTaken = allWoundsTaken(state, p.id);
+  const currentSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
+  const readyToKill = allTaken && currentSum >= 25;
   return (
     <div>
       <DiceTray player={p} />
       <p style={{ fontSize: 13, marginTop: 8 }}>
-        Pro každou kostku zvol, na které zranění ji použít (1, 2, 7+, 10+).
+        {allTaken
+          ? 'Všechna zranění zasazena. Potřebuješ součet ≥25 pro smrtelnou ránu.'
+          : 'Pro každou kostku zvol, na které zranění ji použít (1, 2, 7+, 10+).'}
       </p>
+      {readyToKill && (
+        <p style={{ background: '#d4f0c4', padding: 8, borderRadius: 6, fontSize: 13 }}>
+          ✨ <strong>Zbylé kostky dávají {currentSum}</strong> (≥25). Klikni "Zasaď smrtelnou ránu" pro vítězství.
+        </p>
+      )}
       {(p.lastRoll || []).map((val, i) => (
         <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
           <span style={{ minWidth: 60 }}>Kostka 1k{p.hand[i]} = <strong>{val}</strong></span>
@@ -399,7 +409,9 @@ function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s:
       ))}
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
         <button className="primary" onClick={() => setState(devilContinueRoll(state))}>
-          🎲 Hoď znovu {allWoundsTaken(state, p.id) ? '(potřebuješ 25+)' : ''}
+          {readyToKill
+            ? '⚔️ Zasaď smrtelnou ránu'
+            : `🎲 Hoď znovu${allTaken ? ' (potřebuješ 25+)' : ''}`}
         </button>
         <button onClick={() => setState(devilStop(state))}>Ukončit boj</button>
       </div>
