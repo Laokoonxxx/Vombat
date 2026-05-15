@@ -12,7 +12,7 @@
 import type { GameState, BoardCell, SkillId } from './types';
 
 const STORAGE_KEY = 'vombat:gameState';
-const SAVE_VERSION = 3; // bump when GameState shape changes incompatibly
+const SAVE_VERSION = 4; // bump when GameState shape changes or map balance shifts
 
 interface SerializedState {
   version: number;

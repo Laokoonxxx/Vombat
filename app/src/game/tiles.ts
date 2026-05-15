@@ -14,20 +14,24 @@ export interface TileTemplate {
   ring: TileRingType[]; // length 6
 }
 
-// --- BLUE TILES (center = eukalyptus) — usually have more useful land ----
+// --- BLUE TILES (center = eukalyptus) — dirt-heavy, peaceful ---
+// All 5 blue templates are used in 2-player setup.
+// Total contribution: 2 cats, 14 dirt, 6 bed, 7 thorn, 1 desert across 30 slots.
 export const BLUE_TEMPLATES: TileTemplate[] = [
-  { id: 'B1', center: 'tree', ring: ['dirt', 'bed', 'thorn', 'cat', 'bed', 'dirt'] },
-  { id: 'B2', center: 'tree', ring: ['dirt', 'dirt', 'thorn', 'cat', 'thorn', 'bed'] },
-  { id: 'B3', center: 'tree', ring: ['bed', 'dirt', 'desert', 'thorn', 'cat', 'dirt'] },
-  { id: 'B4', center: 'tree', ring: ['dirt', 'bed', 'thorn', 'dirt', 'cat', 'thorn'] },
-  { id: 'B5', center: 'tree', ring: ['bed', 'thorn', 'dirt', 'cat', 'dirt', 'bed'] },
+  { id: 'B1', center: 'tree', ring: ['dirt', 'bed',  'thorn',  'dirt', 'cat',  'dirt'] },
+  { id: 'B2', center: 'tree', ring: ['dirt', 'dirt', 'thorn',  'desert','thorn','bed'] },
+  { id: 'B3', center: 'tree', ring: ['bed',  'dirt', 'dirt',   'thorn','cat',  'dirt'] },
+  { id: 'B4', center: 'tree', ring: ['dirt', 'bed',  'thorn',  'dirt', 'dirt', 'thorn'] },
+  { id: 'B5', center: 'tree', ring: ['bed',  'thorn','dirt',   'dirt', 'dirt', 'bed'] },
 ];
 
-// --- BLACK TILES (center = čert) — usually more hostile ---
+// --- BLACK TILES (center = čert) — slightly hostile but each only 1 cat ---
+// 2 of 3 templates used in 2-player setup. Each black tile has exactly 1 cat.
+// Average contribution per pair: 2 cats, ~3 dirt, ~1 bed, ~3 thorn, ~3 desert.
 export const BLACK_TEMPLATES: TileTemplate[] = [
-  { id: 'K1', center: 'devil', ring: ['cat', 'desert', 'thorn', 'cat', 'desert', 'thorn'] },
-  { id: 'K2', center: 'devil', ring: ['cat', 'thorn', 'desert', 'cat', 'thorn', 'dirt'] },
-  { id: 'K3', center: 'devil', ring: ['desert', 'cat', 'thorn', 'desert', 'cat', 'bed'] },
+  { id: 'K1', center: 'devil', ring: ['desert', 'cat',  'thorn',  'desert', 'dirt',  'thorn'] },
+  { id: 'K2', center: 'devil', ring: ['thorn',  'desert','dirt',  'cat',    'thorn', 'dirt'] },
+  { id: 'K3', center: 'devil', ring: ['desert', 'dirt', 'cat',    'thorn',  'bed',   'dirt'] },
 ];
 
 // The 7 tile positions ("flower of flowers"): center + 6 around.
