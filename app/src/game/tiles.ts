@@ -1,0 +1,59 @@
+import type { Hex, HexType } from './types';
+import { HEX_DIRS, hexAdd } from './hex';
+
+// A "tile" (dílek) = 1 central hex + 6 neighbors (= 7 hexes).
+// Center is either 'tree' (modrá) or 'devil' (černá).
+// The 6 surrounding hexes are defined in canonical order (E, NE, NW, W, SW, SE)
+// and the whole tile is rotated 0..5 times when placed.
+
+export type TileRingType = Exclude<HexType, 'tree' | 'devil'>;
+
+export interface TileTemplate {
+  id: string;
+  center: 'tree' | 'devil';
+  ring: TileRingType[]; // length 6
+}
+
+// --- BLUE TILES (center = eukalyptus) — usually have more useful land ----
+export const BLUE_TEMPLATES: TileTemplate[] = [
+  { id: 'B1', center: 'tree', ring: ['dirt', 'bed', 'thorn', 'cat', 'bed', 'dirt'] },
+  { id: 'B2', center: 'tree', ring: ['dirt', 'dirt', 'thorn', 'cat', 'thorn', 'bed'] },
+  { id: 'B3', center: 'tree', ring: ['bed', 'dirt', 'desert', 'thorn', 'cat', 'dirt'] },
+  { id: 'B4', center: 'tree', ring: ['dirt', 'bed', 'thorn', 'dirt', 'cat', 'thorn'] },
+  { id: 'B5', center: 'tree', ring: ['bed', 'thorn', 'dirt', 'cat', 'dirt', 'bed'] },
+];
+
+// --- BLACK TILES (center = čert) — usually more hostile ---
+export const BLACK_TEMPLATES: TileTemplate[] = [
+  { id: 'K1', center: 'devil', ring: ['cat', 'desert', 'thorn', 'cat', 'desert', 'thorn'] },
+  { id: 'K2', center: 'devil', ring: ['cat', 'thorn', 'desert', 'cat', 'thorn', 'dirt'] },
+  { id: 'K3', center: 'devil', ring: ['desert', 'cat', 'thorn', 'desert', 'cat', 'bed'] },
+];
+
+// The 7 tile positions ("flower of flowers"): center + 6 around.
+// Each entry is the (q,r) offset of the *center hex* of that flower-tile.
+// Derived from flower-of-7 packing: flower_dirs[i] = 2*dir[i] + dir[(i+1)%6].
+export const TILE_CENTERS_FOR_7: Hex[] = [
+  { q: 0, r: 0 },
+  { q: 3, r: -1 },
+  { q: 2, r: -3 },
+  { q: -1, r: -2 },
+  { q: -3, r: 1 },
+  { q: -2, r: 3 },
+  { q: 1, r: 2 },
+];
+
+// Build the 7 hexes of a flower-tile centered at `c`, rotated by `rotation` steps.
+export function buildTileHexes(c: Hex, ringTypes: TileRingType[], rotation: number): {
+  center: Hex;
+  ring: { hex: Hex; type: TileRingType }[];
+} {
+  const ring: { hex: Hex; type: TileRingType }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const dirIdx = (i + rotation) % 6;
+    const offset = HEX_DIRS[i];
+    const hex = hexAdd(c, offset);
+    ring.push({ hex, type: ringTypes[dirIdx] });
+  }
+  return { center: c, ring };
+}
