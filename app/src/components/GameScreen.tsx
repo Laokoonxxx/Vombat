@@ -445,14 +445,61 @@ function HexInspectPanel({
         <strong>{typeLabel[cell.type]}</strong>
         <button onClick={onClose} style={{ padding: '2px 8px', fontSize: 12 }}>✕</button>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
         Pozice ({hex.q},{hex.r}) · Tvůj hod: <strong>{sum}</strong>
         {cell.thornDieLevel && <> · Kostka: 1k{cell.thornDieLevel}</>}
-        {cell.marker && (
-          <> · Obsadil {state.players.find((pl) => pl.id === cell.marker!.playerId)?.name}{' '}
-            ({cell.marker.kind})</>
-        )}
       </div>
+      {cell.marker && (() => {
+        const owner = state.players.find((pl) => pl.id === cell.marker!.playerId);
+        const mine = cell.marker.playerId === p.id;
+        const markerEmoji = cell.marker.kind === 'mrkev' ? '🥕' : '💩';
+        // Takeover possible only on Záhon / Eukalyptus, and only opponent markers.
+        const canBeTakenOver =
+          !mine && (cell.type === 'bed' || cell.type === 'tree');
+        // Hlína with opponent's mrkev can be "stolen" + used for new action
+        const canStealMrkev =
+          !mine && cell.type === 'dirt' && cell.marker.kind === 'mrkev';
+        return (
+          <div
+            style={{
+              fontSize: 12,
+              padding: 6,
+              background: mine ? '#d4f0c4' : '#f9efd9',
+              border: `1px solid ${mine ? '#6db347' : '#d6a35d'}`,
+              borderRadius: 4,
+              marginBottom: 8,
+            }}
+          >
+            <div>
+              {markerEmoji}{' '}
+              <strong style={{ color: owner?.color }}>
+                {mine ? 'TVŮJ' : owner?.name}
+              </strong>{' '}
+              {cell.marker.kind === 'mrkev' ? 'mrkev' : 'bobek'}
+            </div>
+            {mine && (
+              <div style={{ color: '#2d4f1a', marginTop: 2 }}>
+                ✗ Pole jsi už <strong>využil</strong> — nelze znovu.
+              </div>
+            )}
+            {canBeTakenOver && (
+              <div style={{ color: '#8a5a1a', marginTop: 2 }}>
+                ↻ Můžeš <strong>přebrat</strong> (obsadit svým markerem).
+              </div>
+            )}
+            {canStealMrkev && (
+              <div style={{ color: '#8a5a1a', marginTop: 2 }}>
+                ✂️ Můžeš odstranit a Hlínu využít pro jinou akci.
+              </div>
+            )}
+            {!mine && !canBeTakenOver && !canStealMrkev && (
+              <div style={{ color: '#666', marginTop: 2 }}>
+                ✗ Pole je obsazeno soupeřem — nelze využít.
+              </div>
+            )}
+          </div>
+        );
+      })()}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <button disabled={!canMoveHere} onClick={onMove}>
           🐾 Pohni se sem {canMoveHere ? '' : '(nelze s tímto hodem)'}
