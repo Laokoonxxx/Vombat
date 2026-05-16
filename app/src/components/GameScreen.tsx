@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import type { GameState, Hex, DiceLevel, SkillId, WoundType } from '../game/types';
 import { hexKey, WOUND_TYPES } from '../game/types';
 import { HexBoard } from './HexBoard';
@@ -58,6 +58,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
   const [inspectHex, setInspectHex] = useState<Hex | null>(null);
+  const [inspectPos, setInspectPos] = useState<{ x: number; y: number } | null>(null);
 
   // Auto-run AI: when current player is AI, dispatch one step every ~700ms
   // so the user can see each move land.
@@ -124,7 +125,8 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
     return [];
   }, [mode, selectedVombatId, p, state]);
 
-  function onHexClick(hex: Hex) {
+  function onHexClick(hex: Hex, event?: MouseEvent) {
+    if (event) setInspectPos({ x: event.clientX, y: event.clientY });
     if (state.phase === 'using_field' && p.skills.has('sprint')) {
       setState(useField(state, hex));
       return;
@@ -203,8 +205,9 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
         {inspectHex && state.phase === 'rolled' && (
           <HexInspectPanel
             hex={inspectHex}
+            anchor={inspectPos}
             state={state}
-            onClose={() => setInspectHex(null)}
+            onClose={() => { setInspectHex(null); setInspectPos(null); }}
             onMove={() => {
               const moveTargets = p.vombats
                 .map((v) => ({ v, targets: legalMoveTargets(state, v.hex) }))
@@ -214,10 +217,12 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
               if (!moveTargets) return;
               setState(moveVombat(state, moveTargets.v.id, inspectHex));
               setInspectHex(null);
+              setInspectPos(null);
             }}
             onUseField={() => {
               setState(useField(state, inspectHex));
               setInspectHex(null);
+              setInspectPos(null);
             }}
           />
         )}
@@ -370,16 +375,18 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
   );
 }
 
-// Side-panel showing what the current player can do at a specific hex.
-// Opens when you click any hex during 'rolled' phase.
+// Floating panel showing what the current player can do at a specific hex.
+// Opens at click position so the user doesn't have to mouse across screen.
 function HexInspectPanel({
   hex,
+  anchor,
   state,
   onClose,
   onMove,
   onUseField,
 }: {
   hex: Hex;
+  anchor: { x: number; y: number } | null;
   state: GameState;
   onClose: () => void;
   onMove: () => void;
@@ -396,25 +403,41 @@ function HexInspectPanel({
   const typeLabel: Record<string, string> = {
     dirt: '🟫 Hlína (2-4)',
     bed: '🌱 Záhon (4-6)',
-    desert: '🏜️ Poušť (7+, vyžaduje Koupel)',
+    desert: '🏜️ Poušť (7+, vyžaduje Lázně)',
     tree: '🌳 Eukalyptus (7-8)',
     thorn: '🌵 Houští (k4 → 5+, k6 → 7+, k8 → 9+)',
     cat: cell.catAlive ? '🐱 Kočka (11-14 = rozmačkat)' : '🕳️ Mrtvá kočka (tunel)',
     devil: '👹 Tasmánský Čert (12+ pohyb, boj se vyhlašuje před hodem)',
   };
+
+  // Position the floating panel near the click point. Clamp so it stays
+  // within the viewport even if click was near an edge.
+  const PANEL_W = 280;
+  const PANEL_H_EST = 200;
+  const margin = 12;
+  let left = (anchor?.x ?? window.innerWidth / 2) + 18;
+  let top = (anchor?.y ?? window.innerHeight / 2) - PANEL_H_EST / 2;
+  if (left + PANEL_W + margin > window.innerWidth) {
+    left = (anchor?.x ?? 0) - PANEL_W - 18; // flip to left side of cursor
+  }
+  if (top < margin) top = margin;
+  if (top + PANEL_H_EST + margin > window.innerHeight) {
+    top = window.innerHeight - PANEL_H_EST - margin;
+  }
+
   return (
     <div
       style={{
-        position: 'absolute',
-        top: 20,
-        right: 20,
-        width: 280,
+        position: 'fixed',
+        left,
+        top,
+        width: PANEL_W,
         background: '#fff',
         border: '2px solid var(--accent)',
         borderRadius: 8,
         padding: 12,
         boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        zIndex: 10,
+        zIndex: 50,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>

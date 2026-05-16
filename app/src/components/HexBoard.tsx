@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import type { BoardCell, GameState, Hex } from '../game/types';
 import { hexKey } from '../game/types';
 import { hexCorners, hexToPixel } from '../game/hex';
@@ -93,7 +93,7 @@ export interface HexBoardProps {
   state: GameState;
   clickableHexes?: Hex[]; // for current action — highlighted & clickable
   selectedHex?: Hex | null;
-  onHexClick?: (hex: Hex) => void;
+  onHexClick?: (hex: Hex, event?: MouseEvent) => void;
 }
 
 export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: HexBoardProps) {
@@ -163,7 +163,7 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
           <g
             key={k}
             className={`hex-cell ${clickable ? 'clickable' : ''} ${isSelected ? 'highlighted' : ''}`}
-            onClick={() => clickable && onHexClick && onHexClick(c.hex)}
+            onClick={(e) => clickable && onHexClick && onHexClick(c.hex, e)}
           >
             <title>{tooltip}</title>
             <polygon
