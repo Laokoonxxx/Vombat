@@ -821,8 +821,9 @@ function AIRules() {
           }}
         >
           <p style={{ marginTop: 0, color: 'var(--muted)' }}>
-            AI používá greedy heuristiku — v každém okamžiku vypočítá skóre pro všechny možné akce
-            a vybere tu s nejvyšším skóre. Žádný look-ahead. Definováno v <code>src/game/ai.ts</code>.
+            AI kombinuje heuristické skóre s <strong>1-step lookahead</strong>: pro top-6 kandidátů
+            podle heuristiky aplikuje akci, simuluje 1 tah soupeře, a hodnotí výsledný stav.
+            Konečný score = <code>heuristika × 1.5 + stateValue</code>. Definováno v <code>src/game/ai.ts</code>.
           </p>
 
           <h4 style={{ margin: '12px 0 4px' }}>🎯 Strategický plán (priority pořadí)</h4>
@@ -965,11 +966,38 @@ function AIRules() {
             <li>Jinak odevzdat nejmenší dostupnou kostku (z Ruky nebo Zásoby)</li>
           </ol>
 
+          <h4 style={{ margin: '12px 0 4px' }}>🔮 Lookahead (1 tah dopředu)</h4>
+          <p style={{ margin: 0 }}>
+            Pro každého z top-6 kandidátů:
+          </p>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Aplikuj akci → stav S1</li>
+            <li>Resolve sub-volby (dirt action, skill pick) → S1'</li>
+            <li>Simuluj 1 tah soupeře (greedy heuristika) → S2</li>
+            <li>Score S2 z mého pohledu: <code>stateValue(S2, myId)</code></li>
+          </ol>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
+            Vyber kandidáta s nejvyšším <code>heuristika × 1.5 + stateValue</code>.
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>📐 stateValue (hodnocení stavu pro lookahead)</h4>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Výhra: <code>+100000</code> · Prohra: <code>-10000</code></li>
+            <li>Zranění Čerta: <code>+200</code> každé</li>
+            <li>Sum levelů kostek v Ruce/Zásobě: <code>×3</code></li>
+            <li>Bobek (stromy): <code>×4</code> · Mrkev (carrot): <code>×5</code></li>
+            <li>Brambory: <code>×0.15</code></li>
+            <li>Kostky v Ruce: <code>+1</code> každá · v Zásobě: <code>+0.5</code></li>
+            <li>Pending kostky: <code>×0.5</code> (zamknutě, nižší hodnota)</li>
+            <li>Bonus za blízkost Čerta když ready: <code>+max(0, 30 - dist×5)</code></li>
+            <li>Skills v hodnotě nezahrnuté (jejich benefit se projevuje v gameplay)</li>
+          </ul>
+
           <h4 style={{ margin: '12px 0 4px' }}>🎚️ Co AI <strong>nedělá</strong> (známé slabiny)</h4>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>
-              <strong>Žádný lookahead</strong> — nepřemýšlí dopředu. "Plánovat 2-3 tahy" by zlepšilo
-              hru proti slabší kostkové ruce.
+              <strong>Lookahead je jen 1 tah</strong> — neuvažuje sekvence dalších tahů.
+              Plná hra by potřebovala 3-5 tahů + Monte Carlo přes náhodné kostky.
             </li>
             <li>
               <strong>Nevyužívá brambory pro Kakej</strong> investice (engine to neumožňuje skrz UI).
@@ -978,8 +1006,7 @@ function AIRules() {
               <strong>Nepoužívá Teleport</strong> (Sleep akce). Mohl by se rychle dostat k Čertovi.
             </li>
             <li>
-              <strong>Downgrade kostek</strong> ve Spánku se nepoužívá. AI udrží velké kostky které mohou
-              vést k "wasted" sumům (např. roll 11 se hodí jen na smash, ale jen pokud je u Kočky).
+              <strong>Downgrade kostek</strong> ve Spánku se nepoužívá.
             </li>
             <li>
               <strong>Nepřebírá soupeřovy markery</strong> strategicky.

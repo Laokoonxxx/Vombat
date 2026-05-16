@@ -233,44 +233,177 @@ function readyToFightDevil(state: GameState, p: PlayerState): boolean {
 
 // ----- After roll: pick best action ----------------------------------------
 
+// Recursion guard: while a lookahead simulation runs aiStep internally for
+// the OPPONENT, we must avoid recursively calling lookahead on every
+// nested choice — that would blow up exponentially.
+let lookaheadInProgress = false;
+
 function aiChooseAction(state: GameState): GameState {
   const p = currentPlayer(state);
-  const rollSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
 
-  // Score all possible "use field" options
-  const fieldOptions: { hex: Hex; score: number }[] = [];
+  // Generate candidate actions with heuristic scores.
+  type Candidate = { name: string; heur: number; apply: () => GameState };
+  const candidates: Candidate[] = [];
+
   state.board.forEach((c) => {
     if (!canUseField(state, c.hex)) return;
-    fieldOptions.push({ hex: c.hex, score: scoreUseField(c, p, state) });
+    candidates.push({
+      name: `use ${c.type}`,
+      heur: scoreUseField(c, p, state),
+      apply: () => useField(state, c.hex),
+    });
   });
-  fieldOptions.sort((a, b) => b.score - a.score);
-  const bestField = fieldOptions[0] ?? null;
 
-  // Score all possible move options
-  const moveOptions: { vombatId: string; hex: Hex; score: number }[] = [];
   for (const v of p.vombats) {
     const targets = legalMoveTargets(state, v.hex);
     for (const t of targets) {
       const target = state.board.get(hexKey(t));
       if (!target) continue;
-      moveOptions.push({ vombatId: v.id, hex: t, score: scoreMove(target, p, state) });
+      candidates.push({
+        name: `move ${target.type}`,
+        heur: scoreMove(target, p, state),
+        apply: () => moveVombat(state, v.id, t),
+      });
     }
   }
-  moveOptions.sort((a, b) => b.score - a.score);
-  const bestMove = moveOptions[0] ?? null;
 
-  // Pick the BEST overall. Sleep is fallback with a small baseline score.
-  const fieldScore = bestField ? bestField.score : -Infinity;
-  const moveScore = bestMove ? bestMove.score : -Infinity;
-  const sleepScore = 0.5; // always available; very low priority
+  candidates.push({ name: 'sleep', heur: 0.5, apply: () => aiSleep(state) });
 
-  if (bestField && fieldScore >= moveScore && fieldScore >= sleepScore) {
-    return useField(state, bestField.hex);
+  if (candidates.length === 0) return aiSleep(state);
+
+  // Fast path: if we're already inside a lookahead simulation, just pick
+  // the heuristic top — no recursion.
+  if (lookaheadInProgress) {
+    candidates.sort((a, b) => b.heur - a.heur);
+    let pick: GameState = state;
+    for (const c of candidates) {
+      const next = c.apply();
+      if (next !== state) { pick = next; break; }
+    }
+    return pick;
   }
-  if (bestMove && moveScore >= sleepScore) {
-    return moveVombat(state, bestMove.vombatId, bestMove.hex);
+
+  // LOOKAHEAD: take top-K candidates, apply each, simulate one opponent
+  // turn (greedy), and score the resulting state from MY perspective.
+  // This captures both immediate outcome AND what the opponent does.
+  const K = 6;
+  candidates.sort((a, b) => b.heur - a.heur);
+  const top = candidates.slice(0, K);
+
+  let bestVal = -Infinity;
+  let bestState: GameState = state;
+  lookaheadInProgress = true;
+  try {
+    for (const cand of top) {
+      let next = cand.apply();
+      if (next === state) continue;
+      // 1. Resolve my sub-pending choices (dirt action, skill pick)
+      next = resolvePendingChoicesForLookahead(next, p.id);
+      // 2. Simulate forward — opponent acts until it's MY turn again
+      //    (or game ends). Capped to prevent runaway.
+      next = simulateUntilMyTurn(next, p.id, 15);
+      // 3. Score the resulting state from MY perspective
+      const v = cand.heur * 1.5 + stateValue(next, p.id);
+      if (v > bestVal) {
+        bestVal = v;
+        bestState = next === state ? cand.apply() : (() => {
+          // We need to return the state AFTER applying our action only
+          // (not after opponent's turn), so the engine can correctly
+          // pass control. Re-apply just our part.
+          let s = cand.apply();
+          if (s === state) return s;
+          return resolvePendingChoicesForLookahead(s, p.id);
+        })();
+      }
+    }
+  } finally {
+    lookaheadInProgress = false;
   }
-  return aiSleep(state);
+
+  return bestState;
+}
+
+function simulateUntilMyTurn(state: GameState, myId: string, maxSteps: number): GameState {
+  let s = state;
+  const myIdx = state.players.findIndex((pp) => pp.id === myId);
+  for (let i = 0; i < maxSteps; i++) {
+    if (s.phase === 'game_over') return s;
+    // Once it's my turn again, stop — we've simulated one round
+    if (s.currentPlayerIdx === myIdx && s.phase === 'idle') return s;
+    const next = aiStep(s);
+    if (!next || next === s) return s;
+    s = next;
+  }
+  return s;
+}
+
+// Resolve any cascading pending sub-choices while still our turn.
+// Used inside lookahead so we score the FINAL state after sub-decisions
+// (e.g. picking dirt action + skill).
+function resolvePendingChoicesForLookahead(state: GameState, myId: string): GameState {
+  let s = state;
+  for (let i = 0; i < 12; i++) {
+    if (s.phase === 'game_over') return s;
+    if (!s.pendingChoice) return s;
+    const pc = s.pendingChoice as any;
+    if (pc.playerId && pc.playerId !== myId) return s;
+    const next = aiResolvePending(s);
+    if (!next || next === s) return s;
+    s = next;
+  }
+  return s;
+}
+
+// Score a game state from a player's perspective. Higher = better.
+// Used for 1-step lookahead in aiChooseAction.
+//
+// Calibration philosophy: rewards align with what makes you win, not what
+// "looks pretty". Wounds dominate, dice quality matters a lot, skills are
+// only valued for their gameplay enablement (small reward).
+function stateValue(state: GameState, myId: string): number {
+  if (state.winnerId === myId) return 100000;
+  if (state.winnerId && state.winnerId !== myId) return -10000;
+  const p = state.players.find((pp) => pp.id === myId);
+  if (!p) return 0;
+
+  const wounds = state.devilWounds.woundsByPlayer[myId];
+  const woundsTaken = WOUND_TYPES.filter((w) => wounds[w] != null).length;
+
+  let v = 0;
+  // Wounds dominate — biggest step toward winning.
+  v += woundsTaken * 200;
+  // Skills: zero in state value. Their benefit shows up through gameplay
+  // (canAddDieToHand, devil-fight readiness). Adding bonus causes AI to
+  // farm skills instead of progressing.
+  // v += p.skills.size * 0;
+  v += p.bobekTrack * 4;
+  v += p.carrotTrack * 5;
+  v += p.potatoes * 0.15;
+
+  const allDice = [...p.hand, ...p.reserve];
+  // Sum of die levels — dice are what fight Devil
+  v += allDice.reduce((s, d) => s + d, 0) * 3;
+  v += p.hand.length * 1;
+  // Reserve dice less valuable than Hand (need to swap)
+  v += p.reserve.length * 0.5;
+  v += p.pendingDice.reduce((s, d) => s + d, 0) * 0.5; // partial credit
+
+  // Position bonus: when combat-ready, being close to Devil is good
+  const handMax = p.hand.length ? Math.max(...p.hand) : 0;
+  if (woundsTaken < 4 && allDice.length >= 4 && handMax >= 10) {
+    const devilHexes: Hex[] = [];
+    state.board.forEach((c) => { if (c.type === 'devil') devilHexes.push(c.hex); });
+    let minDist = Infinity;
+    for (const vh of p.vombats) {
+      for (const dh of devilHexes) {
+        const d = cubeDistance(vh.hex, dh);
+        if (d < minDist) minDist = d;
+      }
+    }
+    if (minDist < Infinity) v += Math.max(0, 30 - minDist * 5);
+  }
+
+  return v;
 }
 
 // Smarter Sleep choice: buy a skill if affordable, else gain potato.
