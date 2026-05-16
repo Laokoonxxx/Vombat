@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "research:sim": "tsx src/research/simulate.ts",
+    "research:analyze": "tsx src/research/analyze.ts --latest",
+    "research:run": "npm run research:sim -- 1000 400 && npm run research:analyze"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -19,6 +19,11 @@ app/*.tsbuildinfo
 app/sim_results/sim_data_*.json
 # Note: .md reports are kept by default for reference
 
+# Research simulator outputs — raw JSONL is heavy (~2KB/game × 10k games),
+# regenerate locally. Insights .md reports can be committed manually if desired.
+app/sim_results/research/
+
+
 # Local env
 .env
 .env.local

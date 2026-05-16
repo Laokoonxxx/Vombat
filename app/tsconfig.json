@@ -18,5 +18,10 @@
     "resolveJsonModule": true
   },
   "include": ["src"],
-  "exclude": ["src/game/simulate.ts", "src/game/simulate_detailed.ts"]
+  "exclude": [
+    "src/game/simulate.ts",
+    "src/game/simulate_detailed.ts",
+    "src/research/simulate.ts",
+    "src/research/analyze.ts"
+  ]
 }
