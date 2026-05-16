@@ -39,8 +39,11 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
 
   // For shop phase we let players take turns: first the one who hasn't bought; once all bought >=1, we let any player continue to add more until "Hotovo".
   const allBought = state.players.every((p) => p.hand.length > 0);
-  const [shopPlayerIdx, setShopPlayerIdx] = useState(0);
-  const activeShopPlayer = state.players[shopPlayerIdx];
+  // Shoppable players = humans only. AI auto-shops so their tab would be
+  // read-only and confusing. Default to the first human.
+  const shoppablePlayers = state.players.filter((pl) => pl.kind === 'human');
+  const [shopPlayerId, setShopPlayerId] = useState<string>(shoppablePlayers[0]?.id ?? state.players[0].id);
+  const activeShopPlayer = state.players.find((pl) => pl.id === shopPlayerId) ?? state.players[0];
 
   function onHexClick(hex: Hex) {
     if (placingPlayer) {
@@ -104,18 +107,25 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
           <div className="panel">
             <h3>Nákup startovního vybavení</h3>
             <p>Každý hráč si musí koupit alespoň 1 kostku.</p>
-            <div style={{ marginBottom: 10 }}>
-              {state.players.map((p, i) => (
-                <button
-                  key={p.id}
-                  onClick={() => setShopPlayerIdx(i)}
-                  className={i === shopPlayerIdx ? 'primary' : ''}
-                  style={{ marginRight: 4 }}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
+            {shoppablePlayers.length > 1 && (
+              <div style={{ marginBottom: 10 }}>
+                {shoppablePlayers.map((pl) => (
+                  <button
+                    key={pl.id}
+                    onClick={() => setShopPlayerId(pl.id)}
+                    className={pl.id === shopPlayerId ? 'primary' : ''}
+                    style={{ marginRight: 4 }}
+                  >
+                    {pl.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {state.players.some((pl) => pl.kind === 'ai') && (
+              <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 0 }}>
+                🤖 AI hráči si nakupují automaticky — počkej až dokončí.
+              </p>
+            )}
             <div className="panel" style={{ background: '#fffaf0' }}>
               <h3>{activeShopPlayer.name}</h3>
               <p>🥔 Brambory: <strong>{activeShopPlayer.potatoes}</strong></p>
