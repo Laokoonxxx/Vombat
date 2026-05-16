@@ -28,6 +28,14 @@ interface WoundEvent {
 
 interface CatSmash { playerName: string; turn: number }
 
+interface TurnEvent {
+  turn: number;
+  step: number;
+  playerName: string;
+  type: string;
+  detail: string;
+}
+
 interface FinalPlayer {
   name: string;
   hand: number[];
@@ -64,6 +72,7 @@ interface GameStats {
   actionCountsByPlayer: Record<string, PlayerActionCounts>;
   finalState: { players: FinalPlayer[] };
   trajectories: Record<string, ResourceSample[]>;
+  events?: TurnEvent[];
   fullLog: string[];
 }
 
@@ -617,6 +626,9 @@ function GameDetail({ game }: { game: GameStats }) {
         ))}
       </div>
 
+      {/* Per-turn winner actions */}
+      {game.events && game.events.length > 0 && <PerTurnActions game={game} />}
+
       {/* Log tail */}
       <details>
         <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 12 }}>📜 Posledních 25 log záznamů</summary>
@@ -626,6 +638,143 @@ function GameDetail({ game }: { game: GameStats }) {
       </details>
     </div>
   );
+}
+
+// -----------------------------------------------------------------------------
+// Per-turn actions panel — chronological view filtered to one player
+// -----------------------------------------------------------------------------
+
+const ACTION_EMOJI: Record<string, string> = {
+  roll: '🎲',
+  move: '🐾',
+  sleep_gain_potato: '💤🥔',
+  sleep_downgrade: '💤⬇️',
+  sleep_swap: '💤🔄',
+  sleep_upgrade: '💤⬆️',
+  sleep_teleport: '🌀',
+  sleep_buy_skill: '🛒',
+  sleep_skip: '💤✖️',
+  use_dirt_plant: '🥕',
+  use_dirt_kakej: '💩',
+  use_dirt_learn: '🧠',
+  use_bed: '🌱',
+  use_tree: '🌳',
+  use_thorn: '🌵',
+  cat_smash: '🎉',
+  cat_attack: '⚠️',
+  devil_combat_start: '⚔️',
+  devil_wound: '💥',
+  devil_attack: '❌',
+  devil_stop: '🛑',
+  skill_milestone: '🎁',
+  pending_die_added: '📥',
+  pending_released: '🔓',
+  win: '🏆',
+};
+
+function PerTurnActions({ game }: { game: GameStats }) {
+  // Default: show winner; if no winner, show first player.
+  const players = Object.keys(game.actionCountsByPlayer);
+  const initial = game.winnerName ?? players[0];
+  const [selected, setSelected] = useState(initial);
+
+  // Group events by turn for the selected player. Filter rolls into a separate
+  // header per turn (rather than as a separate row) for cleaner reading.
+  const eventsByTurn = useMemo(() => {
+    const map = new Map<number, TurnEvent[]>();
+    if (!game.events) return map;
+    for (const e of game.events) {
+      if (e.playerName !== selected) continue;
+      if (!map.has(e.turn)) map.set(e.turn, []);
+      map.get(e.turn)!.push(e);
+    }
+    return map;
+  }, [game.events, selected]);
+
+  const sortedTurns = useMemo(() => Array.from(eventsByTurn.keys()).sort((a, b) => a - b), [eventsByTurn]);
+  const totalActions = useMemo(
+    () => sortedTurns.reduce((s, t) => s + eventsByTurn.get(t)!.length, 0),
+    [sortedTurns, eventsByTurn]
+  );
+
+  if (sortedTurns.length === 0) {
+    return (
+      <div style={{ marginBottom: 14 }}>
+        <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase', color: 'var(--muted)' }}>
+          🎬 Akce hráče po tazích
+        </h4>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Žádná data.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <h4 style={{ margin: 0, fontSize: 12, textTransform: 'uppercase', color: 'var(--muted)' }}>
+          🎬 Akce hráče po tazích ({selected} · {sortedTurns.length} tahů, {totalActions} událostí)
+        </h4>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {players.map((p) => (
+            <button
+              key={p}
+              onClick={() => setSelected(p)}
+              className={selected === p ? 'primary' : ''}
+              style={{ padding: '2px 8px', fontSize: 11 }}
+            >
+              {p === game.winnerName ? '🏆 ' : ''}{p}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div
+        style={{
+          maxHeight: 480,
+          overflowY: 'auto',
+          background: '#fffaf0',
+          border: '1px solid var(--border)',
+          borderRadius: 4,
+          padding: 8,
+        }}
+      >
+        {sortedTurns.map((turn) => {
+          const events = eventsByTurn.get(turn)!;
+          // Try to extract roll values from first roll event
+          const rollEvent = events.find((e) => e.type === 'roll');
+          const rollMatch = rollEvent ? /hodil kostkami: \[([^\]]+)\] \(součet (\d+)\)/.exec(rollEvent.detail) : null;
+          const otherEvents = events.filter((e) => e.type !== 'roll');
+          return (
+            <div key={turn} style={{ display: 'flex', gap: 8, fontSize: 12, padding: '4px 0', borderBottom: '1px dashed #eee' }}>
+              <div style={{ minWidth: 32, color: 'var(--muted)', fontWeight: 600, textAlign: 'right' }}>
+                {turn}.
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {rollMatch && (
+                  <div style={{ color: '#1c150a' }}>
+                    🎲 [{rollMatch[1]}] = <strong>{rollMatch[2]}</strong>
+                  </div>
+                )}
+                {otherEvents.length === 0 && !rollMatch && (
+                  <div style={{ color: 'var(--muted)' }}>(no events)</div>
+                )}
+                {otherEvents.map((e, i) => (
+                  <div key={i} style={{ paddingLeft: 8 }}>
+                    {ACTION_EMOJI[e.type] || '·'} {stripPlayerName(e.detail, selected)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function stripPlayerName(detail: string, name: string): string {
+  // Trim player-prefix to reduce repetition. E.g. "AI-A přesunul..." → "přesunul..."
+  if (detail.startsWith(`${name} `)) return detail.slice(name.length + 1);
+  return detail;
 }
 
 function ActionCountsTable({ counts }: { counts: Record<string, PlayerActionCounts> }) {

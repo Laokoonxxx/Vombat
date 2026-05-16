@@ -566,7 +566,15 @@ function main() {
     catSmashes: r.catSmashes,
     actionCountsByPlayer: r.actionCountsByPlayer,
     finalState: r.finalState,
-    // omit `events` and `trajectories`; truncate log to last 50 entries
+    // Per-step events with truncated detail for the in-app per-turn view.
+    // (Trajectories omitted entirely — not currently consumed.)
+    events: r.events.map((e) => ({
+      turn: e.turn,
+      step: e.step,
+      playerName: e.playerName,
+      type: e.type,
+      detail: e.detail.length > 120 ? e.detail.slice(0, 117) + '…' : e.detail,
+    })),
     trajectories: {},
     fullLog: r.fullLog.slice(-50),
   }));
