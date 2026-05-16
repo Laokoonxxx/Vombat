@@ -15,6 +15,60 @@ Není to TODO — jsou to **uvažované** směry pro budoucí iterace.
 
 ---
 
+## 🎲 Priorita 0: Deck-building musí být centrální mechanika
+
+**Problém:** Hra cílí být unikátní tím, že hráč staví balíček kostek a tím
+ovlivňuje pravděpodobnost aktivací polí. Aktuálně to **nehraje žádnou roli**
+— pravidlo „hoď všemi kostkami" vyřazuje rozhodování. AI vyhrává s 2 dovednostmi
+za 53 tahů, deck-building je čistě pasivní.
+
+### A. Pre-roll free swap *(minimální změna, nejsilnější dopad)*
+- Před hodem v každém tahu: 1× zadarmo přesun kostka ↔ Zásoba
+- Třídění (Klystýr) → „**3× zadarmo před hodem**" místo dnešní sleep-only varianty
+- Sleep výměna zůstává pro masivní reorganizaci
+- **Proč:** každý tah hráč řeší „co tentokrát chci hodit". Hands-on bez ztráty tahu.
+
+### B. Roll-subset rule *(větší změna pravidel)*
+- Místo „hodíš VŠEMI" → „hodíš **alespoň 1** a zbytek dle volby"
+- Nehozené kostky zůstávají v Ruce na další tah
+- Možný kompromis: bonus +1 🥔 za hod všemi (motivace pro plný hod)
+- **Riziko:** decision paralysis každý tah
+
+### C. Cat combat jako Čert v malém ⭐ *(spojuje balanc + deck-building)*
+- Místo „hod 11-14 + pohyb = smash" → **Cat combat režim** podle vzoru Čerta
+- Vyhlášení boje před hodem
+- Kočka má **2 sloty zranění**: `1-2` a `7+`
+- Musíš v jedné sérii hodů zasáhnout oba (jako u Čerta)
+- Selžeš → útok Kočky
+- Uspěješ → odměna **1k12** (místo k20) + tunel + milestone Lázně
+- **Proč pro deck-building:** ke kočce potřebuješ specifickou ruku — malou kostku
+  (k2/k4 pro slot 1-2) i velkou (k8+ pro slot 7+). Hráč PLÁNUJE ruku PŘED
+  kočkou. Smíchaná ruka = optimum.
+- **Bonus 1:** Menší odměna než k20 řeší dominance honu na kočky (z experimentu
+  k8 víme že 28 % stall, k12 by mělo být sweet spot ~10 %)
+- **Bonus 2:** Tematicky sedí — vombat kočku „naláká dolů" (nízký hod) a pak
+  drtí zadkem (vysoký hod)
+
+### D. Die forging „Kovárna" *(strategický horizont)*
+Sleep akce nebo nové pole:
+- Spal 2× k4 → získej 1k8 (merge)
+- Spal k10 → 2× k4 (split)
+- Spal k6 + 3 🥔 → upgrade na k8
+- **Proč:** aktivní volba tvaru ruky bez čekání na náhodu
+
+### E. Reroll s cenou
+- Po hodu: zaplať 1 🥔 → znovu hod jakoukoli podmnožinu kostek
+- Devil combat už mechaniku má (continue roll) — extension na běžný tah
+
+### Doporučená kombinace
+- **A + C** — minimum rule change, maximální dopad na deck-building zájem
+- D jako druhá iterace
+- Experiment k8 ukázal, že snížení odměny za kočku samo bez deck-building
+  podpory hru zlomí (28 % stall). Cat combat (C) by mělo dát stejnou redukci
+  hodnoty kočky, ale s aktivním zapojením hráče místo čekání na hod 11-14.
+
+---
+
 ## 🚀 Priorita 1: Speed & strategy
 
 ### Round limit + scoring tiebreak
