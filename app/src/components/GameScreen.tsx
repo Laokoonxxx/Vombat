@@ -13,6 +13,36 @@ import {
 } from '../game/engine';
 import { aiStep } from '../game/ai';
 
+// Prefix icons for the log feed — make events scannable at a glance.
+function eventIcon(entry: string): string {
+  if (entry.includes('ZABIL')) return '🏆';
+  if (entry.includes('hodil kostkami')) return '🎲';
+  if (entry.includes('přesunul Vombata')) return '🐾';
+  if (entry.includes('rozmačkal Kočku')) return '🎉';
+  if (entry.includes('bojuje s Čertem')) return '⚔️';
+  if (entry.includes('zranil Čerta')) return '💥';
+  if (entry.includes('neuspěl v boji')) return '❌';
+  if (entry.includes('ukončil boj')) return '🛑';
+  if (entry.includes('Kapacita zdarma') || entry.includes('Koupel zdarma')) return '🎁';
+  if (entry.includes('koupil dovednost')) return '🛒';
+  if (entry.includes('se naučil')) return '🧠';
+  if (entry.includes('získal 1k') && entry.includes('Houští')) return '🌵';
+  if (entry.includes('zasadil mrkev')) return '🥕';
+  if (entry.includes('Kakej')) return '💩';
+  if (entry.includes('obsadil Eukalyptový')) return '🌳';
+  if (entry.includes('teleportoval')) return '🌀';
+  if (entry.includes('uvolnil čekající')) return '🔓';
+  if (entry.includes('čeká na dovednost')) return '📥';
+  if (entry.includes('spí a získává') || entry.includes('prospal')) return '💤';
+  if (entry.includes('downgradnul') || entry.includes('upgradnul') || entry.includes('výměnu')) return '🔄';
+  if (entry.includes('je vedle Kočky') || entry.includes('Pole je obsazeno')) return '⚠️';
+  if (entry.includes('odevzdal bramboru') || entry.includes('odevzdal kostku')) return '💔';
+  if (entry.includes('koupil 1k') || entry.includes('druhého Vombata')) return '🛒';
+  if (entry.includes('umístil Vombata') || entry.startsWith('Hra')) return '🏁';
+  if (entry.startsWith('---')) return '▶️';
+  return '·';
+}
+
 export interface GameScreenProps {
   state: GameState;
   setState: (s: GameState) => void;
@@ -26,6 +56,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
+  const [inspectHex, setInspectHex] = useState<Hex | null>(null);
 
   // Auto-run AI: when current player is AI, dispatch one step every ~700ms
   // so the user can see each move land.
@@ -50,9 +81,18 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
       return p.vombats.map((v) => v.hex);
     }
     if (mode === 'pickMove') {
-      const v = p.vombats.find((vv) => vv.id === selectedVombatId);
-      if (!v) return p.vombats.map((vv) => vv.hex); // pick a vombat first
-      return legalMoveTargets(state, v.hex);
+      // Show ALL legal move targets from ANY of player's vombats up front.
+      // Click a target hex → if multiple vombats could move there, pick the
+      // closest one. Skips the "select vombat first" step.
+      const targets: Hex[] = [];
+      const seen = new Set<string>();
+      for (const v of p.vombats) {
+        for (const t of legalMoveTargets(state, v.hex)) {
+          const k = hexKey(t);
+          if (!seen.has(k)) { seen.add(k); targets.push(t); }
+        }
+      }
+      return targets;
     }
     if (mode === 'pickField') {
       // any usable adjacent/standing hex
@@ -73,6 +113,13 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
       });
       return hexes;
     }
+    // INSPECT MODE: in 'rolled' phase with no active sub-mode, all hexes are
+    // clickable — click reveals available actions for that hex in a side panel.
+    if (mode === 'idle' && state.phase === 'rolled' && !state.pendingChoice) {
+      const hexes: Hex[] = [];
+      state.board.forEach((c) => hexes.push(c.hex));
+      return hexes;
+    }
     return [];
   }, [mode, selectedVombatId, p, state]);
 
@@ -82,12 +129,13 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
       return;
     }
     if (mode === 'pickMove') {
-      const v = p.vombats.find((vv) => vv.id === selectedVombatId);
-      if (!v) {
-        const tap = p.vombats.find((vv) => vv.hex.q === hex.q && vv.hex.r === hex.r);
-        if (tap) setSelectedVombatId(tap.id);
-        return;
-      }
+      // Find which of player's vombats can actually move to the clicked hex.
+      // If multiple, pick the one whose direct adjacency matches (or first).
+      const movableVombats = p.vombats.filter((v) =>
+        legalMoveTargets(state, v.hex).some((t) => t.q === hex.q && t.r === hex.r)
+      );
+      if (movableVombats.length === 0) return;
+      const v = movableVombats[0];
       const after = moveVombat(state, v.id, hex);
       setState(after);
       setMode('idle');
@@ -110,6 +158,11 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
       setSelectedVombatId(null);
       return;
     }
+    // Inspect mode: open the hex options panel.
+    if (mode === 'idle' && state.phase === 'rolled' && !state.pendingChoice) {
+      setInspectHex(hex);
+      return;
+    }
   }
 
   const canRoll = state.phase === 'idle';
@@ -124,7 +177,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
         <h1>🐾 Vombat</h1>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div className="turn-badge" style={{ color: p.color }}>
-            Tah: {p.name}
+            Tah #{state.turnNumber} · {p.name}
           </div>
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
@@ -142,8 +195,30 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
         <HexBoard
           state={state}
           clickableHexes={clickable}
+          selectedHex={inspectHex}
           onHexClick={onHexClick}
         />
+        {inspectHex && state.phase === 'rolled' && (
+          <HexInspectPanel
+            hex={inspectHex}
+            state={state}
+            onClose={() => setInspectHex(null)}
+            onMove={() => {
+              const moveTargets = p.vombats
+                .map((v) => ({ v, targets: legalMoveTargets(state, v.hex) }))
+                .find(({ targets }) =>
+                  targets.some((t) => t.q === inspectHex.q && t.r === inspectHex.r)
+                );
+              if (!moveTargets) return;
+              setState(moveVombat(state, moveTargets.v.id, inspectHex));
+              setInspectHex(null);
+            }}
+            onUseField={() => {
+              setState(useField(state, inspectHex));
+              setInspectHex(null);
+            }}
+          />
+        )}
       </div>
       <div className="sidebar">
         <Legend />
@@ -178,20 +253,45 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
                   <button onClick={() => setMode('sleepMenu')}>💤 Spánek</button>
                 </>
               )}
-              {rolled && !state.pendingChoice && (
-                <>
-                  <button onClick={() => { setMode('pickMove'); setSelectedVombatId(null); }}>
-                    🐾 Pohyb (vyber Vombata → cílové pole)
-                  </button>
-                  <button onClick={() => setMode('pickField')}>
-                    🌿 Využij pole (vyber pole)
-                  </button>
-                  <button onClick={() => setMode('sleepMenu')}>
-                    💤 Spánek (zruš hod, využij speciální akci)
-                  </button>
-                </>
-              )}
-              {state.phase === 'devil_combat' && (
+              {rolled && !state.pendingChoice && (() => {
+                // Compute what's actually possible given the current roll —
+                // don't offer disabled buttons.
+                const moveTargets = new Set<string>();
+                for (const v of p.vombats) {
+                  for (const t of legalMoveTargets(state, v.hex)) {
+                    moveTargets.add(hexKey(t));
+                  }
+                }
+                const fieldTargets: Hex[] = [];
+                state.board.forEach((c) => {
+                  if (canUseField(state, c.hex)) fieldTargets.push(c.hex);
+                });
+                const canMove = moveTargets.size > 0;
+                const canUse = fieldTargets.length > 0;
+                return (
+                  <>
+                    {canMove && (
+                      <button onClick={() => { setMode('pickMove'); setSelectedVombatId(null); }}>
+                        🐾 Pohyb ({moveTargets.size} {moveTargets.size === 1 ? 'možnost' : 'možností'})
+                      </button>
+                    )}
+                    {canUse && (
+                      <button onClick={() => setMode('pickField')}>
+                        🌿 Využij pole ({fieldTargets.length} {fieldTargets.length === 1 ? 'možnost' : 'možností'})
+                      </button>
+                    )}
+                    <button onClick={() => setMode('sleepMenu')}>
+                      💤 Spánek (zruš hod, využij speciální akci)
+                    </button>
+                    {!canMove && !canUse && (
+                      <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>
+                        S tímto hodem nemůžeš nic dělat — zvol Spánek.
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+              {state.phase === 'devil_combat' && p.fighting && (
                 <DevilCombatPanel state={state} setState={setState} />
               )}
             </div>
@@ -208,7 +308,11 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
           {mode === 'sleepMenu' && (
             <SleepModal
               state={state}
-              setState={setState}
+              setState={(s) => {
+                // Any Sleep action ends the turn — also close the modal.
+                setState(s);
+                setMode('idle');
+              }}
               close={() => setMode('idle')}
               onPickTeleport={(vombatId) => {
                 setSelectedVombatId(vombatId);
@@ -218,32 +322,118 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
           )}
         </div>
         <div className="panel">
-          <h3>Čertova zranění ({p.name})</h3>
-          <div className="devil-tracker">
-            {WOUND_TYPES.map((w) => {
-              const die = state.devilWounds.woundsByPlayer[p.id][w];
-              return (
-                <div key={w} className={`wound-slot ${die ? 'taken' : ''}`}>
-                  <div style={{ fontWeight: 700 }}>{w}</div>
-                  <div style={{ fontSize: 10 }}>{die ? `1k${die}` : '—'}</div>
-                </div>
-              );
-            })}
-          </div>
+          <h3>Čertova zranění (každý bojuje vlastního)</h3>
+          {state.players.map((pl) => (
+            <div key={pl.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: pl.color, marginBottom: 2 }}>
+                {pl.name}
+              </div>
+              <div className="devil-tracker">
+                {WOUND_TYPES.map((w) => {
+                  const die = state.devilWounds.woundsByPlayer[pl.id][w];
+                  return (
+                    <div key={w} className={`wound-slot ${die ? 'taken' : ''}`}>
+                      <div style={{ fontWeight: 700 }}>{w}</div>
+                      <div style={{ fontSize: 10 }}>{die ? `1k${die}` : '—'}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
           {allWoundsTaken(state, p.id) && (
-            <p style={{ color: '#a05e2e', marginTop: 8 }}>
-              Všechna zranění zasazena! V boji s Čertem hoď součet 25+ pro vítězství.
+            <p style={{ color: '#a05e2e', marginTop: 6, fontSize: 12 }}>
+              Tvoje 4 zranění zasazena. V boji s Čertem hoď součet 25+ pro vítězství.
             </p>
           )}
         </div>
         <div className="panel">
           <h3>Log</h3>
           <div className="log">
-            {state.log.slice(0, 30).map((e, i) => (
-              <div key={i} className="entry">{e}</div>
+            {state.log.slice(0, 40).map((e, i) => (
+              <div key={i} className="entry" style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+                <span style={{ minWidth: 18 }}>{eventIcon(e)}</span>
+                <span style={{ flex: 1 }}>{e}</span>
+              </div>
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Side-panel showing what the current player can do at a specific hex.
+// Opens when you click any hex during 'rolled' phase.
+function HexInspectPanel({
+  hex,
+  state,
+  onClose,
+  onMove,
+  onUseField,
+}: {
+  hex: Hex;
+  state: GameState;
+  onClose: () => void;
+  onMove: () => void;
+  onUseField: () => void;
+}) {
+  const p = currentPlayer(state);
+  const cell = state.board.get(hexKey(hex));
+  if (!cell) return null;
+  const sum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
+  const canMoveHere = p.vombats.some((v) =>
+    legalMoveTargets(state, v.hex).some((t) => t.q === hex.q && t.r === hex.r)
+  );
+  const canUseHere = canUseField(state, hex);
+  const typeLabel: Record<string, string> = {
+    dirt: '🟫 Hlína (2-4)',
+    bed: '🌱 Záhon (4-6)',
+    desert: '🏜️ Poušť (7+, vyžaduje Koupel)',
+    tree: '🌳 Eukalyptus (7-8)',
+    thorn: '🌵 Houští (k4 → 5+, k6 → 7+, k8 → 9+)',
+    cat: cell.catAlive ? '🐱 Kočka (11-14 = rozmačkat)' : '🕳️ Mrtvá kočka (tunel)',
+    devil: '👹 Tasmánský Čert (12+ pohyb, boj se vyhlašuje před hodem)',
+  };
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        width: 280,
+        background: '#fff',
+        border: '2px solid var(--accent)',
+        borderRadius: 8,
+        padding: 12,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        zIndex: 10,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <strong>{typeLabel[cell.type]}</strong>
+        <button onClick={onClose} style={{ padding: '2px 8px', fontSize: 12 }}>✕</button>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>
+        Pozice ({hex.q},{hex.r}) · Tvůj hod: <strong>{sum}</strong>
+        {cell.thornDieLevel && <> · Kostka: 1k{cell.thornDieLevel}</>}
+        {cell.marker && (
+          <> · Obsadil {state.players.find((pl) => pl.id === cell.marker!.playerId)?.name}{' '}
+            ({cell.marker.kind})</>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <button disabled={!canMoveHere} onClick={onMove}>
+          🐾 Pohni se sem {canMoveHere ? '' : '(nelze s tímto hodem)'}
+        </button>
+        <button disabled={!canUseHere} onClick={onUseField}>
+          🌿 Využij pole {canUseHere ? '' : '(nelze)'}
+        </button>
+        {!canMoveHere && !canUseHere && (
+          <p style={{ fontSize: 11, color: 'var(--muted)', margin: '4px 0 0' }}>
+            S tímto hodem na toto pole nemůžeš nic dělat.
+          </p>
+        )}
       </div>
     </div>
   );

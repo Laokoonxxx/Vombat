@@ -116,6 +116,7 @@ export interface GameState {
   board: Map<string, BoardCell>; // key = hexKey
   players: PlayerState[];
   currentPlayerIdx: number;
+  turnNumber: number;            // 1-indexed; increments on each turn change
   phase: Phase;
   log: string[];
   winnerId: string | null;

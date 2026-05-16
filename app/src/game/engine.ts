@@ -34,7 +34,21 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
   const board = generateMap(config, rng);
 
   // Determine random starting player order
-  const order = rng.shuffle(setupPlayers.map((_, i) => i));
+  // Turn order: in vs-AI mode (where exactly one of the players is AI),
+  // the AI always starts (gives the human a chance to observe a turn first
+  // and avoids the awkward "AI took 5 swift turns while I was reading rules"
+  // problem). In hot-seat (all human), randomize.
+  const aiCount = setupPlayers.filter((sp) => sp.kind === 'ai').length;
+  let order: number[];
+  if (aiCount > 0 && aiCount < setupPlayers.length) {
+    // Mixed: place AIs first, then humans
+    const aiIdx: number[] = [];
+    const humanIdx: number[] = [];
+    setupPlayers.forEach((sp, i) => (sp.kind === 'ai' ? aiIdx : humanIdx).push(i));
+    order = [...aiIdx, ...humanIdx];
+  } else {
+    order = rng.shuffle(setupPlayers.map((_, i) => i));
+  }
 
   const players: PlayerState[] = order.map((origIdx, posIdx) => {
     const sp = setupPlayers[origIdx];
@@ -68,6 +82,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
     board,
     players,
     currentPlayerIdx: 0,
+    turnNumber: 1,
     phase: 'setup',
     log: ['Hra připravena. Každý hráč nyní zvolí startovní pole.'],
     winnerId: null,
@@ -470,12 +485,13 @@ export function endTurn(state: GameState): void {
   p.lastRoll = null;
   p.fighting = false;
   state.currentPlayerIdx = (state.currentPlayerIdx + 1) % state.players.length;
+  state.turnNumber = (state.turnNumber ?? 1) + 1;
   state.phase = 'idle';
   state.pendingChoice = null;
   state.movedThisTurn = false;
   state.usedFieldThisTurn = false;
   const next = currentPlayer(state);
-  logEntry(state, `--- Tah hráče ${next.name} ---`);
+  logEntry(state, `--- Tah ${state.turnNumber} · hráč ${next.name} ---`);
 }
 
 export function endTurnNow(state: GameState): GameState {
@@ -670,20 +686,23 @@ function dirtPlant(s: GameState, p: PlayerState, cell: BoardCell): GameState {
 }
 
 function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
-  // Formula: result = carrotTrack + potatoesInvested + adjacent (bobek or mrkev) markers
+  // Per rules: score = carrotTrack (your ukazatel mrkve)
+  //                  + potatoes invested (UI not yet wired — skipped)
+  //                  + adjacent hexes occupied by any marker (bobek OR mrkev)
+  // Score 0=nothing, 1=k2, 2=k4, 3=k6, 4=k8, 5=k10, 6-7=k12, 8+=k20
   const adj = adjacentTo(s, cell.hex).filter((c) => !!c.marker).length;
-  // For simplicity in MVP: no extra potato investment. Add ability later.
   const result = p.carrotTrack + adj;
   const dieLevel = poopResult(result);
   cell.marker = { playerId: p.id, kind: 'bobek' };
   p.markersPlaced.bobek += 1;
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
+  const breakdown = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
   if (dieLevel === null) {
-    logEntry(s, `${p.name} provedl Kakej (výsledek ${result}) - nic nezískává.`);
+    logEntry(s, `${p.name} provedl Kakej (${breakdown}) - nic nezískává.`);
   } else {
     addDieOrPending(s, p, dieLevel);
-    logEntry(s, `${p.name} provedl Kakej (skóre ${result}) - získává 1k${dieLevel}!`);
+    logEntry(s, `${p.name} provedl Kakej (${breakdown}) - získává 1k${dieLevel}!`);
   }
   endTurn(s);
   return s;
@@ -704,7 +723,7 @@ function poopResult(score: number): DiceLevel | null {
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
   kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Ruší oba limity: "max 2 stejného lvl" v Ruce i "max 3" v Zásobě.' },
   koupel:       { trees: 2, label: 'Koupel',             desc: 'Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+).' },
-  klystyr:      { trees: 2, label: 'Klystýr',            desc: 'Při Spánku: výměna Ruka↔Zásoba až 3x.' },
+  klystyr:      { trees: 2, label: 'Klystýr',            desc: 'Při Spánku: neomezené výměny Ruka↔Zásoba (bez limitu počtu).' },
   masaz_strev:  { trees: 2, label: 'Masáž Střev',        desc: 'Při Spánku: Upgrade 1 kostky o 1 lvl.' },
   ajurveda:     { trees: 3, label: 'Ajurvédská Medicína', desc: 'Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
   sprint:       { trees: 2, label: 'Sprint',             desc: 'Pohyb + Využití Pole v jednom tahu (stejné pole).' },
@@ -759,7 +778,7 @@ export type SleepAction =
   | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
-export const TELEPORT_COST = 5;
+export const TELEPORT_COST = 8;
 export const SKILL_BUY_COST_PER_TREE = 5;
 export function skillBuyCost(skill: SkillId): number {
   return SKILL_REQUIREMENTS[skill].trees * SKILL_BUY_COST_PER_TREE;
@@ -787,7 +806,9 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       logEntry(s, `${p.name} downgradnul kostky.`);
       break;
     case 'swap': {
-      const maxSwaps = p.skills.has('klystyr') ? 3 : 1;
+      // Klystýr (purgative skill) removes the cap on swap operations entirely.
+      // Without it, only 1 swap per Sleep.
+      const maxSwaps = p.skills.has('klystyr') ? Infinity : 1;
       if (action.ops.length > maxSwaps) return state;
       action.ops.forEach((op) => {
         if (op.op === 'hand_to_reserve') {
