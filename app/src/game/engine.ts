@@ -45,6 +45,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
       kind: sp.kind ?? 'human',
       hand: [],
       reserve: [],
+      pendingDice: [],
       potatoes: 10, // starting potatoes for shop
       carrotTrack: 0,
       bobekTrack: 0,
@@ -95,6 +96,7 @@ function cloneState(state: GameState): GameState {
     ...p,
     hand: [...p.hand],
     reserve: [...p.reserve],
+    pendingDice: [...p.pendingDice],
     vombats: p.vombats.map((v) => ({ ...v })),
     skills: new Set(p.skills),
     markersPlaced: { ...p.markersPlaced },
@@ -221,6 +223,45 @@ export function canAddDieToHand(p: PlayerState, level: DiceLevel): boolean {
 export function canAddDieToReserve(p: PlayerState): boolean {
   if (p.skills.has('kapacita')) return true;
   return p.reserve.length < 3;
+}
+
+// Gain a die in-game. Always succeeds; if both Ruka and Zásoba are full,
+// the die is parked in pendingDice and will be released when Kapacita is
+// acquired (any path: traditional learn, Sleep shop, or Devil milestone).
+function addDieOrPending(s: GameState, p: PlayerState, lvl: DiceLevel): void {
+  if (canAddDieToHand(p, lvl)) {
+    p.hand.push(lvl);
+    return;
+  }
+  if (canAddDieToReserve(p)) {
+    p.reserve.push(lvl);
+    return;
+  }
+  p.pendingDice.push(lvl);
+  logEntry(
+    s,
+    `📥 ${p.name} získal 1k${lvl}, ale Ruka i Zásoba jsou plné - kostka čeká na dovednost Kapacita.`
+  );
+}
+
+// Move all pendingDice into Hand. Called whenever Kapacita is granted.
+// (Kapacita removes both hand and reserve limits, so Hand is fine.)
+function releasePendingDice(s: GameState, p: PlayerState): void {
+  if (p.pendingDice.length === 0) return;
+  const released = [...p.pendingDice];
+  p.pendingDice = [];
+  for (const lvl of released) p.hand.push(lvl);
+  logEntry(
+    s,
+    `🔓 ${p.name} díky Kapacitě uvolnil čekající kostky: ${released.map((d) => `1k${d}`).join(', ')}.`
+  );
+}
+
+// Grant a skill (idempotent). Handles side-effects like releasing pending dice.
+function grantSkill(s: GameState, p: PlayerState, skill: SkillId): void {
+  if (p.skills.has(skill)) return;
+  p.skills.add(skill);
+  if (skill === 'kapacita') releasePendingDice(s, p);
 }
 
 // =============================================================================
@@ -397,13 +438,11 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   if (smashedCat) {
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
-    if (canAddDieToHand(p, 20)) p.hand.push(20);
-    else if (canAddDieToReserve(p)) p.reserve.push(20);
-    else logEntry(s, `${p.name} nemá kam umístit 1k20 - kostka propadá.`);
+    addDieOrPending(s, p, 20);
     logEntry(s, `🎉 ${p.name} rozmačkal Kočku! Získává 1k20 a pole se mění na tunel.`);
     // Milestone: first cat smash → grant Koupel
     if (!p.skills.has('koupel')) {
-      p.skills.add('koupel');
+      grantSkill(s, p, 'koupel');
       logEntry(s, `✨ ${p.name} získává dovednost Koupel zdarma (1. rozmačkaná Kočka)!`);
     }
   } else {
@@ -565,9 +604,7 @@ function useThorn(state: GameState, hex: Hex): GameState {
     return state;
   }
   const lvl = cell.thornDieLevel as DiceLevel;
-  if (canAddDieToHand(p, lvl)) p.hand.push(lvl);
-  else if (canAddDieToReserve(p)) p.reserve.push(lvl);
-  else logEntry(s, `${p.name} nemá kam umístit kostku - propadá.`);
+  addDieOrPending(s, p, lvl);
   cell.thornDieLevel = undefined;
   cell.marker = { playerId: p.id, kind: 'bobek' };
   p.markersPlaced.bobek += 1;
@@ -645,9 +682,7 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   if (dieLevel === null) {
     logEntry(s, `${p.name} provedl Kakej (výsledek ${result}) - nic nezískává.`);
   } else {
-    if (canAddDieToHand(p, dieLevel)) p.hand.push(dieLevel);
-    else if (canAddDieToReserve(p)) p.reserve.push(dieLevel);
-    else logEntry(s, `${p.name} nemá kam umístit kostku - propadá.`);
+    addDieOrPending(s, p, dieLevel);
     logEntry(s, `${p.name} provedl Kakej (skóre ${result}) - získává 1k${dieLevel}!`);
   }
   endTurn(s);
@@ -698,7 +733,7 @@ export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, 
   p.hand = handCopy;
   p.reserve = reserveCopy;
   p.potatoes -= potatoesUsed;
-  p.skills.add(skill);
+  grantSkill(s, p, skill);
   // We do NOT decrement bobekTrack — eukalypty zůstávají obsazeny.
   // Mark a dirt cell (current) with bobek as the learning marker (already set by Dirt action).
   const cell = s.board.get(hexKey((s.pendingChoice as any).hex));
@@ -812,7 +847,7 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       const cost = skillBuyCost(action.skill);
       if (p.potatoes < cost) return state;
       p.potatoes -= cost;
-      p.skills.add(action.skill);
+      grantSkill(s, p, action.skill);
       logEntry(s, `${p.name} koupil dovednost "${SKILL_REQUIREMENTS[action.skill].label}" za ${cost} 🥔.`);
       break;
     }
@@ -893,7 +928,7 @@ export function applyDevilWound(state: GameState, diceIndex: number, wound: Woun
   logEntry(s, `${p.name} zranil Čerta na ${wound} (kostka 1k${dieLvl}, hod ${val}).`);
   // Milestone: first wound applied → grant Kapacita
   if (!p.skills.has('kapacita')) {
-    p.skills.add('kapacita');
+    grantSkill(s, p, 'kapacita');
     logEntry(s, `✨ ${p.name} získává dovednost Kapacita zdarma (1. zranění Čerta)!`);
   }
   // Killing-blow check: if all 4 wounds are now taken AND the dice that

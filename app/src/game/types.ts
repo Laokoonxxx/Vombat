@@ -68,6 +68,7 @@ export interface PlayerState {
   kind: 'human' | 'ai';      // controls who decides this player's actions
   hand: DiceLevel[];         // kostky v Ruce
   reserve: DiceLevel[];      // kostky v Zásobě
+  pendingDice: DiceLevel[];  // kostky čekající na uvolnění Kapacitou (overflow)
   potatoes: number;
   carrotTrack: number;       // ukazatel mrkve (počet mrkví na desce)
   bobekTrack: number;        // ukazatel bobků (počet eukalyptů)

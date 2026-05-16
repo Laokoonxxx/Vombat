@@ -391,12 +391,18 @@ Bobky a Mrkve jsou pro vyhodnocení formace ekvivalentní. Postava Vombata se do
 ## 11. Obecná pravidla pro kostky
 
 ### Hand a Reserve limity
-- **Ruka** — max 2 kostky stejného levelu (např. nejvýše 2× 1k6). Limit zruší **Žonglování**.
-- **Zásoba** — max 3 kostky. Limit zruší **Zácpa**.
+- **Ruka** — max 2 kostky stejného levelu (např. nejvýše 2× 1k6). Limit zruší **Kapacita**.
+- **Zásoba** — max 3 kostky. Limit zruší **Kapacita**.
 
-Když nelze kostku přijmout, hráč může:
-- Odhodit jinou kostku v Ruce/Zásobě a novou kostku přijmout, nebo
-- Novou kostku nepřijmout (propadá).
+### Overflow přes Kapacitu (📥 Čekající kostky)
+Když hráč získá kostku během hry (Houští, Kakej, rozmačkaná Kočka), kostka se vždy někam vejde:
+1. **Pokud se vejde do Ruky** (respektuje limit) → jde do Ruky.
+2. **Jinak pokud se vejde do Zásoby** (respektuje limit) → jde do Zásoby.
+3. **Jinak putuje do "📥 Čekající"** zóny — kostku jsi získal, ale je dočasně zamknutá. Nelze ji použít pro hod ani jako obrana.
+
+Jakmile hráč získá dovednost **Kapacita** (libovolnou cestou — Uč se, Sleep shop, milestone z 1. zranění Čerta), **všechny čekající kostky se okamžitě uvolní do Ruky**.
+
+> Pozor: V **setupu** se toto pravidlo neuplatňuje. Pokud si chceš v nákupu koupit 3. stejnou kostku, prodej je odmítnut (limit 2× stejného lvl).
 
 ### Volba velikosti při získání
 Kdykoliv hráč získá kostku, může se **rozhodnout pro menší** (např. 1k6 místo 1k12).
@@ -451,6 +457,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Skill shop (Spánek) | **přidáno** — 5 🥔 × počet stromů → koupíš libovolnou dovednost. Alternativa k tradičnímu Uč se. |
 | Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
 | Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
+| Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
 
 ---
 

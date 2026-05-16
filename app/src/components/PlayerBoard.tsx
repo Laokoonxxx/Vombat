@@ -42,6 +42,14 @@ export function PlayerBoard({ player, active }: { player: PlayerState; active: b
           {player.reserve.length === 0 ? '—' : player.reserve.map((d, i) => <span key={i} style={{ marginRight: 4 }}>1k{d}</span>)}
         </span>
       </div>
+      {player.pendingDice.length > 0 && (
+        <div className="stat-row" title="Tyto kostky jsi získal, ale nevešly se do Ruky ani Zásoby. Uvolní se až získáš Kapacitu.">
+          <span className="label" style={{ color: '#a05e2e' }}>📥 Čekající:</span>
+          <span className="val" style={{ color: '#a05e2e' }}>
+            {player.pendingDice.map((d, i) => <span key={i} style={{ marginRight: 4 }}>1k{d}</span>)}
+          </span>
+        </div>
+      )}
       <div style={{ marginTop: 8 }}>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           🧠 Dovednosti
