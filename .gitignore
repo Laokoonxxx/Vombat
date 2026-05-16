@@ -15,6 +15,10 @@ app/*.tsbuildinfo
 .DS_Store
 *.log
 
+# Simulation outputs — keep only the latest report manually if desired
+app/sim_results/sim_data_*.json
+# Note: .md reports are kept by default for reference
+
 # Local env
 .env
 .env.local
