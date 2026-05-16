@@ -4,6 +4,7 @@ import type { GameState } from './game/types';
 import { SetupScreen } from './components/SetupScreen';
 import { GameScreen } from './components/GameScreen';
 import { StatsViewer } from './components/StatsViewer';
+import { QuickRules, shouldAutoShowQuickRules } from './components/QuickRules';
 import { loadFromStorage, saveToStorage, clearStorage, getSaveMeta } from './game/persistence';
 
 type Mode = 'hotseat' | 'vs_ai';
@@ -16,6 +17,7 @@ export function App() {
   const [p2Name, setP2Name] = useState('Hráč 2');
   const [aiName, setAiName] = useState('AI');
   const [showStats, setShowStats] = useState(false);
+  const [showRules, setShowRules] = useState<boolean>(() => shouldAutoShowQuickRules());
 
   // Wrapper that always persists.
   const setState = (s: GameState | null) => {
@@ -36,6 +38,9 @@ export function App() {
   if (showStats) {
     return <StatsViewer onClose={() => setShowStats(false)} />;
   }
+
+  // QuickRules can render on top of any screen
+  const rulesOverlay = showRules ? <QuickRules onClose={() => setShowRules(false)} /> : null;
 
   if (!state) {
     const meta = getSaveMeta();
@@ -114,17 +119,47 @@ export function App() {
           💾 Stav hry se automaticky ukládá do prohlížeče - po obnovení stránky pokračuješ, kde jsi skončil.
         </p>
         <button
+          onClick={() => setShowRules(true)}
+          style={{ marginTop: 8, width: '100%' }}
+          className="primary"
+        >
+          📖 Jak hrát (rychlý úvod)
+        </button>
+        <button
           onClick={() => setShowStats(true)}
           style={{ marginTop: 8, width: '100%' }}
         >
           📊 Zobrazit statistiky AI simulací
         </button>
+        {rulesOverlay}
       </div>
     );
   }
 
   if (state.phase === 'setup') {
-    return <SetupScreen state={state} setState={setState} onNewGame={startNewGame} onShowStats={() => setShowStats(true)} />;
+    return (
+      <>
+        <SetupScreen
+          state={state}
+          setState={setState}
+          onNewGame={startNewGame}
+          onShowStats={() => setShowStats(true)}
+          onShowRules={() => setShowRules(true)}
+        />
+        {rulesOverlay}
+      </>
+    );
   }
-  return <GameScreen state={state} setState={setState} onNewGame={startNewGame} onShowStats={() => setShowStats(true)} />;
+  return (
+    <>
+      <GameScreen
+        state={state}
+        setState={setState}
+        onNewGame={startNewGame}
+        onShowStats={() => setShowStats(true)}
+        onShowRules={() => setShowRules(true)}
+      />
+      {rulesOverlay}
+    </>
+  );
 }

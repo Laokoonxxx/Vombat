@@ -48,11 +48,12 @@ export interface GameScreenProps {
   setState: (s: GameState) => void;
   onNewGame?: () => void;
   onShowStats?: () => void;
+  onShowRules?: () => void;
 }
 
 type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu' | 'pickTeleport';
 
-export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScreenProps) {
+export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRules }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
@@ -179,6 +180,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats }: GameScre
           <div className="turn-badge" style={{ color: p.color }}>
             Tah #{state.turnNumber} · {p.name}
           </div>
+          {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
             <button

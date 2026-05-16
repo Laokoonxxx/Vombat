@@ -213,11 +213,23 @@ function readyToFightDevil(state: GameState, p: PlayerState): boolean {
   const handMax = Math.max(...p.hand);
   const sumPotential = p.hand.reduce((a, lvl) => a + lvl, 0);
 
+  // Opponent-aware: if no opponent looks close to winning, we can be more
+  // patient and accumulate a stronger hand. Specifically: if opponent has
+  // ≤ 1 wound on their Devil AND a weak hand (max die < 10), we raise our
+  // own readiness bar (require bigger sumPotential).
+  const opponents = state.players.filter((pp) => pp.id !== p.id);
+  const opponentClose = opponents.some((opp) => {
+    const oWounds = state.devilWounds.woundsByPlayer[opp.id];
+    const oWoundsTaken = WOUND_TYPES.filter((w) => oWounds[w] != null).length;
+    const oHandMax = opp.hand.length ? Math.max(...opp.hand) : 0;
+    return oWoundsTaken >= 2 || (oWoundsTaken >= 1 && oHandMax >= 10);
+  });
+  const patienceBoost = opponentClose ? 0 : 8; // require +8 sumPotential when opponent isn't close
+
   // Final blow — all 4 wounds done; we just need to ROLL 25+ in one shot.
   // sumPotential is the MAX possible sum; avg roll is sumPotential/2.
-  // Require sumPotential >= 32 to have reasonable chance — otherwise we'd
-  // loop forever trying & failing (verified in self-play).
-  if (woundsTaken === 4) return sumPotential >= 32;
+  // Require sumPotential >= 32 (or 40 if opponent is far behind).
+  if (woundsTaken === 4) return sumPotential >= 32 + patienceBoost;
 
   // Capability: must be able to hit each remaining wound type.
   if (wounds['10+'] == null && handMax < 10) return false;
@@ -229,7 +241,8 @@ function readyToFightDevil(state: GameState, p: PlayerState): boolean {
   // Sum potential safety: total potential must comfortably exceed 25 + wound cost.
   // Estimate wound dice cost (avg): k4-k8 used for wounds ≈ 6 each. Remaining
   // sum ≈ sumPotential - 6 * remainingWounds. Want remaining >= 25.
-  if (sumPotential < 25 + 6 * remainingWounds) return false;
+  // Plus patience boost when opponent is far behind.
+  if (sumPotential < 25 + 6 * remainingWounds + patienceBoost) return false;
 
   return true;
 }

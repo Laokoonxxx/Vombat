@@ -11,9 +11,10 @@ export interface SetupScreenProps {
   setState: (s: GameState) => void;
   onNewGame?: () => void;
   onShowStats?: () => void;
+  onShowRules?: () => void;
 }
 
-export function SetupScreen({ state, setState, onNewGame, onShowStats }: SetupScreenProps) {
+export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRules }: SetupScreenProps) {
   // Phase 1: each player picks a starting hex in order.
   // Phase 2: each player buys at least 1 die and optionally a 2nd vombat.
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
@@ -62,6 +63,7 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats }: SetupSc
       <div className="topbar">
         <h1>🐾 Vombat — příprava hry</h1>
         <div style={{ display: 'flex', gap: 8 }}>
+          {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
             <button
@@ -137,9 +139,13 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats }: SetupSc
                   <button
                     onClick={() => setState(buySecondVombat(state, activeShopPlayer.id))}
                     disabled={activeShopPlayer.vombats.length !== 1 || activeShopPlayer.potatoes < 5}
+                    title="Druhý Vombat se umístí na stejné pole jako první. Lze koupit POUZE teď v setupu."
                   >
-                    Koupit druhého Vombata (5 brambor)
+                    🐾🐾 Koupit druhého Vombata (5 🥔)
                   </button>
+                  <p style={{ gridColumn: '1 / -1', fontSize: 11, color: 'var(--muted)', margin: '4px 0 0' }}>
+                    💡 Druhý Vombat lze koupit jen tady v setupu, ne během hry. Vejde se na stejné pole jako první.
+                  </p>
                 </div>
               </div>
             </div>

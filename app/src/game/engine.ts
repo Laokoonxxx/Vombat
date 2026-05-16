@@ -722,10 +722,10 @@ function poopResult(score: number): DiceLevel | null {
 // --- LEARN SKILL ---
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
   kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Ruší oba limity: "max 2 stejného lvl" v Ruce i "max 3" v Zásobě.' },
-  koupel:       { trees: 2, label: 'Koupel',             desc: 'Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+).' },
-  klystyr:      { trees: 2, label: 'Klystýr',            desc: 'Při Spánku: neomezené výměny Ruka↔Zásoba (bez limitu počtu).' },
-  masaz_strev:  { trees: 2, label: 'Masáž Střev',        desc: 'Při Spánku: Upgrade 1 kostky o 1 lvl.' },
-  ajurveda:     { trees: 3, label: 'Ajurvédská Medicína', desc: 'Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
+  koupel:       { trees: 2, label: 'Lázně',              desc: 'Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+).' },
+  klystyr:      { trees: 2, label: 'Pročištění',         desc: 'Při Spánku: neomezené výměny Ruka↔Zásoba (bez limitu počtu).' },
+  masaz_strev:  { trees: 2, label: 'Břišní masáž',       desc: 'Při Spánku: Upgrade 1 kostky o 1 lvl.' },
+  ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
   sprint:       { trees: 2, label: 'Sprint',             desc: 'Pohyb + Využití Pole v jednom tahu (stejné pole).' },
 };
 
