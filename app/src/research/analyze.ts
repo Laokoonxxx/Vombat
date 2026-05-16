@@ -9,12 +9,14 @@
 // never-bought skills) automatically.
 // =============================================================================
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import type {
-  ActionCategory, PlayerResearchRecord, ResearchGameRecord, ResearchRunMeta,
+  ActionCategory, ActionWinCorrelation, BucketStat, PlayerResearchRecord,
+  ResearchGameRecord, ResearchPublished, ResearchRunMeta, SkillComboStat,
+  SkillWinRate,
 } from './types';
 import { SKILL_REQUIREMENTS } from '../game/engine';
 import type { SkillId, FormationKind, HexType } from '../game/types';
@@ -497,6 +499,218 @@ function buildAutoInsights(games: ResearchGameRecord[]): string {
 }
 
 // =============================================================================
+// Published JSON for in-app StatsViewer
+// =============================================================================
+// All correlations bucketed/aggregated up front so the UI renders instantly.
+
+function bucketize(
+  records: { value: number; won: boolean }[],
+  ranges: { label: string; min: number; max: number }[],
+): BucketStat[] {
+  return ranges.map((r) => {
+    const inBucket = records.filter((x) => x.value >= r.min && x.value <= r.max);
+    const wins = inBucket.filter((x) => x.won).length;
+    return {
+      bucket: r.label,
+      players: inBucket.length,
+      wins,
+      winRate: inBucket.length ? wins / inBucket.length : 0,
+    };
+  });
+}
+
+// Approximate "total dice owned" — includes dice still alive at end + dice
+// spent on devil wounds (those came from the player too). Pending counts
+// because they were acquired during the game.
+function diceOwnedPeak(p: PlayerResearchRecord): number {
+  return p.finalHand.length + p.finalReserve.length + p.devilWoundsLanded;
+}
+
+function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
+  const decisive = games.filter((g) => g.decisive);
+  const playerGames: PlayerResearchRecord[] = decisive.flatMap((g) => g.players);
+  const totalPlayerGames = playerGames.length;
+
+  // ---- Winner / loser averages ----
+  const winners = playerGames.filter((p) => p.won);
+  const losers = playerGames.filter((p) => !p.won);
+  const avg = (arr: PlayerResearchRecord[], key: (p: PlayerResearchRecord) => number) =>
+    arr.length ? arr.reduce((s, p) => s + key(p), 0) / arr.length : 0;
+  const winnerAvg = {
+    carrots: avg(winners, (p) => p.finalCarrotTrack),
+    trees: avg(winners, (p) => p.finalBobekTrack),
+    potatoes: avg(winners, (p) => p.finalPotatoes),
+    handSize: avg(winners, (p) => p.finalHand.length),
+    reserveSize: avg(winners, (p) => p.finalReserve.length),
+    skillsLearned: avg(winners, (p) => p.finalSkills.length),
+    diceOwnedPeak: avg(winners, diceOwnedPeak),
+  };
+  const loserAvg = {
+    carrots: avg(losers, (p) => p.finalCarrotTrack),
+    trees: avg(losers, (p) => p.finalBobekTrack),
+    potatoes: avg(losers, (p) => p.finalPotatoes),
+    handSize: avg(losers, (p) => p.finalHand.length),
+    reserveSize: avg(losers, (p) => p.finalReserve.length),
+    skillsLearned: avg(losers, (p) => p.finalSkills.length),
+    diceOwnedPeak: avg(losers, diceOwnedPeak),
+  };
+
+  // ---- Skill stats ----
+  const skillIds = Object.keys(SKILL_REQUIREMENTS) as SkillId[];
+  const perSkill: SkillWinRate[] = skillIds.map((sid) => {
+    const req = SKILL_REQUIREMENTS[sid];
+    const withSkill = playerGames.filter((p) => p.finalSkills.includes(sid));
+    const withoutSkill = playerGames.filter((p) => !p.finalSkills.includes(sid));
+    const wWins = withSkill.filter((p) => p.won).length;
+    const woWins = withoutSkill.filter((p) => p.won).length;
+    const turns = withSkill.flatMap((p) =>
+      p.skillPurchases.filter((sp) => sp.skill === sid).map((sp) => sp.turn)
+    );
+    return {
+      skillId: sid,
+      label: req.label,
+      treesCost: req.trees,
+      learned: withSkill.length,
+      pctLearned: withSkill.length / Math.max(1, totalPlayerGames),
+      winRateWhenLearned: withSkill.length ? wWins / withSkill.length : 0,
+      winRateWhenNot: withoutSkill.length ? woWins / withoutSkill.length : 0,
+      avgTurnLearned: turns.length ? turns.reduce((s, t) => s + t, 0) / turns.length : null,
+    };
+  });
+  perSkill.sort((a, b) => b.learned - a.learned);
+
+  // Skill count → win rate
+  const skillCountBuckets = bucketize(
+    playerGames.map((p) => ({ value: p.finalSkills.length, won: p.won })),
+    [
+      { label: '0', min: 0, max: 0 },
+      { label: '1', min: 1, max: 1 },
+      { label: '2', min: 2, max: 2 },
+      { label: '3', min: 3, max: 3 },
+      { label: '4', min: 4, max: 4 },
+      { label: '5+', min: 5, max: 99 },
+    ],
+  );
+
+  // Top skill combos (canonical sorted SkillId[])
+  const comboMap = new Map<string, { skills: SkillId[]; players: number; wins: number }>();
+  for (const p of playerGames) {
+    const sorted = [...p.finalSkills].sort();
+    const key = sorted.join(',');
+    const c = comboMap.get(key) ?? { skills: sorted as SkillId[], players: 0, wins: 0 };
+    c.players++;
+    if (p.won) c.wins++;
+    comboMap.set(key, c);
+  }
+  const topCombos: SkillComboStat[] = [...comboMap.values()]
+    .sort((a, b) => b.players - a.players)
+    .slice(0, 10)
+    .map((c) => ({
+      skills: c.skills,
+      labels: c.skills.map((s) => SKILL_REQUIREMENTS[s].label),
+      players: c.players,
+      wins: c.wins,
+      winRate: c.players ? c.wins / c.players : 0,
+    }));
+
+  // ---- Resource buckets ----
+  const carrotBuckets = bucketize(
+    playerGames.map((p) => ({ value: p.finalCarrotTrack, won: p.won })),
+    [
+      { label: '0', min: 0, max: 0 },
+      { label: '1-2', min: 1, max: 2 },
+      { label: '3-4', min: 3, max: 4 },
+      { label: '5-6', min: 5, max: 6 },
+      { label: '7-8', min: 7, max: 8 },
+      { label: '9+', min: 9, max: 99 },
+    ],
+  );
+  const treeBuckets = bucketize(
+    playerGames.map((p) => ({ value: p.finalBobekTrack, won: p.won })),
+    [
+      { label: '0', min: 0, max: 0 },
+      { label: '1', min: 1, max: 1 },
+      { label: '2', min: 2, max: 2 },
+      { label: '3', min: 3, max: 3 },
+      { label: '4+', min: 4, max: 99 },
+    ],
+  );
+  const diceBuckets = bucketize(
+    playerGames.map((p) => ({ value: diceOwnedPeak(p), won: p.won })),
+    [
+      { label: '0-2', min: 0, max: 2 },
+      { label: '3-4', min: 3, max: 4 },
+      { label: '5-6', min: 5, max: 6 },
+      { label: '7-8', min: 7, max: 8 },
+      { label: '9-10', min: 9, max: 10 },
+      { label: '11+', min: 11, max: 99 },
+    ],
+  );
+  const potatoBuckets = bucketize(
+    playerGames.map((p) => ({ value: p.finalPotatoes, won: p.won })),
+    [
+      { label: '0-2', min: 0, max: 2 },
+      { label: '3-5', min: 3, max: 5 },
+      { label: '6-10', min: 6, max: 10 },
+      { label: '11-15', min: 11, max: 15 },
+      { label: '16+', min: 16, max: 999 },
+    ],
+  );
+
+  // ---- Action correlation ----
+  // For each action category we care about, bucket by count and compute win rate.
+  function actionBuckets(cat: ActionCategory): BucketStat[] {
+    return bucketize(
+      playerGames.map((p) => ({ value: p.actionCounts[cat] ?? 0, won: p.won })),
+      [
+        { label: '0', min: 0, max: 0 },
+        { label: '1', min: 1, max: 1 },
+        { label: '2', min: 2, max: 2 },
+        { label: '3-4', min: 3, max: 4 },
+        { label: '5+', min: 5, max: 999 },
+      ],
+    );
+  }
+  const ACTION_LABELS: Partial<Record<ActionCategory, string>> = {
+    sleep_swap: '💤🔄 Výměna kostek (Ruka ↔ Zásoba)',
+    sleep_buy_skill: '💤🛒 Koupil dovednost (Sleep)',
+    sleep_teleport: '💤🌀 Teleport',
+    vyformuj: '💩 Vyformuj kostku',
+    thorn_pickup: '🌵 Houští (kostka zdarma)',
+    cat_smash: '🎉 Rozdrcení Kočky',
+    devil_combat: '⚔️ Souboj s Čertem',
+    occupy_tree: '🌳 Obsaď strom',
+    plant_dirt: '🥕 Mrkev na Hlíně',
+    plant_bed: '🥕 Mrkev na Záhonu',
+    learn_dirt: '🧠 Uč se (Hlína/Strom)',
+  };
+  const actionStats: ActionWinCorrelation[] = Object.entries(ACTION_LABELS).map(
+    ([cat, label]) => ({
+      category: cat,
+      label: label!,
+      buckets: actionBuckets(cat as ActionCategory),
+    }),
+  );
+
+  return {
+    generatedAt: new Date().toISOString(),
+    numGames: games.length,
+    decisive: decisive.length,
+    totalPlayerGames,
+    winnerAverages: winnerAvg,
+    loserAverages: loserAvg,
+    skillStats: { perSkill, byCount: skillCountBuckets, topCombos },
+    resourceStats: {
+      carrots: carrotBuckets,
+      trees: treeBuckets,
+      diceOwnedPeak: diceBuckets,
+      potatoes: potatoBuckets,
+    },
+    actionStats,
+  };
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -544,6 +758,18 @@ function main() {
   const outPath = resolve(runDir, 'insights.md');
   writeFileSync(outPath, md, 'utf-8');
   console.log(`\n✓ Insights: ${outPath}`);
+
+  // Publish aggregate JSON for in-app StatsViewer consumption.
+  // Written to app/public/sim/research.json — served by Vite at /sim/research.json.
+  const published = buildPublished(games);
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const publicDir = resolve(__dirname, '..', '..', 'public', 'sim');
+  if (!existsSync(publicDir)) mkdirSync(publicDir, { recursive: true });
+  const publishedPath = resolve(publicDir, 'research.json');
+  writeFileSync(publishedPath, JSON.stringify(published, null, 2), 'utf-8');
+  console.log(`✓ Published: ${publishedPath}`);
+  console.log(`  → načte se v aplikaci v sekci 📊 Statistiky / Analytika.`);
 }
 
 main();

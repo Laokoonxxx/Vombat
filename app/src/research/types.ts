@@ -119,3 +119,83 @@ export interface ResearchRunMeta {
   decisive: number;
   stalled: number;
 }
+
+// =============================================================================
+// Published aggregate JSON — consumed by in-app StatsViewer
+// =============================================================================
+// Written by analyze.ts to app/public/sim/research.json. Keep small (<200 KB)
+// so the page loads instantly. Contains pre-computed win-rate correlations
+// the UI just renders as tables/bars.
+
+export interface BucketStat {
+  bucket: string;       // e.g. "0", "1-2", "3-4", "9+"
+  players: number;      // player-games in this bucket
+  wins: number;
+  winRate: number;      // 0..1
+}
+
+export interface SkillWinRate {
+  skillId: SkillId;
+  label: string;
+  treesCost: number;
+  learned: number;            // player-games where this skill was learned
+  pctLearned: number;         // 0..1, vs totalPlayerGames
+  winRateWhenLearned: number; // among learners
+  winRateWhenNot: number;     // among non-learners
+  avgTurnLearned: number | null;
+}
+
+export interface SkillComboStat {
+  skills: SkillId[];          // sorted, canonical form
+  labels: string[];           // human-readable in same order
+  players: number;
+  wins: number;
+  winRate: number;
+}
+
+export interface ActionWinCorrelation {
+  category: string;           // ActionCategory value
+  label: string;              // Czech label
+  buckets: BucketStat[];
+}
+
+export interface ResearchPublished {
+  generatedAt: string;
+  numGames: number;
+  decisive: number;
+  totalPlayerGames: number;   // = decisive * 2
+  // Average final values among winners vs losers (resource curve summary)
+  winnerAverages: {
+    carrots: number;
+    trees: number;
+    potatoes: number;
+    handSize: number;
+    reserveSize: number;
+    skillsLearned: number;
+    diceOwnedPeak: number;     // hand + reserve + devilWoundsLanded
+  };
+  loserAverages: {
+    carrots: number;
+    trees: number;
+    potatoes: number;
+    handSize: number;
+    reserveSize: number;
+    skillsLearned: number;
+    diceOwnedPeak: number;
+  };
+  // Skill analysis
+  skillStats: {
+    perSkill: SkillWinRate[];
+    byCount: BucketStat[];           // bucket = "0", "1", "2", ..., "5+"
+    topCombos: SkillComboStat[];     // top 10 most common skill SETS
+  };
+  // Resource → win rate
+  resourceStats: {
+    carrots: BucketStat[];      // bucketed final carrotTrack
+    trees: BucketStat[];        // bucketed final bobekTrack
+    diceOwnedPeak: BucketStat[]; // total dice the player owned (incl. spent on devil)
+    potatoes: BucketStat[];
+  };
+  // Action count → win rate (for actions where this correlation is interesting)
+  actionStats: ActionWinCorrelation[];
+}

@@ -115,8 +115,76 @@ const ACTION_LABELS: Record<string, string> = {
 type GameFilter = 'all' | 'decisive' | 'stalled';
 type GameSort = 'order' | 'turns_asc' | 'turns_desc' | 'wounds_desc' | 'cats_desc';
 
+// =============================================================================
+// Research published JSON — mirrors src/research/types.ts ResearchPublished
+// =============================================================================
+// Loaded from /sim/research.json (written by src/research/analyze.ts).
+// Separate from /sim/latest.json which is the per-game timeline data.
+
+interface ResearchBucket {
+  bucket: string;
+  players: number;
+  wins: number;
+  winRate: number;
+}
+
+interface ResearchSkillRow {
+  skillId: string;
+  label: string;
+  treesCost: number;
+  learned: number;
+  pctLearned: number;
+  winRateWhenLearned: number;
+  winRateWhenNot: number;
+  avgTurnLearned: number | null;
+}
+
+interface ResearchSkillCombo {
+  skills: string[];
+  labels: string[];
+  players: number;
+  wins: number;
+  winRate: number;
+}
+
+interface ResearchActionCorrelation {
+  category: string;
+  label: string;
+  buckets: ResearchBucket[];
+}
+
+interface ResearchData {
+  generatedAt: string;
+  numGames: number;
+  decisive: number;
+  totalPlayerGames: number;
+  winnerAverages: {
+    carrots: number; trees: number; potatoes: number;
+    handSize: number; reserveSize: number;
+    skillsLearned: number; diceOwnedPeak: number;
+  };
+  loserAverages: {
+    carrots: number; trees: number; potatoes: number;
+    handSize: number; reserveSize: number;
+    skillsLearned: number; diceOwnedPeak: number;
+  };
+  skillStats: {
+    perSkill: ResearchSkillRow[];
+    byCount: ResearchBucket[];
+    topCombos: ResearchSkillCombo[];
+  };
+  resourceStats: {
+    carrots: ResearchBucket[];
+    trees: ResearchBucket[];
+    diceOwnedPeak: ResearchBucket[];
+    potatoes: ResearchBucket[];
+  };
+  actionStats: ResearchActionCorrelation[];
+}
+
 export function StatsViewer({ onClose }: { onClose: () => void }) {
   const [data, setData] = useState<SimData | null>(null);
+  const [research, setResearch] = useState<ResearchData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedGameIdx, setExpandedGameIdx] = useState<number | null>(null);
   const [filter, setFilter] = useState<GameFilter>('all');
@@ -130,6 +198,12 @@ export function StatsViewer({ onClose }: { onClose: () => void }) {
       })
       .then(setData)
       .catch((e) => setError(`Nelze načíst /sim/latest.json: ${e.message}\n\nSpusť 'npx tsx src/game/simulate_detailed.ts' v app/ adresáři.`));
+    // Research data is OPTIONAL — only present if research:run was executed.
+    // Failure here is silent; the section just doesn't render.
+    fetch('/sim/research.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setResearch(d))
+      .catch(() => { /* fine, research panel just hidden */ });
   }, []);
 
   if (error) {
@@ -154,6 +228,7 @@ export function StatsViewer({ onClose }: { onClose: () => void }) {
   return (
     <StatsContent
       data={data}
+      research={research}
       onClose={onClose}
       expandedGameIdx={expandedGameIdx}
       setExpandedGameIdx={setExpandedGameIdx}
@@ -167,6 +242,7 @@ export function StatsViewer({ onClose }: { onClose: () => void }) {
 
 function StatsContent({
   data,
+  research,
   onClose,
   expandedGameIdx,
   setExpandedGameIdx,
@@ -176,6 +252,7 @@ function StatsContent({
   setSort,
 }: {
   data: SimData;
+  research: ResearchData | null;
   onClose: () => void;
   expandedGameIdx: number | null;
   setExpandedGameIdx: (i: number | null) => void;
@@ -297,6 +374,9 @@ function StatsContent({
         </div>
         <button onClick={onClose}>↩ Zpět do lobby</button>
       </div>
+
+      {/* Analytika (research pipeline) — only if research.json exists */}
+      {research && <AnalyticsPanel research={research} />}
 
       {/* Overview cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
@@ -1054,6 +1134,262 @@ function AIRules() {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+// =============================================================================
+// AnalyticsPanel — renders aggregate research stats
+// =============================================================================
+// All data comes pre-computed from analyze.ts. UI is just tables + bar visuals.
+
+function AnalyticsPanel({ research }: { research: ResearchData }) {
+  const [open, setOpen] = useState(true);
+  const w = research.winnerAverages;
+  const l = research.loserAverages;
+  return (
+    <div
+      style={{
+        background: '#fff5e0',
+        border: '2px solid var(--accent)',
+        borderRadius: 10,
+        padding: 16,
+        marginBottom: 20,
+      }}
+    >
+      <div
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', cursor: 'pointer' }}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <h2 style={{ margin: 0 }}>
+          📊 Analytika ({research.decisive.toLocaleString('cs-CZ')} rozhodnutých her)
+        </h2>
+        <span style={{ color: 'var(--muted)' }}>{open ? '▾ Sbalit' : '▸ Rozbalit'}</span>
+      </div>
+      <p style={{ margin: '4px 0 12px', color: 'var(--muted)', fontSize: 12 }}>
+        Data z research pipeline · vygenerováno {new Date(research.generatedAt).toLocaleString('cs-CZ')} ·
+        {research.totalPlayerGames.toLocaleString('cs-CZ')} hráč-her
+      </p>
+
+      {open && (
+        <>
+          {/* ===== Winner vs Loser averages ===== */}
+          <Section title="🆚 Výherci vs poražení (průměrné finální hodnoty)">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
+                  <th style={{ padding: '4px 8px' }}>Metrika</th>
+                  <th style={{ padding: '4px 8px', textAlign: 'right' }}>Výherci</th>
+                  <th style={{ padding: '4px 8px', textAlign: 'right' }}>Poražení</th>
+                  <th style={{ padding: '4px 8px', textAlign: 'right' }}>Δ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['🎲 Kostky během hry (peak)', w.diceOwnedPeak, l.diceOwnedPeak],
+                  ['✋ Velikost Ruky', w.handSize, l.handSize],
+                  ['📦 Velikost Zásoby', w.reserveSize, l.reserveSize],
+                  ['🧠 Naučených dovedností', w.skillsLearned, l.skillsLearned],
+                  ['🥕 Mrkev (ukazatel)', w.carrots, l.carrots],
+                  ['🌳 Stromy (ukazatel)', w.trees, l.trees],
+                  ['🥔 Brambory', w.potatoes, l.potatoes],
+                ].map(([label, wv, lv]) => {
+                  const diff = (wv as number) - (lv as number);
+                  const color = diff > 0.2 ? '#2d4f1a' : diff < -0.2 ? '#a05e2e' : 'var(--muted)';
+                  return (
+                    <tr key={label as string} style={{ borderTop: '1px solid #eee' }}>
+                      <td style={{ padding: '4px 8px' }}>{label}</td>
+                      <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 600 }}>
+                        {(wv as number).toFixed(2)}
+                      </td>
+                      <td style={{ padding: '4px 8px', textAlign: 'right' }}>
+                        {(lv as number).toFixed(2)}
+                      </td>
+                      <td style={{ padding: '4px 8px', textAlign: 'right', color, fontWeight: 600 }}>
+                        {diff >= 0 ? '+' : ''}{diff.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+              💡 <strong>Kostky během hry (peak)</strong> = Ruka + Zásoba + zranění Čerta (kostky utracené v boji).
+            </p>
+          </Section>
+
+          {/* ===== Skills ===== */}
+          <Section title="🧠 Dovednosti — win rate když naučená vs když ne">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
+                  <th style={{ padding: '4px 6px' }}>Dovednost</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>🌳</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>% hráčů</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Ø tah</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win když má</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win když nemá</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Δ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {research.skillStats.perSkill.map((s) => {
+                  const delta = s.winRateWhenLearned - s.winRateWhenNot;
+                  const flagColor =
+                    delta > 0.05 ? '#2d4f1a' : delta < -0.05 ? '#a05e2e' : 'var(--muted)';
+                  return (
+                    <tr key={s.skillId} style={{ borderTop: '1px solid #eee' }}>
+                      <td style={{ padding: '4px 6px', fontWeight: 600 }}>{s.label}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right' }}>{s.treesCost}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                        {(s.pctLearned * 100).toFixed(1)}%
+                      </td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                        {s.avgTurnLearned != null ? s.avgTurnLearned.toFixed(1) : '—'}
+                      </td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                        {(s.winRateWhenLearned * 100).toFixed(1)}%
+                      </td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                        {(s.winRateWhenNot * 100).toFixed(1)}%
+                      </td>
+                      <td
+                        style={{
+                          padding: '4px 6px',
+                          textAlign: 'right',
+                          color: flagColor,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {delta >= 0 ? '+' : ''}{(delta * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+              💡 <strong>Δ negativní</strong> = dovednost je <em>anti-korelovaná</em> s výhrou. Možná že AI ji
+              učí jen v zoufalých situacích, nebo její zisk stojí příliš mnoho času.
+            </p>
+          </Section>
+
+          <Section title="🧠 Počet naučených dovedností → win rate">
+            <BucketBars buckets={research.skillStats.byCount} unitLabel="dovedností" />
+          </Section>
+
+          <Section title="🧠 Top kombinace dovedností (10 nejčastějších)">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
+                  <th style={{ padding: '4px 6px' }}>Sada</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Hráčů</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {research.skillStats.topCombos.map((c, i) => (
+                  <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 6px' }}>
+                      {c.labels.length === 0 ? <em>(žádná dovednost)</em> : c.labels.join(' + ')}
+                    </td>
+                    <td style={{ padding: '4px 6px', textAlign: 'right' }}>{c.players}</td>
+                    <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: 600 }}>
+                      {(c.winRate * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Section>
+
+          {/* ===== Resources ===== */}
+          <Section title="🥕 Mrkev (ukazatel) → win rate">
+            <BucketBars buckets={research.resourceStats.carrots} unitLabel="mrkví" />
+          </Section>
+          <Section title="🌳 Stromy (ukazatel) → win rate">
+            <BucketBars buckets={research.resourceStats.trees} unitLabel="stromů" />
+          </Section>
+          <Section title="🎲 Kostky během hry (peak) → win rate">
+            <BucketBars buckets={research.resourceStats.diceOwnedPeak} unitLabel="kostek" />
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+              💡 Peak = Ruka + Zásoba + kostky utracené na zraněních Čerta.
+            </p>
+          </Section>
+          <Section title="🥔 Brambory (finál) → win rate">
+            <BucketBars buckets={research.resourceStats.potatoes} unitLabel="brambor" />
+          </Section>
+
+          {/* ===== Actions ===== */}
+          <Section title="🎬 Akce → win rate (podle počtu provedení)">
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0, marginBottom: 8 }}>
+              Pro každý počet provedení dané akce: kolik hráčů toho dosáhlo a jejich win rate.
+              Užitečné pro detekci „mrtvých" akcí a strategie typu „víc je lepší".
+            </p>
+            {research.actionStats.map((a) => (
+              <details key={a.category} style={{ marginBottom: 6 }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{a.label}</summary>
+                <div style={{ marginTop: 6, marginLeft: 8 }}>
+                  <BucketBars buckets={a.buckets} unitLabel="×" />
+                </div>
+              </details>
+            ))}
+          </Section>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Horizontal bar chart for a list of buckets, showing player count + win-rate bar.
+function BucketBars({ buckets, unitLabel }: { buckets: ResearchBucket[]; unitLabel: string }) {
+  const maxPlayers = Math.max(...buckets.map((b) => b.players), 1);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {buckets.map((b) => {
+        const winPct = b.winRate * 100;
+        // Color gradient: red (<40%), neutral (40-60%), green (>60%)
+        const color =
+          winPct >= 60 ? '#2d4f1a' :
+          winPct >= 40 ? '#a05e2e' :
+          winPct > 0 ? '#9b1f1f' :
+          '#888';
+        const widthPct = b.players === 0 ? 0 : Math.max(2, (b.players / maxPlayers) * 100);
+        return (
+          <div key={b.bucket} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 60px 80px', gap: 6, alignItems: 'center', fontSize: 12 }}>
+            <span style={{ fontWeight: 600, textAlign: 'right' }}>{b.bucket} {unitLabel}</span>
+            <div style={{ background: '#f5efe0', borderRadius: 4, height: 18, position: 'relative', overflow: 'hidden' }}>
+              <div
+                style={{
+                  background: color,
+                  opacity: 0.25,
+                  height: '100%',
+                  width: `${widthPct}%`,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  padding: '0 6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontSize: 11,
+                  color: '#333',
+                }}
+              >
+                n={b.players}
+              </div>
+            </div>
+            <span style={{ textAlign: 'right', color, fontWeight: 700 }}>
+              {b.players === 0 ? '—' : `${winPct.toFixed(1)}%`}
+            </span>
+            <span style={{ color: 'var(--muted)', fontSize: 11 }}>
+              {b.players === 0 ? '' : `${b.wins} výh.`}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

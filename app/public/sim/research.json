@@ -1,0 +1,816 @@
+{
+  "generatedAt": "2026-05-16T20:02:39.643Z",
+  "numGames": 5000,
+  "decisive": 4887,
+  "totalPlayerGames": 9774,
+  "winnerAverages": {
+    "carrots": 2.200327399222427,
+    "trees": 0.5983220789850624,
+    "potatoes": 0.7687742991610395,
+    "handSize": 4.350317167996726,
+    "reserveSize": 0.9643953345610804,
+    "skillsLearned": 2.943523634131369,
+    "diceOwnedPeak": 8.44608144055658
+  },
+  "loserAverages": {
+    "carrots": 2.5148352772662164,
+    "trees": 1.0327399222426847,
+    "potatoes": 2.2119909965213833,
+    "handSize": 3.251892776754655,
+    "reserveSize": 1.439328831594025,
+    "skillsLearned": 3.0458358911397587,
+    "diceOwnedPeak": 5.543891958256599
+  },
+  "skillStats": {
+    "perSkill": [
+      {
+        "skillId": "kapacita",
+        "label": "Kapacita",
+        "treesCost": 1,
+        "learned": 9611,
+        "pctLearned": 0.9833231021076325,
+        "winRateWhenLearned": 0.5084798668192696,
+        "winRateWhenNot": 0,
+        "avgTurnLearned": 17.76487252124646
+      },
+      {
+        "skillId": "koupel",
+        "label": "Lázně",
+        "treesCost": 1,
+        "learned": 9075,
+        "pctLearned": 0.9284837323511357,
+        "winRateWhenLearned": 0.5379614325068871,
+        "winRateWhenNot": 0.00715307582260372,
+        "avgTurnLearned": 25.735155724848756
+      },
+      {
+        "skillId": "klystyr",
+        "label": "Třídění",
+        "treesCost": 1,
+        "learned": 5546,
+        "pctLearned": 0.5674237773685288,
+        "winRateWhenLearned": 0.4861161197259286,
+        "winRateWhenNot": 0.5182119205298014,
+        "avgTurnLearned": 31.97031466455571
+      },
+      {
+        "skillId": "sprint",
+        "label": "Sprint",
+        "treesCost": 2,
+        "learned": 3194,
+        "pctLearned": 0.3267853488847964,
+        "winRateWhenLearned": 0.37038196618659985,
+        "winRateWhenNot": 0.562917933130699,
+        "avgTurnLearned": 34.11151471122412
+      },
+      {
+        "skillId": "masaz_strev",
+        "label": "Žvýkání",
+        "treesCost": 2,
+        "learned": 1389,
+        "pctLearned": 0.14211172498465316,
+        "winRateWhenLearned": 0.3851691864650828,
+        "winRateWhenNot": 0.5190220632081097,
+        "avgTurnLearned": 42.6469864698647
+      },
+      {
+        "skillId": "ajurveda",
+        "label": "Bylinkový elixír",
+        "treesCost": 3,
+        "learned": 455,
+        "pctLearned": 0.04655207693881727,
+        "winRateWhenLearned": 0.44395604395604393,
+        "winRateWhenNot": 0.5027363451014057,
+        "avgTurnLearned": 46.38461538461539
+      }
+    ],
+    "byCount": [
+      {
+        "bucket": "0",
+        "players": 83,
+        "wins": 0,
+        "winRate": 0
+      },
+      {
+        "bucket": "1",
+        "players": 426,
+        "wins": 4,
+        "winRate": 0.009389671361502348
+      },
+      {
+        "bucket": "2",
+        "players": 3206,
+        "wins": 2106,
+        "winRate": 0.6568933250155957
+      },
+      {
+        "bucket": "3",
+        "players": 3360,
+        "wins": 1642,
+        "winRate": 0.4886904761904762
+      },
+      {
+        "bucket": "4",
+        "players": 1540,
+        "wins": 627,
+        "winRate": 0.40714285714285714
+      },
+      {
+        "bucket": "5+",
+        "players": 1159,
+        "wins": 508,
+        "winRate": 0.4383088869715272
+      }
+    ],
+    "topCombos": [
+      {
+        "skills": [
+          "kapacita",
+          "klystyr",
+          "koupel"
+        ],
+        "labels": [
+          "Kapacita",
+          "Třídění",
+          "Lázně"
+        ],
+        "players": 3056,
+        "wins": 1595,
+        "winRate": 0.5219240837696335
+      },
+      {
+        "skills": [
+          "kapacita",
+          "koupel"
+        ],
+        "labels": [
+          "Kapacita",
+          "Lázně"
+        ],
+        "players": 3015,
+        "wins": 2105,
+        "winRate": 0.6981757877280266
+      },
+      {
+        "skills": [
+          "kapacita",
+          "klystyr",
+          "koupel",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Třídění",
+          "Lázně",
+          "Sprint"
+        ],
+        "players": 1374,
+        "wins": 600,
+        "winRate": 0.4366812227074236
+      },
+      {
+        "skills": [
+          "kapacita",
+          "klystyr",
+          "koupel",
+          "masaz_strev",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Třídění",
+          "Lázně",
+          "Žvýkání",
+          "Sprint"
+        ],
+        "players": 719,
+        "wins": 306,
+        "winRate": 0.42559109874826145
+      },
+      {
+        "skills": [
+          "ajurveda",
+          "kapacita",
+          "klystyr",
+          "koupel",
+          "masaz_strev",
+          "sprint"
+        ],
+        "labels": [
+          "Bylinkový elixír",
+          "Kapacita",
+          "Třídění",
+          "Lázně",
+          "Žvýkání",
+          "Sprint"
+        ],
+        "players": 397,
+        "wins": 195,
+        "winRate": 0.491183879093199
+      },
+      {
+        "skills": [
+          "kapacita"
+        ],
+        "labels": [
+          "Kapacita"
+        ],
+        "players": 346,
+        "wins": 4,
+        "winRate": 0.011560693641618497
+      },
+      {
+        "skills": [
+          "kapacita",
+          "koupel",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Lázně",
+          "Sprint"
+        ],
+        "players": 240,
+        "wins": 47,
+        "winRate": 0.19583333333333333
+      },
+      {
+        "skills": [
+          "kapacita",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Sprint"
+        ],
+        "players": 191,
+        "wins": 1,
+        "winRate": 0.005235602094240838
+      },
+      {
+        "skills": [
+          "kapacita",
+          "koupel",
+          "masaz_strev",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Lázně",
+          "Žvýkání",
+          "Sprint"
+        ],
+        "players": 151,
+        "wins": 27,
+        "winRate": 0.17880794701986755
+      },
+      {
+        "skills": [],
+        "labels": [],
+        "players": 83,
+        "wins": 0,
+        "winRate": 0
+      }
+    ]
+  },
+  "resourceStats": {
+    "carrots": [
+      {
+        "bucket": "0",
+        "players": 133,
+        "wins": 52,
+        "winRate": 0.39097744360902253
+      },
+      {
+        "bucket": "1-2",
+        "players": 6025,
+        "wins": 3440,
+        "winRate": 0.570954356846473
+      },
+      {
+        "bucket": "3-4",
+        "players": 3238,
+        "wins": 1275,
+        "winRate": 0.39376158122297716
+      },
+      {
+        "bucket": "5-6",
+        "players": 368,
+        "wins": 114,
+        "winRate": 0.30978260869565216
+      },
+      {
+        "bucket": "7-8",
+        "players": 10,
+        "wins": 6,
+        "winRate": 0.6
+      },
+      {
+        "bucket": "9+",
+        "players": 0,
+        "wins": 0,
+        "winRate": 0
+      }
+    ],
+    "trees": [
+      {
+        "bucket": "0",
+        "players": 3781,
+        "wins": 2498,
+        "winRate": 0.6606717799523936
+      },
+      {
+        "bucket": "1",
+        "players": 4376,
+        "wins": 1955,
+        "winRate": 0.4467550274223035
+      },
+      {
+        "bucket": "2",
+        "players": 1295,
+        "wins": 350,
+        "winRate": 0.2702702702702703
+      },
+      {
+        "bucket": "3",
+        "players": 286,
+        "wins": 70,
+        "winRate": 0.24475524475524477
+      },
+      {
+        "bucket": "4+",
+        "players": 36,
+        "wins": 14,
+        "winRate": 0.3888888888888889
+      }
+    ],
+    "diceOwnedPeak": [
+      {
+        "bucket": "0-2",
+        "players": 414,
+        "wins": 18,
+        "winRate": 0.043478260869565216
+      },
+      {
+        "bucket": "3-4",
+        "players": 1512,
+        "wins": 244,
+        "winRate": 0.16137566137566137
+      },
+      {
+        "bucket": "5-6",
+        "players": 2156,
+        "wins": 481,
+        "winRate": 0.2230983302411874
+      },
+      {
+        "bucket": "7-8",
+        "players": 2684,
+        "wins": 1629,
+        "winRate": 0.606929955290611
+      },
+      {
+        "bucket": "9-10",
+        "players": 2222,
+        "wins": 1826,
+        "winRate": 0.8217821782178217
+      },
+      {
+        "bucket": "11+",
+        "players": 786,
+        "wins": 689,
+        "winRate": 0.8765903307888041
+      }
+    ],
+    "potatoes": [
+      {
+        "bucket": "0-2",
+        "players": 8273,
+        "wins": 4702,
+        "winRate": 0.5683548893992506
+      },
+      {
+        "bucket": "3-5",
+        "players": 1094,
+        "wins": 133,
+        "winRate": 0.12157221206581353
+      },
+      {
+        "bucket": "6-10",
+        "players": 326,
+        "wins": 36,
+        "winRate": 0.11042944785276074
+      },
+      {
+        "bucket": "11-15",
+        "players": 48,
+        "wins": 10,
+        "winRate": 0.20833333333333334
+      },
+      {
+        "bucket": "16+",
+        "players": 33,
+        "wins": 6,
+        "winRate": 0.18181818181818182
+      }
+    ]
+  },
+  "actionStats": [
+    {
+      "category": "sleep_swap",
+      "label": "💤🔄 Výměna kostek (Ruka ↔ Zásoba)",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 3170,
+          "wins": 1774,
+          "winRate": 0.559621451104101
+        },
+        {
+          "bucket": "1",
+          "players": 2206,
+          "wins": 908,
+          "winRate": 0.41160471441523117
+        },
+        {
+          "bucket": "2",
+          "players": 2484,
+          "wins": 1276,
+          "winRate": 0.5136876006441223
+        },
+        {
+          "bucket": "3-4",
+          "players": 1579,
+          "wins": 751,
+          "winRate": 0.4756174794173528
+        },
+        {
+          "bucket": "5+",
+          "players": 335,
+          "wins": 178,
+          "winRate": 0.5313432835820896
+        }
+      ]
+    },
+    {
+      "category": "sleep_buy_skill",
+      "label": "💤🛒 Koupil dovednost (Sleep)",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 7545,
+          "wins": 4119,
+          "winRate": 0.5459244532803181
+        },
+        {
+          "bucket": "1",
+          "players": 2009,
+          "wins": 722,
+          "winRate": 0.3593827775012444
+        },
+        {
+          "bucket": "2",
+          "players": 209,
+          "wins": 45,
+          "winRate": 0.215311004784689
+        },
+        {
+          "bucket": "3-4",
+          "players": 11,
+          "wins": 1,
+          "winRate": 0.09090909090909091
+        },
+        {
+          "bucket": "5+",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        }
+      ]
+    },
+    {
+      "category": "sleep_teleport",
+      "label": "💤🌀 Teleport",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 9774,
+          "wins": 4887,
+          "winRate": 0.5
+        },
+        {
+          "bucket": "1",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        },
+        {
+          "bucket": "2",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        },
+        {
+          "bucket": "3-4",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        },
+        {
+          "bucket": "5+",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        }
+      ]
+    },
+    {
+      "category": "vyformuj",
+      "label": "💩 Vyformuj kostku",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 348,
+          "wins": 54,
+          "winRate": 0.15517241379310345
+        },
+        {
+          "bucket": "1",
+          "players": 1902,
+          "wins": 413,
+          "winRate": 0.2171398527865405
+        },
+        {
+          "bucket": "2",
+          "players": 1908,
+          "wins": 707,
+          "winRate": 0.37054507337526205
+        },
+        {
+          "bucket": "3-4",
+          "players": 3842,
+          "wins": 2356,
+          "winRate": 0.6132222800624675
+        },
+        {
+          "bucket": "5+",
+          "players": 1774,
+          "wins": 1357,
+          "winRate": 0.7649379932356257
+        }
+      ]
+    },
+    {
+      "category": "thorn_pickup",
+      "label": "🌵 Houští (kostka zdarma)",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 1425,
+          "wins": 334,
+          "winRate": 0.2343859649122807
+        },
+        {
+          "bucket": "1",
+          "players": 3191,
+          "wins": 1300,
+          "winRate": 0.40739580068943904
+        },
+        {
+          "bucket": "2",
+          "players": 3110,
+          "wins": 1782,
+          "winRate": 0.5729903536977492
+        },
+        {
+          "bucket": "3-4",
+          "players": 2012,
+          "wins": 1443,
+          "winRate": 0.717196819085487
+        },
+        {
+          "bucket": "5+",
+          "players": 36,
+          "wins": 28,
+          "winRate": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "category": "cat_smash",
+      "label": "🎉 Rozdrcení Kočky",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 3787,
+          "wins": 723,
+          "winRate": 0.19091629257987852
+        },
+        {
+          "bucket": "1",
+          "players": 3389,
+          "wins": 1968,
+          "winRate": 0.5807022720566539
+        },
+        {
+          "bucket": "2",
+          "players": 2210,
+          "wins": 1830,
+          "winRate": 0.8280542986425339
+        },
+        {
+          "bucket": "3-4",
+          "players": 388,
+          "wins": 366,
+          "winRate": 0.9432989690721649
+        },
+        {
+          "bucket": "5+",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        }
+      ]
+    },
+    {
+      "category": "devil_combat",
+      "label": "⚔️ Souboj s Čertem",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 4489,
+          "wins": 867,
+          "winRate": 0.19313878369347293
+        },
+        {
+          "bucket": "1",
+          "players": 1644,
+          "wins": 864,
+          "winRate": 0.5255474452554745
+        },
+        {
+          "bucket": "2",
+          "players": 1896,
+          "wins": 1643,
+          "winRate": 0.8665611814345991
+        },
+        {
+          "bucket": "3-4",
+          "players": 1532,
+          "wins": 1359,
+          "winRate": 0.8870757180156658
+        },
+        {
+          "bucket": "5+",
+          "players": 213,
+          "wins": 154,
+          "winRate": 0.7230046948356808
+        }
+      ]
+    },
+    {
+      "category": "occupy_tree",
+      "label": "🌳 Obsaď strom",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 3337,
+          "wins": 2126,
+          "winRate": 0.637099190890021
+        },
+        {
+          "bucket": "1",
+          "players": 4697,
+          "wins": 2211,
+          "winRate": 0.4707259953161593
+        },
+        {
+          "bucket": "2",
+          "players": 1403,
+          "wins": 443,
+          "winRate": 0.315751960085531
+        },
+        {
+          "bucket": "3-4",
+          "players": 333,
+          "wins": 104,
+          "winRate": 0.3123123123123123
+        },
+        {
+          "bucket": "5+",
+          "players": 4,
+          "wins": 3,
+          "winRate": 0.75
+        }
+      ]
+    },
+    {
+      "category": "plant_dirt",
+      "label": "🥕 Mrkev na Hlíně",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 2662,
+          "wins": 1108,
+          "winRate": 0.41622839969947406
+        },
+        {
+          "bucket": "1",
+          "players": 5592,
+          "wins": 2792,
+          "winRate": 0.49928469241773965
+        },
+        {
+          "bucket": "2",
+          "players": 1520,
+          "wins": 987,
+          "winRate": 0.6493421052631579
+        },
+        {
+          "bucket": "3-4",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        },
+        {
+          "bucket": "5+",
+          "players": 0,
+          "wins": 0,
+          "winRate": 0
+        }
+      ]
+    },
+    {
+      "category": "plant_bed",
+      "label": "🥕 Mrkev na Záhonu",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 1178,
+          "wins": 735,
+          "winRate": 0.6239388794567062
+        },
+        {
+          "bucket": "1",
+          "players": 2960,
+          "wins": 1620,
+          "winRate": 0.5472972972972973
+        },
+        {
+          "bucket": "2",
+          "players": 2819,
+          "wins": 1374,
+          "winRate": 0.4874068818730046
+        },
+        {
+          "bucket": "3-4",
+          "players": 2386,
+          "wins": 993,
+          "winRate": 0.41617770326906955
+        },
+        {
+          "bucket": "5+",
+          "players": 431,
+          "wins": 165,
+          "winRate": 0.382830626450116
+        }
+      ]
+    },
+    {
+      "category": "learn_dirt",
+      "label": "🧠 Uč se (Hlína/Strom)",
+      "buckets": [
+        {
+          "bucket": "0",
+          "players": 2022,
+          "wins": 1417,
+          "winRate": 0.7007912957467853
+        },
+        {
+          "bucket": "1",
+          "players": 1778,
+          "wins": 814,
+          "winRate": 0.4578177727784027
+        },
+        {
+          "bucket": "2",
+          "players": 2473,
+          "wins": 1112,
+          "winRate": 0.44965628790942175
+        },
+        {
+          "bucket": "3-4",
+          "players": 3185,
+          "wins": 1418,
+          "winRate": 0.44521193092621664
+        },
+        {
+          "bucket": "5+",
+          "players": 316,
+          "wins": 126,
+          "winRate": 0.3987341772151899
+        }
+      ]
+    }
+  ]
+}
