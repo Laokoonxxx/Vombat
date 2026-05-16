@@ -568,12 +568,13 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
       return p.carrotTrack < 5 ? 12 : 3;
     }
     case 'dirt': {
+      // Adjacency counts ONLY opponent markers — same as engine's dirtPoop.
       const adj = hexNeighbors(c.hex).filter((h) => {
         const nb = state.board.get(hexKey(h));
-        return nb && nb.marker;
+        return nb && nb.marker && nb.marker.playerId !== p.id;
       }).length;
-      // Engine's Kakej formula: carrotTrack + adj markers (+ potatoes,
-      // currently not used). Mapping to dice:
+      // Engine's Vyformuj kostku formula: carrotTrack + adj opponent markers
+      // (+ potatoes, currently not used). Mapping to dice:
       //   1→k2, 2→k4, 3→k6, 4→k8, 5→k10, 6-7→k12, 8+→k20
       const kakejRaw = p.carrotTrack + adj;
       const couldLearn = bestAffordableSkill(p) != null;
@@ -593,10 +594,10 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
     }
     case 'desert': {
       if (!p.skills.has('koupel')) return 0;
-      // Same as dirt-style scoring but bare
+      // Same as dirt-style scoring — opponent markers only for adjacency bonus.
       const adj = hexNeighbors(c.hex).filter((h) => {
         const nb = state.board.get(hexKey(h));
-        return nb && nb.marker;
+        return nb && nb.marker && nb.marker.playerId !== p.id;
       }).length;
       const couldLearn = bestAffordableSkill(p) != null;
       const learnScore = couldLearn ? 13 : 0;
@@ -653,10 +654,10 @@ function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
   const skill = bestAffordableSkill(p);
   if (skill) return useField(state, hex, { dirtAction: 'learn' });
 
-  // 2. Compute Kakej projection
+  // 2. Compute Vyformuj kostku projection (engine formula uses opponent markers only)
   const adj = hexNeighbors(hex).filter((h) => {
     const nb = state.board.get(hexKey(h));
-    return nb && nb.marker;
+    return nb && nb.marker && nb.marker.playerId !== p.id;
   }).length;
   const kakejRaw = p.carrotTrack + adj;
 

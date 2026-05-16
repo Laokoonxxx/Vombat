@@ -14,6 +14,7 @@ import {
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
   cancelPendingChoice, resolveDieAcquisition,
 } from '../game/engine';
+import type { SwapOp } from '../game/engine';
 import { aiStep } from '../game/ai';
 
 // Prefix icons for the log feed — make events scannable at a glance.
@@ -843,19 +844,92 @@ function SleepModal({
   onPickTeleport: (vombatId: string) => void;
 }) {
   const p = currentPlayer(state);
+  // Swap operations are STAGED before commit — necessary so that with Třídění
+  // (klystyr) the player can build up multiple swap ops in one Sleep action.
+  // Without Třídění, max 1 op is allowed. The committed sleep('swap', ops) is
+  // a SINGLE engine action that ends the turn, matching the rules.
+  const [stagedOps, setStagedOps] = useState<SwapOp[]>([]);
+  const hasKlystyr = p.skills.has('klystyr');
+  const maxSwaps = hasKlystyr ? 99 : 1;
+
+  // Compute simulated hand/reserve after applying staged ops. This drives the
+  // button indices so the user sees the post-swap state.
+  const simHand: DiceLevel[] = [...p.hand];
+  const simReserve: DiceLevel[] = [...p.reserve];
+  for (const op of stagedOps) {
+    if (op.op === 'hand_to_reserve') {
+      const lvl = simHand[op.index];
+      if (lvl == null) continue;
+      simHand.splice(op.index, 1);
+      simReserve.push(lvl);
+    } else if (op.op === 'reserve_to_hand') {
+      const lvl = simReserve[op.index];
+      if (lvl == null) continue;
+      simReserve.splice(op.index, 1);
+      simHand.push(lvl);
+    }
+    // 'swap' (in-place exchange) not exposed through current UI buttons.
+  }
+  const swapsLeft = maxSwaps - stagedOps.length;
+  const otherActionsDisabled = stagedOps.length > 0;
+
+  function stage(op: SwapOp) {
+    if (stagedOps.length >= maxSwaps) return;
+    setStagedOps([...stagedOps, op]);
+  }
+  function commitSwaps() {
+    if (stagedOps.length === 0) return;
+    setState(sleep(state, { kind: 'swap', ops: stagedOps }));
+    // Parent's setState wrapper will switch mode away from sleepMenu.
+  }
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
         <h2>💤 Spánek</h2>
         <p>{p.name}, vyber akci spánku (alternativa k využití hodu):</p>
+
+        {/* Staged-swaps banner */}
+        {stagedOps.length > 0 && (
+          <div
+            style={{
+              padding: 8,
+              marginBottom: 8,
+              background: '#fff5e0',
+              border: '1px solid #e8c997',
+              borderRadius: 6,
+              fontSize: 12,
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>
+              🔄 Naplánováno {stagedOps.length} {stagedOps.length === 1 ? 'výměna' : stagedOps.length < 5 ? 'výměny' : 'výměn'}
+              {hasKlystyr && <> · Třídění: zbývá {swapsLeft === 99 ? '∞' : swapsLeft}</>}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Po výměnách:</strong> ✋ {simHand.length > 0 ? simHand.map((d) => `1k${d}`).join(' ') : '—'}
+              {' · '}📦 {simReserve.length > 0 ? simReserve.map((d) => `1k${d}`).join(' ') : '—'}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button className="primary" onClick={commitSwaps}>
+                ✅ Provést výměny
+              </button>
+              <button onClick={() => setStagedOps([])}>↺ Reset</button>
+            </div>
+          </div>
+        )}
+
         <div className="actions">
-          <button onClick={() => setState(sleep(state, { kind: 'gain_potato' }))}>
+          <button
+            disabled={otherActionsDisabled}
+            title={otherActionsDisabled ? 'Nejdřív proveď naplánované výměny (✅) nebo je resetuj.' : ''}
+            onClick={() => setState(sleep(state, { kind: 'gain_potato' }))}
+          >
             🥔 Získej 1 bramboru
           </button>
           {p.vombats.map((v, i) => (
             <button
               key={`tp${i}`}
-              disabled={p.potatoes < TELEPORT_COST}
+              disabled={p.potatoes < TELEPORT_COST || otherActionsDisabled}
               onClick={() => {
                 close();
                 onPickTeleport(v.id);
@@ -865,33 +939,64 @@ function SleepModal({
               🌀 Teleport {p.vombats.length > 1 ? `Vombata #${i + 1} ` : ''}({TELEPORT_COST} 🥔)
             </button>
           ))}
-          <button onClick={() => {
-            const targets = p.hand.map((_, i) => ({ location: 'hand' as const, index: i }));
-            setState(sleep(state, { kind: 'downgrade_dice', targets }));
-          }}>
+          <button
+            disabled={otherActionsDisabled}
+            onClick={() => {
+              const targets = p.hand.map((_, i) => ({ location: 'hand' as const, index: i }));
+              setState(sleep(state, { kind: 'downgrade_dice', targets }));
+            }}
+          >
             ⬇️ Downgrade všech kostek v Ruce
           </button>
-          {p.hand.map((d, i) => (
-            <button key={`s2r${i}`} onClick={() => setState(sleep(state, { kind: 'swap', ops: [{ op: 'hand_to_reserve', index: i }] }))}>
+          {/* Swap buttons: STAGE instead of immediate commit. With Třídění,
+              user can chain multiple; without, max 1. */}
+          {simHand.map((d, i) => (
+            <button
+              key={`s2r${i}`}
+              disabled={stagedOps.length >= maxSwaps}
+              title={
+                stagedOps.length >= maxSwaps
+                  ? hasKlystyr
+                    ? 'Limit výměn vyčerpán (interní strop).'
+                    : 'Bez dovednosti Třídění lze provést jen 1 výměnu za Spánek.'
+                  : 'Naplánovat: přesun 1k' + d + ' do Zásoby'
+              }
+              onClick={() => stage({ op: 'hand_to_reserve', index: i })}
+            >
               ✋→📦 1k{d}
             </button>
           ))}
-          {p.reserve.map((d, i) => (
-            <button key={`r2h${i}`} onClick={() => setState(sleep(state, { kind: 'swap', ops: [{ op: 'reserve_to_hand', index: i }] }))}>
+          {simReserve.map((d, i) => (
+            <button
+              key={`r2h${i}`}
+              disabled={stagedOps.length >= maxSwaps}
+              onClick={() => stage({ op: 'reserve_to_hand', index: i })}
+            >
               📦→✋ 1k{d}
             </button>
           ))}
           {p.skills.has('masaz_strev') && p.hand.map((d, i) => (
-            <button key={`up${i}`} onClick={() => setState(sleep(state, { kind: 'upgrade_die', location: 'hand', index: i }))}>
+            <button
+              key={`up${i}`}
+              disabled={otherActionsDisabled}
+              onClick={() => setState(sleep(state, { kind: 'upgrade_die', location: 'hand', index: i }))}
+            >
               ⬆️ Upgrade 1k{d}
             </button>
           ))}
           {p.skills.has('ajurveda') && p.hand.map((d, i) => (
-            <button key={`up2${i}`} onClick={() => setState(sleep(state, { kind: 'upgrade_die_2x', location: 'hand', index: i }))}>
+            <button
+              key={`up2${i}`}
+              disabled={otherActionsDisabled}
+              onClick={() => setState(sleep(state, { kind: 'upgrade_die_2x', location: 'hand', index: i }))}
+            >
               ⬆️⬆️ Upgrade 1k{d} 2x
             </button>
           ))}
-          <button onClick={() => setState(sleep(state, { kind: 'skip' }))}>
+          <button
+            disabled={otherActionsDisabled}
+            onClick={() => setState(sleep(state, { kind: 'skip' }))}
+          >
             ✖️ Skip tah
           </button>
           <button onClick={close}>Zrušit</button>

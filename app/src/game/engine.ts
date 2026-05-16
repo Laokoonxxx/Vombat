@@ -966,20 +966,26 @@ function dirtPlant(s: GameState, p: PlayerState, cell: BoardCell): GameState {
 function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   // Per rules: score = carrotTrack (your ukazatel mrkve)
   //                  + potatoes invested (UI not yet wired — skipped)
-  //                  + adjacent hexes occupied by any marker (bobek OR mrkev)
+  //                  + adjacent hexes occupied by SOUPEŘOVY značky
   // Score 0=nothing, 1=k2, 2=k4, 3=k6, 4=k8, 5=k10, 6-7=k12, 8+=k20
-  const adj = adjacentTo(s, cell.hex).filter((c) => !!c.marker).length;
+  //
+  // Design intent: opponent-only adjacency rewards aggressive play
+  // (be near your opponent) and prevents the player from clustering
+  // their own markers for a free die bonus.
+  const adj = adjacentTo(s, cell.hex).filter(
+    (c) => !!c.marker && c.marker.playerId !== p.id,
+  ).length;
   const result = p.carrotTrack + adj;
   const dieLevel = poopResult(result);
   cell.marker = { playerId: p.id, kind: 'bobek' };
   p.markersPlaced.bobek += 1;
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
-  const breakdownStr = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
+  const breakdownStr = `🥕${p.carrotTrack} + sousedi-soupeře ${adj} = ${result}`;
   // Detailed breakdown for the human modal — keeps UI explanation explicit.
   const breakdown: import('./types').DieAcquisitionBreakdownLine[] = [
     { label: '🥕 Tvé mrkve (ukazatel)', value: p.carrotTrack },
-    { label: '🔗 Sousední pole se značkou', value: adj },
+    { label: '🔗 Sousední značky SOUPEŘE', value: adj },
     // Brambory: not yet wired into the action (UI doesn't ask). Shown as
     // 0 so the modal explicitly tells the player that path exists.
     { label: '🥔 Investované brambory', value: 0 },

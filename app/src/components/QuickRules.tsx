@@ -140,7 +140,10 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
 
         <Section title="💩 Vyformuj kostku formule (jak získat velkou kostku)">
           <p style={{ margin: '0 0 6px' }}>
-            Na Hlíně: spočítej <code>tvé mrkve + sousední obsazená pole + investované brambory</code>:
+            Na Hlíně: spočítej <code>tvé mrkve + sousední značky <strong>soupeře</strong> + investované brambory</code>:
+          </p>
+          <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--muted)' }}>
+            💡 Jen <em>soupeřovy</em> sousední značky se počítají. Vyformuj kostku poblíž soupeře = větší kostka.
           </p>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
