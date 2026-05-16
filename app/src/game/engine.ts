@@ -480,11 +480,11 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
     dieAcquisitionPaused = addDieOrPending(s, p, 20, 'rozmačkaná Kočka');
-    logEntry(s, `🎉 ${p.name} rozmačkal Kočku! Získává 1k20 a pole se mění na tunel.`);
+    logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k20 a vzniká tunel.`);
     // Milestone: first cat smash → grant Koupel
     if (!p.skills.has('koupel')) {
       grantSkill(s, p, 'koupel');
-      logEntry(s, `✨ ${p.name} získává dovednost Koupel zdarma (1. rozmačkaná Kočka)!`);
+      logEntry(s, `✨ ${p.name} získává dovednost Lázně zdarma (1. rozdrcená Kočka)!`);
     }
   } else {
     logEntry(s, `${p.name} přesunul Vombata na ${targetCell.type} (${targetHex.q},${targetHex.r}).`);

@@ -13,7 +13,7 @@ const ALL_SKILLS: SkillId[] = [
 // Optional milestone trigger for skills that have one
 const MILESTONE: Partial<Record<SkillId, string>> = {
   kapacita: '🎁 1. zranění Čerta',
-  koupel: '🎁 1. rozmačkaná Kočka',
+  koupel: '🎁 1. rozdrcená Kočka',
 };
 
 export function PlayerBoard({ player, active }: { player: PlayerState; active: boolean }) {

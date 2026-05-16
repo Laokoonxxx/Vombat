@@ -51,9 +51,10 @@ export function App() {
           Inženýři krychlí
         </p>
         <p>
-          Tahová desková hra pro 2 hráče. Vombati žvýkají eukalyptus, vyformovávají
-          kostkové bobky a chystají se rozmačkat Tasmánského Čerta. Vyhrává ten,
-          kdo to dotáhne první.
+          Tahová desková hra pro 2 hráče. Vombati žvýkají eukalyptus,
+          vyformovávají kostkové bobky (vědecký fakt!) a chrupavčitým
+          zadkem drtí Tasmánského Čerta o stěnu nory. Vyhrává ten, kdo
+          ho dotluče první.
         </p>
         {meta && (
           <p style={{ fontSize: 12, color: 'var(--muted)' }}>

@@ -19,7 +19,7 @@ function eventIcon(entry: string): string {
   if (entry.includes('ZABIL')) return '🏆';
   if (entry.includes('hodil kostkami')) return '🎲';
   if (entry.includes('přesunul Vombata')) return '🐾';
-  if (entry.includes('rozmačkal Kočku')) return '🎉';
+  if (entry.includes('rozdrtil Kočku') || entry.includes('rozmačkal Kočku')) return '🎉';
   if (entry.includes('bojuje s Čertem')) return '⚔️';
   if (entry.includes('zranil Čerta')) return '💥';
   if (entry.includes('neuspěl v boji')) return '❌';
@@ -413,7 +413,7 @@ function HexInspectPanel({
     desert: '🏜️ Poušť (7+, vyžaduje Lázně)',
     tree: '🌳 Eukalyptus (7-8)',
     thorn: '🌵 Houští (k4 → 5+, k6 → 7+, k8 → 9+)',
-    cat: cell.catAlive ? '🐱 Kočka (11-14 = rozmačkat)' : '🕳️ Mrtvá kočka (tunel)',
+    cat: cell.catAlive ? '🐱 Kočka (11-14 = rozdrtit zadkem)' : '🕳️ Rozdrcená kočka (tunel)',
     devil: '👹 Tasmánský Čert (12+ pohyb, boj se vyhlašuje před hodem)',
   };
 

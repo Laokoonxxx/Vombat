@@ -107,7 +107,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
                 <td style={{ padding: '4px 6px' }}>🐱 <strong>Kočka</strong></td>
                 <td style={{ padding: '4px 6px' }}><code>11–14</code></td>
                 <td style={{ padding: '4px 6px' }}>
-                  <strong>Rozmačkej</strong> → získej <strong>1k20</strong> + Koupel zdarma + tunel
+                  <strong>Rozdrť zadkem</strong> → získej <strong>1k20</strong> + Lázně zdarma + tunel
                 </td>
               </tr>
               <tr style={{ borderTop: '1px solid #eee' }}>
@@ -164,7 +164,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
         <Section title="🎁 Bonusy zdarma (Milestones)">
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li><strong>1. zranění Čerta</strong> → dovednost <em>Kapacita</em> zdarma (ruší limity Ruky/Zásoby)</li>
-            <li><strong>1. rozmačkaná Kočka</strong> → dovednost <em>Koupel</em> zdarma (umožní Poušť)</li>
+            <li><strong>1. rozdrcená Kočka</strong> → dovednost <em>Lázně</em> zdarma (umožní Poušť)</li>
           </ul>
         </Section>
 
@@ -208,7 +208,14 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           </p>
         </Section>
 
-        <div style={{ marginTop: 16, padding: 10, background: '#fff5e0', borderRadius: 6, fontSize: 12 }}>
+        <div style={{ marginTop: 16, padding: 10, background: '#e8f5e0', borderRadius: 6, fontSize: 12 }}>
+          🔬 <strong>Vědecký fakt:</strong> Vombati skutečně produkují kostkové
+          fekálie (díky struktuře svých střev) a mají chrupavčitě zpevněný
+          zadek, kterým drtí predátorům lebky o stěnu nory. Tato hra žádný
+          z těchto faktů nepřehání. 🐾
+        </div>
+
+        <div style={{ marginTop: 12, padding: 10, background: '#fff5e0', borderRadius: 6, fontSize: 12 }}>
           📖 Najed myší na kterýkoli hex — uvidíš tooltip s detaily.<br />
           📊 Statistiky všech AI vs AI her: tlačítko v topbaru.<br />
           🐾 Pohni Vombata, využij pole, zabij Čerta. Hodně štěstí!

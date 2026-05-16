@@ -149,10 +149,12 @@ Pokud Vombat **stojí na poli s tunelem** nebo **sousedí s polem s tunelem**, m
 
 Tunely jsou: **všechna černá pole** + **pole bývalé Kočky** (po rozmačkání).
 
-### Rozmačkání Kočky
-Hod 11–14 + sousední Kočka → Vombat vstoupí na pole Kočky. Kočka je odstraněna z herního plánu. Hráč získá **1k20**. Pole se mění na **tunel**.
+### Rozdrcení Kočky (zadkem o stěnu nory)
+Hod 11–14 + sousední Kočka → Vombat zaláká kočku do své nory a chrupavčitě zpevněným zadkem ji rozdrtí o strop. Kočka je odstraněna, hráč získá **1k20**, pole se mění na **tunel**.
 
-🎁 **Milestone bonus:** Pokud je tohle tvoje **první rozmačkaná Kočka** ve hře, automaticky získáš dovednost **Koupel** zdarma (i bez Eukalyptů).
+> 🔬 **Vědecký fakt:** Vombati skutečně mají osmifolovou strukturu kostí v zadní části (tzv. „armored bum"), kterou zatahují vchody do nor a dokážou s ní zabít predátora. Mechanika v této hře je biologicky autentická.
+
+🎁 **Milestone bonus:** Pokud je tohle tvoje **první rozdrcená Kočka** ve hře, automaticky získáš dovednost **Lázně** zdarma (i bez Eukalyptů).
 
 ### Konec tahu při pohybu
 Posunutí Vombata **ukončí tvůj tah** (kromě případu Sprintu, viz § 6.7).

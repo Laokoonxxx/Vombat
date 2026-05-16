@@ -71,7 +71,7 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
       break;
     case 'cat':
       if (c.catAlive) {
-        parts.push('Aktivace 11-14 (rozmačkání → 1k20). Pozor: útok při hodu <5 v sousedství.');
+        parts.push('Aktivace 11-14 (rozdrcení zadkem → 1k20 + tunel). Pozor: útok při hodu <5 v sousedství.');
       } else {
         parts.push('Mrtvá kočka - tunel.');
       }

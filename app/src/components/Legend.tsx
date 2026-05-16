@@ -4,7 +4,7 @@ import type { SkillId } from '../game/types';
 
 const SKILL_MILESTONE: Partial<Record<SkillId, string>> = {
   kapacita: '🎁 1. zranění Čerta',
-  koupel: '🎁 1. rozmačkaná Kočka',
+  koupel: '🎁 1. rozdrcená Kočka',
 };
 
 interface LegendRow {
