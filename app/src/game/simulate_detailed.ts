@@ -548,6 +548,38 @@ function main() {
   writeFileSync(mdPath, md, 'utf-8');
   writeFileSync(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
 
+  // Also publish a "latest" snapshot to the app's public/ folder for the
+  // in-app StatsViewer. We strip out heavy fields (per-step events,
+  // resource trajectories, all-but-last-50 log entries) to keep this file
+  // small enough to commit (~100KB instead of ~3MB).
+  const publicSimDir = resolve(__dirname, '..', '..', 'public', 'sim');
+  if (!existsSync(publicSimDir)) mkdirSync(publicSimDir, { recursive: true });
+  const latestPath = resolve(publicSimDir, 'latest.json');
+  const slim = results.map((r) => ({
+    seed: r.seed,
+    winnerName: r.winnerName,
+    totalSteps: r.totalSteps,
+    totalTurns: r.totalTurns,
+    finalPhase: r.finalPhase,
+    skillsTimeline: r.skillsTimeline,
+    woundsTimeline: r.woundsTimeline,
+    catSmashes: r.catSmashes,
+    actionCountsByPlayer: r.actionCountsByPlayer,
+    finalState: r.finalState,
+    // omit `events` and `trajectories`; truncate log to last 50 entries
+    trajectories: {},
+    fullLog: r.fullLog.slice(-50),
+  }));
+  const meta = {
+    generatedAt: new Date().toISOString(),
+    numGames,
+    maxTurns,
+    seedBase,
+    results: slim,
+  };
+  writeFileSync(latestPath, JSON.stringify(meta, null, 2), 'utf-8');
+  console.log(`✓ Latest snapshot: ${latestPath} (consumable by in-app StatsViewer)`);
+
   console.log(`\n✓ Markdown report: ${mdPath}`);
   console.log(`✓ JSON raw data:   ${jsonPath}`);
   console.log(

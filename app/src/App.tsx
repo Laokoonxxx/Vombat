@@ -3,6 +3,7 @@ import { createGame } from './game/engine';
 import type { GameState } from './game/types';
 import { SetupScreen } from './components/SetupScreen';
 import { GameScreen } from './components/GameScreen';
+import { StatsViewer } from './components/StatsViewer';
 import { loadFromStorage, saveToStorage, clearStorage, getSaveMeta } from './game/persistence';
 
 type Mode = 'hotseat' | 'vs_ai';
@@ -14,6 +15,7 @@ export function App() {
   const [p1Name, setP1Name] = useState('Hráč 1');
   const [p2Name, setP2Name] = useState('Hráč 2');
   const [aiName, setAiName] = useState('AI');
+  const [showStats, setShowStats] = useState(false);
 
   // Wrapper that always persists.
   const setState = (s: GameState | null) => {
@@ -29,6 +31,10 @@ export function App() {
   function startNewGame() {
     clearStorage();
     setStateInternal(null);
+  }
+
+  if (showStats) {
+    return <StatsViewer onClose={() => setShowStats(false)} />;
   }
 
   if (!state) {
@@ -107,12 +113,18 @@ export function App() {
         <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 14 }}>
           💾 Stav hry se automaticky ukládá do prohlížeče - po obnovení stránky pokračuješ, kde jsi skončil.
         </p>
+        <button
+          onClick={() => setShowStats(true)}
+          style={{ marginTop: 8, width: '100%' }}
+        >
+          📊 Zobrazit statistiky AI simulací
+        </button>
       </div>
     );
   }
 
   if (state.phase === 'setup') {
-    return <SetupScreen state={state} setState={setState} onNewGame={startNewGame} />;
+    return <SetupScreen state={state} setState={setState} onNewGame={startNewGame} onShowStats={() => setShowStats(true)} />;
   }
-  return <GameScreen state={state} setState={setState} onNewGame={startNewGame} />;
+  return <GameScreen state={state} setState={setState} onNewGame={startNewGame} onShowStats={() => setShowStats(true)} />;
 }

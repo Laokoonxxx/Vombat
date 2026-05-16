@@ -10,9 +10,10 @@ export interface SetupScreenProps {
   state: GameState;
   setState: (s: GameState) => void;
   onNewGame?: () => void;
+  onShowStats?: () => void;
 }
 
-export function SetupScreen({ state, setState, onNewGame }: SetupScreenProps) {
+export function SetupScreen({ state, setState, onNewGame, onShowStats }: SetupScreenProps) {
   // Phase 1: each player picks a starting hex in order.
   // Phase 2: each player buys at least 1 die and optionally a 2nd vombat.
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
@@ -60,15 +61,18 @@ export function SetupScreen({ state, setState, onNewGame }: SetupScreenProps) {
     <div className="app">
       <div className="topbar">
         <h1>🐾 Vombat — příprava hry</h1>
-        {onNewGame && (
-          <button
-            onClick={() => {
-              if (confirm('Opravdu zahodit rozehranou přípravu a začít novou hru?')) onNewGame();
-            }}
-          >
-            ↺ Nová hra
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
+          {onNewGame && (
+            <button
+              onClick={() => {
+                if (confirm('Opravdu zahodit rozehranou přípravu a začít novou hru?')) onNewGame();
+              }}
+            >
+              ↺ Nová hra
+            </button>
+          )}
+        </div>
       </div>
       <div className="board-area">
         <HexBoard state={state} clickableHexes={clickable} onHexClick={onHexClick} />
