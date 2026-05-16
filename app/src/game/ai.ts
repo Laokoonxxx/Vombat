@@ -283,37 +283,42 @@ function aiChooseAction(state: GameState): GameState {
     return pick;
   }
 
-  // LOOKAHEAD: take top-K candidates, apply each, simulate one opponent
-  // turn (greedy), and score the resulting state from MY perspective.
-  // This captures both immediate outcome AND what the opponent does.
+  // LOOKAHEAD (own-turns only, opponent ignored per user request):
+  //   For each of top-K candidates by heuristic:
+  //     1. Apply my action
+  //     2. Resolve my sub-pendingChoice (dirt action, skill pick, …)
+  //     3. SKIP opponent's turn (force their Sleep-skip, no resource impact)
+  //     4. Simulate my NEXT turn greedily (roll + heuristic best action)
+  //     5. Score resulting state from MY POV
+  //
+  // This gives "2 of my turns deep" without spending compute on opponent
+  // moves whose outcomes we can't reliably predict anyway.
   const K = 6;
+  const MY_TURN_LOOKAHEAD = 3; // how many of my own turns to roll forward (sweet spot per sim)
   candidates.sort((a, b) => b.heur - a.heur);
   const top = candidates.slice(0, K);
 
   let bestVal = -Infinity;
   let bestState: GameState = state;
+  const myIdx = state.players.findIndex((pp) => pp.id === p.id);
+
   lookaheadInProgress = true;
   try {
     for (const cand of top) {
       let next = cand.apply();
       if (next === state) continue;
-      // 1. Resolve my sub-pending choices (dirt action, skill pick)
-      next = resolvePendingChoicesForLookahead(next, p.id);
-      // 2. Simulate forward — opponent acts until it's MY turn again
-      //    (or game ends). Capped to prevent runaway.
-      next = simulateUntilMyTurn(next, p.id, 15);
-      // 3. Score the resulting state from MY perspective
-      const v = cand.heur * 1.5 + stateValue(next, p.id);
+      // State that we actually return to engine — after my action+pending.
+      const immediate = resolvePendingChoicesForLookahead(next, p.id);
+      // Continue simulating extra of MY OWN turns to estimate state value.
+      let simState = immediate;
+      for (let turn = 1; turn < MY_TURN_LOOKAHEAD && simState.phase !== 'game_over'; turn++) {
+        simState = skipOpponentToMyTurn(simState, myIdx);
+        simState = simulateOneMyTurn(simState, myIdx);
+      }
+      const v = cand.heur * 1.5 + stateValue(simState, p.id);
       if (v > bestVal) {
         bestVal = v;
-        bestState = next === state ? cand.apply() : (() => {
-          // We need to return the state AFTER applying our action only
-          // (not after opponent's turn), so the engine can correctly
-          // pass control. Re-apply just our part.
-          let s = cand.apply();
-          if (s === state) return s;
-          return resolvePendingChoicesForLookahead(s, p.id);
-        })();
+        bestState = immediate;
       }
     }
   } finally {
@@ -323,13 +328,32 @@ function aiChooseAction(state: GameState): GameState {
   return bestState;
 }
 
-function simulateUntilMyTurn(state: GameState, myId: string, maxSteps: number): GameState {
+// Force-skip opponents until it's our turn again (idle phase).
+// Each opponent gets a no-op sleep-skip — we don't model their decisions.
+function skipOpponentToMyTurn(state: GameState, myIdx: number, maxSkips: number = 4): GameState {
   let s = state;
-  const myIdx = state.players.findIndex((pp) => pp.id === myId);
+  for (let i = 0; i < maxSkips; i++) {
+    if (s.phase === 'game_over') return s;
+    if (s.currentPlayerIdx === myIdx && s.phase === 'idle') return s;
+    // Try to end opponent's turn cleanly
+    try {
+      const next = sleep(s, { kind: 'skip' });
+      if (next === s) break;
+      s = next;
+    } catch {
+      break;
+    }
+  }
+  return s;
+}
+
+// Run one of MY turns greedily (idle → roll → choose action → resolve).
+// Uses the fast/heuristic path (lookaheadInProgress is set by caller).
+function simulateOneMyTurn(state: GameState, myIdx: number, maxSteps: number = 10): GameState {
+  let s = state;
   for (let i = 0; i < maxSteps; i++) {
     if (s.phase === 'game_over') return s;
-    // Once it's my turn again, stop — we've simulated one round
-    if (s.currentPlayerIdx === myIdx && s.phase === 'idle') return s;
+    if (s.currentPlayerIdx !== myIdx) return s; // we've handed off
     const next = aiStep(s);
     if (!next || next === s) return s;
     s = next;

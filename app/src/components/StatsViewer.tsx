@@ -821,9 +821,10 @@ function AIRules() {
           }}
         >
           <p style={{ marginTop: 0, color: 'var(--muted)' }}>
-            AI kombinuje heuristické skóre s <strong>1-step lookahead</strong>: pro top-6 kandidátů
-            podle heuristiky aplikuje akci, simuluje 1 tah soupeře, a hodnotí výsledný stav.
-            Konečný score = <code>heuristika × 1.5 + stateValue</code>. Definováno v <code>src/game/ai.ts</code>.
+            AI kombinuje heuristické skóre s <strong>3-step own-turn lookahead</strong>: pro top-6
+            kandidátů podle heuristiky aplikuje akci, pak simuluje další 2 svoje tahy (soupeř se
+            ignoruje), a hodnotí výsledný stav. Konečné score = <code>heuristika × 1.5 + stateValue</code>.
+            Definováno v <code>src/game/ai.ts</code>.
           </p>
 
           <h4 style={{ margin: '12px 0 4px' }}>🎯 Strategický plán (priority pořadí)</h4>
@@ -966,18 +967,25 @@ function AIRules() {
             <li>Jinak odevzdat nejmenší dostupnou kostku (z Ruky nebo Zásoby)</li>
           </ol>
 
-          <h4 style={{ margin: '12px 0 4px' }}>🔮 Lookahead (1 tah dopředu)</h4>
+          <h4 style={{ margin: '12px 0 4px' }}>🔮 Lookahead (3 vlastní tahy dopředu)</h4>
           <p style={{ margin: 0 }}>
             Pro každého z top-6 kandidátů:
           </p>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Aplikuj akci → stav S1</li>
             <li>Resolve sub-volby (dirt action, skill pick) → S1'</li>
-            <li>Simuluj 1 tah soupeře (greedy heuristika) → S2</li>
-            <li>Score S2 z mého pohledu: <code>stateValue(S2, myId)</code></li>
+            <li>
+              Pro další 2 vlastní tahy:
+              <ul style={{ margin: 0, paddingLeft: 16 }}>
+                <li>Skip soupeřův tah (force sleep-skip, žádný resource impact)</li>
+                <li>Simuluj svůj další tah greedy (roll + nejvyšší heuristika)</li>
+              </ul>
+            </li>
+            <li>Score finální stav <code>SN</code> z mého pohledu</li>
           </ol>
           <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
-            Vyber kandidáta s nejvyšším <code>heuristika × 1.5 + stateValue</code>.
+            Vyber kandidáta s nejvyšším <code>heuristika × 1.5 + stateValue(SN)</code>. Soupeř se v
+            lookaheadu ignoruje, protože jeho akce stejně nelze spolehlivě předvídat a přidávají šum.
           </p>
 
           <h4 style={{ margin: '12px 0 4px' }}>📐 stateValue (hodnocení stavu pro lookahead)</h4>
@@ -996,8 +1004,12 @@ function AIRules() {
           <h4 style={{ margin: '12px 0 4px' }}>🎚️ Co AI <strong>nedělá</strong> (známé slabiny)</h4>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>
-              <strong>Lookahead je jen 1 tah</strong> — neuvažuje sekvence dalších tahů.
-              Plná hra by potřebovala 3-5 tahů + Monte Carlo přes náhodné kostky.
+              <strong>Soupeř se ignoruje</strong> v lookaheadu — předpokládá že nic nezmění naše
+              resources. Občas chybné (např. soupeř přebere náš Eukalyptus).
+            </li>
+            <li>
+              <strong>Lookahead je deterministický</strong> — používá jeden vzorek náhodných hodů.
+              Monte Carlo přes více vzorků by zlepšilo robustnost vůči pechu na kostkách.
             </li>
             <li>
               <strong>Nevyužívá brambory pro Kakej</strong> investice (engine to neumožňuje skrz UI).
