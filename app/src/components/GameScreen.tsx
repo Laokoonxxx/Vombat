@@ -10,7 +10,7 @@ import {
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
-  cancelPendingChoice,
+  cancelPendingChoice, resolveDieAcquisition,
 } from '../game/engine';
 import { aiStep } from '../game/ai';
 
@@ -317,6 +317,9 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
           )}
           {state.pendingChoice?.kind === 'pick_skill' && (
             <SkillModal state={state} setState={setState} />
+          )}
+          {state.pendingChoice?.kind === 'pick_die_acquisition' && (
+            <DieAcquisitionModal state={state} setState={setState} />
           )}
           {mode === 'sleepMenu' && (
             <SleepModal
@@ -633,6 +636,93 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// Modal shown when a human player gains a die — lets them choose size
+// (any ≤ offered) and placement (Hand / Reserve / Pending).
+function DieAcquisitionModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+  const pc = state.pendingChoice;
+  if (pc?.kind !== 'pick_die_acquisition') return null;
+  const p = currentPlayer(state);
+  const offered = pc.offered;
+  const allLevels: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
+  const offeredIdx = allLevels.indexOf(offered);
+  const sizeOptions = allLevels.slice(0, offeredIdx + 1).reverse(); // biggest first
+
+  function handFits(lvl: DiceLevel): boolean {
+    if (p.skills.has('kapacita')) return true;
+    return p.hand.filter((d) => d === lvl).length < 2;
+  }
+  function reserveFits(): boolean {
+    if (p.skills.has('kapacita')) return true;
+    return p.reserve.length < 3;
+  }
+
+  return (
+    <div className="modal-backdrop">
+      <div className="modal" style={{ maxWidth: 520 }}>
+        <h2 style={{ margin: '0 0 6px' }}>🎲 Získáváš kostku!</h2>
+        <p style={{ margin: 0, color: 'var(--muted)' }}>
+          Zdroj: <strong>{pc.source}</strong> · Maximum: <strong>1k{offered}</strong>
+        </p>
+        <p style={{ margin: '8px 0 4px', fontSize: 13 }}>
+          Můžeš si vzít kostku až do velikosti <strong>1k{offered}</strong>, nebo libovolnou menší.
+          Vyber kam ji chceš umístit:
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+          {sizeOptions.map((lvl) => {
+            const handCanFit = handFits(lvl);
+            const reserveCanFit = reserveFits();
+            return (
+              <div
+                key={lvl}
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 6,
+                  padding: 8,
+                  background: lvl === offered ? '#fff5e0' : '#fafafa',
+                }}
+              >
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                  1k{lvl} {lvl === offered && '(max)'}
+                  {lvl !== offered && (
+                    <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+                      {' '}— menší, místo 1k{offered}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    disabled={!handCanFit}
+                    onClick={() => setState(resolveDieAcquisition(state, lvl, 'hand'))}
+                    title={handCanFit ? '' : 'Ruka — limit "max 2 stejného lvl"'}
+                  >
+                    ✋ Ruka
+                  </button>
+                  <button
+                    disabled={!reserveCanFit}
+                    onClick={() => setState(resolveDieAcquisition(state, lvl, 'reserve'))}
+                    title={reserveCanFit ? '' : 'Zásoba — limit 3 kostek'}
+                  >
+                    📦 Zásoba
+                  </button>
+                  {!handCanFit && !reserveCanFit && (
+                    <button onClick={() => setState(resolveDieAcquisition(state, lvl, 'pending'))}>
+                      📥 Čekající (do uvolnění Kapacitou)
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
+          💡 Tip: malé kostky se hodí pro pohyb na Hlínu (2-4) a Záhon (4-6). Velké kostky na fight s Čertem
+          drž v Zásobě, abys mohl navigovat.
+        </p>
       </div>
     </div>
   );

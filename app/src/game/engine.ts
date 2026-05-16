@@ -228,23 +228,59 @@ export function canAddDieToReserve(p: PlayerState): boolean {
   return p.reserve.length < 3;
 }
 
-// Gain a die in-game. Always succeeds; if both Ruka and Zásoba are full,
-// the die is parked in pendingDice and will be released when Kapacita is
-// acquired (any path: traditional learn, Sleep shop, or Devil milestone).
-function addDieOrPending(s: GameState, p: PlayerState, lvl: DiceLevel): void {
+// Gain a die in-game. For HUMAN players: sets pendingChoice =
+// pick_die_acquisition so the player picks the size and placement.
+// For AI/no-kind: auto-places (Hand → Reserve → Pending).
+// Returns true when the caller should PAUSE (defer endTurn) because a
+// human choice is now pending.
+function addDieOrPending(s: GameState, p: PlayerState, lvl: DiceLevel, source: string): boolean {
+  if (p.kind === 'human') {
+    s.pendingChoice = { kind: 'pick_die_acquisition', offered: lvl, source };
+    return true;
+  }
+  // AI / fallback: auto-place
   if (canAddDieToHand(p, lvl)) {
     p.hand.push(lvl);
-    return;
+    return false;
   }
   if (canAddDieToReserve(p)) {
     p.reserve.push(lvl);
-    return;
+    return false;
   }
   p.pendingDice.push(lvl);
   logEntry(
     s,
     `📥 ${p.name} získal 1k${lvl}, ale Ruka i Zásoba jsou plné - kostka čeká na dovednost Kapacita.`
   );
+  return false;
+}
+
+// Player resolved their die-acquisition choice: place at chosen size + location.
+export function resolveDieAcquisition(
+  state: GameState,
+  level: DiceLevel,
+  location: 'hand' | 'reserve' | 'pending'
+): GameState {
+  if (state.pendingChoice?.kind !== 'pick_die_acquisition') return state;
+  const offered = state.pendingChoice.offered;
+  if (level > offered) return state; // can only take same-or-smaller
+  const s = cloneState(state);
+  const p = currentPlayer(s);
+  if (location === 'hand') p.hand.push(level);
+  else if (location === 'reserve') p.reserve.push(level);
+  else p.pendingDice.push(level);
+  logEntry(
+    s,
+    `${p.name} si vzal 1k${level} ${level < offered ? `(místo 1k${offered}) ` : ''}` +
+      `→ ${location === 'hand' ? 'Ruka' : location === 'reserve' ? 'Zásoba' : 'Čekající'}.`
+  );
+  s.pendingChoice = null;
+  // Continue with any deferred end-of-turn step
+  if (s.pendingPostAcquisition === 'end_turn') {
+    s.pendingPostAcquisition = null;
+    endTurn(s);
+  }
+  return s;
 }
 
 // Move all pendingDice into Hand. Called whenever Kapacita is granted.
@@ -438,10 +474,11 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   if (!targets.some((t) => hexEq(t, targetHex))) return state;
   const targetCell = s.board.get(hexKey(targetHex))!;
   const smashedCat = targetCell.type === 'cat' && targetCell.catAlive;
+  let dieAcquisitionPaused = false;
   if (smashedCat) {
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
-    addDieOrPending(s, p, 20);
+    dieAcquisitionPaused = addDieOrPending(s, p, 20, 'rozmačkaná Kočka');
     logEntry(s, `🎉 ${p.name} rozmačkal Kočku! Získává 1k20 a pole se mění na tunel.`);
     // Milestone: first cat smash → grant Koupel
     if (!p.skills.has('koupel')) {
@@ -453,11 +490,15 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   }
   v.hex = { ...targetHex };
   s.movedThisTurn = true;
-  // After moving, by default the turn ends (unless Sprint allows immediate field use).
-  if (p.skills.has('sprint')) {
-    // Player may now use the same field they moved onto (optional)
+  // After moving, by default the turn ends. Sprint lets the player ALSO use
+  // the destination field — but skip Sprint if we just smashed a cat (the
+  // hex is now a tunnel, no field-action available there).
+  if (p.skills.has('sprint') && !smashedCat) {
     s.phase = 'using_field';
     logEntry(s, `${p.name} přesunul Vombata. Díky Sprintu může okamžitě využít toto pole.`);
+  } else if (dieAcquisitionPaused) {
+    // Cat smash: 1k20 needs human placement first; defer endTurn.
+    s.pendingPostAcquisition = 'end_turn';
   } else {
     endTurn(s);
   }
@@ -623,13 +664,17 @@ function useThorn(state: GameState, hex: Hex): GameState {
     return state;
   }
   const lvl = cell.thornDieLevel as DiceLevel;
-  addDieOrPending(s, p, lvl);
+  const paused = addDieOrPending(s, p, lvl, 'Houští');
   cell.thornDieLevel = undefined;
   cell.marker = { playerId: p.id, kind: 'bobek' };
   p.markersPlaced.bobek += 1;
   s.usedFieldThisTurn = true;
   logEntry(s, `${p.name} získal 1k${lvl} z Houští.`);
-  endTurn(s);
+  if (paused) {
+    s.pendingPostAcquisition = 'end_turn';
+  } else {
+    endTurn(s);
+  }
   return s;
 }
 
@@ -701,13 +746,18 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
   const breakdown = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
+  let paused = false;
   if (dieLevel === null) {
     logEntry(s, `${p.name} provedl Kakej (${breakdown}) - nic nezískává.`);
   } else {
-    addDieOrPending(s, p, dieLevel);
+    paused = addDieOrPending(s, p, dieLevel, 'Kakej');
     logEntry(s, `${p.name} provedl Kakej (${breakdown}) - získává 1k${dieLevel}!`);
   }
-  endTurn(s);
+  if (paused) {
+    s.pendingPostAcquisition = 'end_turn';
+  } else {
+    endTurn(s);
+  }
   return s;
 }
 

@@ -124,6 +124,9 @@ export interface GameState {
   // Transient UI/turn state
   pendingAttack?: { playerId: string; from: 'cat' | 'devil' }; // need to surrender potato/die
   pendingChoice?: PendingChoice | null;
+  // When a die acquisition is paused for human choice, this records what to
+  // do after the choice resolves (typically: end the turn).
+  pendingPostAcquisition?: 'end_turn' | null;
   movedThisTurn?: boolean; // tracks Sprint skill usage
   usedFieldThisTurn?: boolean;
   fightingDevil?: { playerId: string; deviceHex: Hex } | null;
@@ -135,5 +138,6 @@ export type PendingChoice =
   | { kind: 'pick_skill'; hex: Hex; potatoesUsed?: number; diceForTrees?: DiceLevel[] }
   | { kind: 'select_dirt_action'; hex: Hex }
   | { kind: 'shop_choose_die'; hex: Hex; maxLevel: DiceLevel } // after Kakej success
+  | { kind: 'pick_die_acquisition'; offered: DiceLevel; source: string }
   | { kind: 'sleep_options' }
   | { kind: 'defend_with_die'; hex: Hex; fieldKind: 'zahon' | 'tree' };
