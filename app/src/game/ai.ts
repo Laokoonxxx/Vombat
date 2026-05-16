@@ -63,82 +63,65 @@ export function aiSetupStep(state: GameState): GameState | null {
 }
 
 function needsMoreDice(p: PlayerState): boolean {
-  // We want at least 1 die to start. Buy 2nd if budget allows.
-  if (p.hand.length === 0) return p.potatoes >= 5;
-  if (p.hand.length === 1) return p.potatoes >= 5;
-  return false;
+  // Just one starting die. Cost up to 9 (1k6).
+  return p.hand.length === 0 && p.potatoes >= 5;
 }
 
 function pickStartingPurchase(p: PlayerState): DiceLevel | null {
-  // Opening hand thinking:
-  //   - Need to reach a 1k4-thorn (sum 5+) early for free die snowball.
-  //   - 1k6 alone covers sum 1-6 — has 33% chance per roll of being 5+.
-  //   - With 10 potatoes: buy 1k6 (9), save 1 potato.
-  //   - Could alternatively buy 1k4 (7) and save 3 potatoes for kakej fuel.
-  //   - 2 dice greatly increase reliability of high rolls; with 9 left after
-  //     1k6, can't afford even a 1k2 (cost 5). But starting brambory of 10
-  //     does allow 1k4 + small left over.
+  // Opening hand:
+  //   - 1× k6 covers sum 1-6 → reaches Hlína (2-4), Záhon (4-6), and even
+  //     k4-Houští use (5+). Best single-die flexibility.
+  //   - 2× k2 reliably hits 2-4 but only ever activates Hlína — too narrow.
+  //   - 1× k4 leaves 3 brambory but range is shorter than k6.
   if (p.hand.length === 0) {
-    // First die. Prefer 1k6 for ceiling, fallback to 1k4 / k2.
     if (p.potatoes >= 9) return 6;
     if (p.potatoes >= 7) return 4;
     if (p.potatoes >= 5) return 2;
     return null;
   }
-  // Second die — only if we can spare it AND already have a small die.
-  // With 1k6 (9 spent, 1 left): can't buy anything.
-  // With 1k4 (7 spent, 3 left): can't buy anything.
-  // So this branch is mostly inactive in opening — kept for future tuning.
-  if (p.potatoes >= 5) return 2;
   return null;
 }
 
 function pickStartingHex(state: GameState): Hex | null {
-  // Prefer placement near a Houští (k4 ideally) for an early free die,
-  // AND on/near a Hlína. Avoid adjacent live cats. Reasonable distance to Devil.
-  const devilHexes: Hex[] = [];
-  state.board.forEach((c) => {
-    if (c.type === 'devil') devilHexes.push(c.hex);
-  });
+  // STRATEGY (revised): maximize early carrot-ramp potential.
+  //   - Standing on Hlína / Záhon is best (immediate Plant target).
+  //   - Many adjacent Hlína + Záhon hexes is what matters most — you'll
+  //     plant for many turns and Kakej with adjacency bonus.
+  //   - Distance to Devil is IRRELEVANT in early game (you don't rush there).
+  //   - Avoid adjacent live cats (attack risk).
+  //   - K4 thorn nearby is a small bonus (free early die if luck).
   const candidates: { hex: Hex; score: number }[] = [];
   state.board.forEach((c) => {
     if (c.type === 'cat' || c.type === 'devil') return;
     const occupied = state.players.some((p) => p.vombats.some((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r));
     if (occupied) return;
     let score = 0;
-    // Cell type itself
-    if (c.type === 'dirt') score += 6;
-    if (c.type === 'bed') score += 3;
-    if (c.type === 'thorn' && c.thornDieLevel === 4) score += 8; // standing on k4 thorn = great
-    if (c.type === 'thorn' && c.thornDieLevel === 6) score += 4;
-    if (c.type === 'thorn' && c.thornDieLevel === 8) score += 2;
-    // Adjacency bonuses
+    // Standing cell:
+    if (c.type === 'dirt') score += 8;
+    if (c.type === 'bed') score += 5;
+    if (c.type === 'thorn' && c.thornDieLevel === 4) score += 4;
+    // Adjacency:
     let adjCat = false;
-    let adjBlockedThorn = 0;
     let adjUsefulThorn = 0;
     let adjDirt = 0;
+    let adjBed = 0;
     let adjTree = 0;
     hexNeighbors(c.hex).forEach((h) => {
       const nb = state.board.get(hexKey(h));
       if (!nb) return;
       if (nb.type === 'cat' && nb.catAlive) adjCat = true;
-      if (nb.type === 'thorn' && nb.thornDieLevel) {
-        adjBlockedThorn += 1;
-        if (nb.thornDieLevel === 4) adjUsefulThorn += 1;
-      }
+      if (nb.type === 'thorn' && nb.thornDieLevel === 4) adjUsefulThorn += 1;
       if (nb.type === 'dirt') adjDirt += 1;
+      if (nb.type === 'bed') adjBed += 1;
       if (nb.type === 'tree') adjTree += 1;
     });
     if (adjCat) score -= 6;
-    score += adjUsefulThorn * 5;  // k4 nearby is very useful
-    score += adjDirt * 2;
-    score += adjTree * 3;
-    // Distance to nearest devil — neutral; we don't want to start too close
-    if (devilHexes.length > 0) {
-      const minDist = Math.min(...devilHexes.map((d) => cubeDistance(c.hex, d)));
-      // sweet spot around dist 3-4
-      score += Math.max(0, 4 - Math.abs(minDist - 3));
-    }
+    // Hlína + Záhon adjacency is HEAVILY weighted — that's where the
+    // early-game carrot ramp + Kakej dice come from.
+    score += adjDirt * 4;
+    score += adjBed * 3;
+    score += adjTree * 2;       // useful eventually but not in carrot ramp
+    score += adjUsefulThorn * 2; // small bonus, not critical
     candidates.push({ hex: c.hex, score });
   });
   candidates.sort((a, b) => b.score - a.score);
@@ -293,6 +276,8 @@ function aiChooseAction(state: GameState): GameState {
 // Smarter Sleep choice: buy a skill if affordable, else gain potato.
 function aiSleep(state: GameState): GameState {
   const p = currentPlayer(state);
+
+  // Priority 1: buy a skill if affordable
   for (const sid of SKILL_PRIORITY) {
     if (p.skills.has(sid)) continue;
     const cost = skillBuyCost(sid);
@@ -300,6 +285,25 @@ function aiSleep(state: GameState): GameState {
       return sleep(state, { kind: 'buy_skill', skill: sid });
     }
   }
+
+  // Priority 2: targeted dice swap — only when standing next to Devil with
+  // big dice waiting in Reserve. This is the "boj prep" step per strategy.
+  const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
+  if (adjDevil && p.reserve.length > 0) {
+    const reserveBigIdx = p.reserve.findIndex((d) => d >= 8);
+    if (reserveBigIdx >= 0) {
+      const lvl = p.reserve[reserveBigIdx];
+      const canAdd = p.skills.has('kapacita') || p.hand.filter((d) => d === lvl).length < 2;
+      if (canAdd) {
+        return sleep(state, {
+          kind: 'swap',
+          ops: [{ op: 'reserve_to_hand', index: reserveBigIdx }],
+        });
+      }
+    }
+  }
+
+  // Fallback: gain potato
   return sleep(state, { kind: 'gain_potato' });
 }
 
@@ -318,22 +322,33 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
       return 14 - p.bobekTrack * 2; // first tree most valuable, plateau later
     }
     case 'bed': {
-      // Carrot ramp — useful when ramping for Kakej
-      return p.carrotTrack < 4 ? 7 : 4;
+      // Záhon = pure Plant action. Heavy priority while ramping carrots
+      // (carrots feed Kakej score). Beyond carrot 5 Kakej caps out.
+      return p.carrotTrack < 5 ? 12 : 3;
     }
     case 'dirt': {
       const adj = hexNeighbors(c.hex).filter((h) => {
         const nb = state.board.get(hexKey(h));
         return nb && nb.marker;
       }).length;
-      // Learning a skill we don't have is high-priority strategic move
+      // Engine's Kakej formula: carrotTrack + adj markers (+ potatoes,
+      // currently not used). Mapping to dice:
+      //   1→k2, 2→k4, 3→k6, 4→k8, 5→k10, 6-7→k12, 8+→k20
+      const kakejRaw = p.carrotTrack + adj;
       const couldLearn = bestAffordableSkill(p) != null;
-      const learnScore = couldLearn ? 13 : 0;
-      // Kakej score: bigger is better
-      const kakejScore = 6 + adj * 2 + Math.min(p.carrotTrack, 4);
-      // Plant early when carrot track low
-      const plantScore = p.carrotTrack < 2 ? 7 : 0;
-      return Math.max(learnScore, kakejScore, plantScore);
+      if (couldLearn) return 16; // Learning here is gold
+
+      // Kakej projection (yields a die)
+      let kakejScore = 0;
+      if (kakejRaw >= 6) kakejScore = 16;     // k12+
+      else if (kakejRaw >= 4) kakejScore = 13; // k8/k10
+      else if (kakejRaw >= 2) kakejScore = 8;  // k4
+      // (kakejRaw < 2 → just k2 / nothing → kakejScore=0)
+
+      // Plant on Hlína: useful early to ramp carrots when Záhon isn't
+      // reachable (sum 2-3 with 2× k2 only matches Hlína range)
+      const plantScore = p.carrotTrack < 4 ? 8 : 0;
+      return Math.max(kakejScore, plantScore);
     }
     case 'desert': {
       if (!p.skills.has('koupel')) return 0;
@@ -359,30 +374,28 @@ function canAddDieAnywhere(p: PlayerState, lvl: DiceLevel): boolean {
 
 function scoreMove(target: BoardCell, p: PlayerState, state: GameState): number {
   let s = 0;
-  // Cat-smash is a HUGE jackpot (free 1k20 + opens tunnel)
-  if (target.type === 'cat' && target.catAlive) return 40;
-  // Move onto Devil only matters when ready to fight (caller checks that;
-  // moving here mostly to position for next-turn fight)
+  if (target.type === 'cat' && target.catAlive) return 40; // jackpot
   if (target.type === 'devil') {
-    if (readyToFightDevil(state, p)) s += 15; // strong incentive to position
-    else s += 2;
+    if (readyToFightDevil(state, p)) return 25;
+    return 2; // mild incentive; don't rush Devil
   }
   if (target.type === 'tree' && !target.marker) s += 7;
-  if (target.type === 'dirt' && !target.marker) s += 4;
-  if (target.type === 'bed' && !target.marker) s += 3;
+  if (target.type === 'dirt' && !target.marker) s += 5;
+  if (target.type === 'bed' && !target.marker) s += 5;
   if (target.type === 'thorn' && !target.thornDieLevel) s += 2;
   if (target.type === 'desert' && p.skills.has('koupel') && !target.marker) s += 4;
   if (target.isTunnel) s += 1;
-  // Distance heuristic — proximity to useful hexes OTHER THAN the target.
+
+  // Distance heuristic — bias direction toward useful Hlína / Záhon /
+  // Houští / Cat hexes (excluding the move target itself).
   const usefulHexes: Hex[] = [];
   state.board.forEach((c) => {
     if (c.marker) return;
     if (c.hex.q === target.hex.q && c.hex.r === target.hex.r) return;
-    if (c.type === 'thorn' && c.thornDieLevel) usefulHexes.push(c.hex);
-    if (c.type === 'tree') usefulHexes.push(c.hex);
     if (c.type === 'dirt') usefulHexes.push(c.hex);
-    // also live cats — moving toward them is good for future smashing
+    if (c.type === 'bed') usefulHexes.push(c.hex);
     if (c.type === 'cat' && c.catAlive) usefulHexes.push(c.hex);
+    if (c.type === 'thorn' && c.thornDieLevel) usefulHexes.push(c.hex);
   });
   if (usefulHexes.length > 0) {
     const minDist = Math.min(...usefulHexes.map((u) => cubeDistance(target.hex, u)));
@@ -395,23 +408,24 @@ function scoreMove(target: BoardCell, p: PlayerState, state: GameState): number 
 
 function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
   const p = currentPlayer(state);
-  const cell = state.board.get(hexKey(hex));
-  if (!cell) return state;
-  // Priority 1: Learn a skill if we can afford one and don't have it
+  // 1. Learn if affordable
   const skill = bestAffordableSkill(p);
-  if (skill) {
-    return useField(state, hex, { dirtAction: 'learn' });
-  }
-  // Priority 2: Kakej if score is meaningful
+  if (skill) return useField(state, hex, { dirtAction: 'learn' });
+
+  // 2. Compute Kakej projection
   const adj = hexNeighbors(hex).filter((h) => {
     const nb = state.board.get(hexKey(h));
     return nb && nb.marker;
   }).length;
-  const kakejScore = p.carrotTrack + adj;
-  if (kakejScore >= 2) return useField(state, hex, { dirtAction: 'poop' });
-  // Priority 3: Plant for carrot ramp if early game
-  if (p.carrotTrack < 3) return useField(state, hex, { dirtAction: 'plant' });
-  // Fallback: Kakej anyway
+  const kakejRaw = p.carrotTrack + adj;
+
+  // 3. Kakej if meaningful die (>= k4) is achievable
+  if (kakejRaw >= 2) return useField(state, hex, { dirtAction: 'poop' });
+
+  // 4. Otherwise plant — early carrot ramp
+  if (p.carrotTrack < 4) return useField(state, hex, { dirtAction: 'plant' });
+
+  // 5. Fallback: Kakej for whatever it yields
   return useField(state, hex, { dirtAction: 'poop' });
 }
 

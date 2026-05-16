@@ -835,27 +835,23 @@ function AIRules() {
             <li>Jakmile má 6+ kostek s k10+ a je u Čerta → <strong>bojovat</strong></li>
           </ol>
 
-          <h4 style={{ margin: '12px 0 4px' }}>🏁 Setup placement</h4>
+          <h4 style={{ margin: '12px 0 4px' }}>🏁 Setup placement (revidováno)</h4>
           <p style={{ margin: 0 }}>
-            Skóre pro každé pole na mapě:
+            Strategie: maximalizovat <strong>carrot ramp potenciál</strong>. Žádný rush k Čertovi.
           </p>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
-            <li>Stojí na k4 Houští: <code>+8</code> (k6: +4, k8: +2)</li>
-            <li>Stojí na Hlíně: <code>+6</code> · Záhon: +3</li>
-            <li>Sousední k4 Houští: <code>+5</code> · sousední Hlína: +2 · sousední Strom: +3</li>
+            <li>Stojí na Hlíně: <code>+8</code> · Záhon: +5 · k4 Houští: +4</li>
+            <li>Sousední Hlína: <code>+4 každá</code> · Záhon: +3 · Strom: +2 · k4 Houští: +2</li>
             <li>Sousední živá Kočka: <code>-6</code></li>
-            <li>Vzdálenost k Čertovi 3-4 hexů: <code>+0 až +4</code> (sweet spot)</li>
+            <li><strong>Vzdálenost k Čertovi: irrelevantní</strong> (per uživatelské strategii)</li>
           </ul>
 
           <h4 style={{ margin: '12px 0 4px' }}>🛒 Setup nákup</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
-            <li>1k6 (9 🥔) pokud má alespoň 9 brambor</li>
+            <li>1k6 (9 🥔) — flexibilní rozsah 1-6 (Hlína 2-4, Záhon 4-6, Houští-k4 use 5+)</li>
             <li>Jinak 1k4 (7 🥔)</li>
             <li>Jinak 1k2 (5 🥔)</li>
           </ol>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
-            (Hand limit ze startu 10 brambor většinou neumožní druhou kostku.)
-          </p>
 
           <h4 style={{ margin: '12px 0 4px' }}>▶️ Začátek tahu (idle fáze)</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
@@ -882,39 +878,39 @@ function AIRules() {
             <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
               <li><strong>🌵 Houští:</strong> 12 + lvl (k4 = 16, k6 = 18, k8 = 20). −6 pokud se kostka nevejde</li>
               <li><strong>🌳 Eukalyptus:</strong> 14 − bobekTrack×2 (první strom nejcennější)</li>
-              <li><strong>🌱 Záhon:</strong> 7 pokud carrot &lt; 4, jinak 4</li>
+              <li><strong>🌱 Záhon (Plant):</strong> 12 pokud carrot &lt; 5, jinak 3 (carrot ramp priorita)</li>
               <li><strong>🟫 Hlína:</strong> max ze tří voleb:
                 <ul style={{ margin: 0, paddingLeft: 16 }}>
-                  <li>Uč se → <code>13</code> pokud má dost stromů/brambor na nějakou dovednost</li>
-                  <li>Kakej → <code>6 + sousední markery × 2 + min(carrot, 4)</code></li>
-                  <li>Plant → <code>7</code> pokud carrot &lt; 2</li>
+                  <li>Uč se → <code>16</code> pokud má na nějakou dovednost</li>
+                  <li>Kakej: ≥6 raw → 16 (k12+), ≥4 → 13 (k8/10), ≥2 → 8 (k4), &lt;2 → 0</li>
+                  <li>Plant → <code>8</code> pokud carrot &lt; 4 (early ramp na Hlíně)</li>
                 </ul>
               </li>
-              <li><strong>🏜️ Poušť</strong> (s Koupelí): stejné jako Hlína bez plantu</li>
+              <li><strong>🏜️ Poušť</strong> (s Koupelí): jako Hlína bez plantu</li>
             </ul>
           </details>
 
           <details style={{ marginTop: 6 }}>
-            <summary style={{ cursor: 'pointer', color: 'var(--muted)' }}>Skóre pohybu</summary>
+            <summary style={{ cursor: 'pointer', color: 'var(--muted)' }}>Skóre pohybu (revidováno)</summary>
             <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
-              <li><strong>🐱 Smash živé Kočky:</strong> <code>40</code> 🎉 (jackpot)</li>
-              <li><strong>👹 Čert:</strong> 15 pokud ready, jinak 2</li>
+              <li><strong>🐱 Smash živé Kočky:</strong> <code>40</code> 🎉</li>
+              <li><strong>👹 Čert:</strong> 25 pokud ready, jinak 2 (žádný rush)</li>
               <li><strong>🌳 Strom (volný):</strong> 7</li>
-              <li><strong>🟫 Hlína (volná):</strong> 4</li>
-              <li><strong>🌱 Záhon (volný):</strong> 3</li>
+              <li><strong>🟫 Hlína (volná):</strong> 5</li>
+              <li><strong>🌱 Záhon (volný):</strong> 5</li>
               <li><strong>🌵 Houští (po sklizni):</strong> 2</li>
               <li><strong>🏜️ Poušť (s Koupelí, volná):</strong> 4</li>
               <li><strong>🕳️ Tunel:</strong> +1 bonus</li>
-              <li>Vzdálenost k užitečným polím: +max(0, 2 − minDist)</li>
+              <li>Distance bonus: +max(0, 2−minDist) k nejbližší užitečné Hlíně/Záhonu/Houští/Kočce</li>
             </ul>
           </details>
 
           <h4 style={{ margin: '12px 0 4px' }}>🟫 Volba akce na Hlíně</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Pokud má dost stromů/brambor na nějakou dovednost → <strong>Uč se</strong></li>
-            <li>Pokud carrotTrack + sousední markery ≥ 2 → <strong>Kakej</strong></li>
-            <li>Pokud carrotTrack &lt; 3 → <strong>Plant</strong> (mrkev)</li>
-            <li>Jinak → Kakej</li>
+            <li>Pokud carrotTrack + sousední markery ≥ 2 → <strong>Kakej</strong> (= alespoň k4)</li>
+            <li>Pokud carrotTrack &lt; 4 → <strong>Plant</strong> (carrot ramp)</li>
+            <li>Jinak → Kakej fallback</li>
           </ol>
 
           <h4 style={{ margin: '12px 0 4px' }}>🧠 Pořadí dovedností pro učení</h4>
@@ -955,9 +951,10 @@ function AIRules() {
 
           <h4 style={{ margin: '12px 0 4px' }}>💤 Spánek (smart sleep)</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Pokud má dost brambor na nenaučenou dovednost → <strong>buy_skill</strong></li>
             <li>
-              Iteruj seznam dovedností v pořadí priority — pokud má dost brambor na nějakou nenaučenou (5/10/15 🥔),
-              kup ji → <strong>buy_skill</strong>
+              Pokud stojí u Čerta + má v Zásobě velkou kostku (≥8) co se dá dostat do Ruky →
+              <strong> swap reserve→hand</strong> (boj prep)
             </li>
             <li>Jinak <strong>gain_potato</strong></li>
           </ol>
