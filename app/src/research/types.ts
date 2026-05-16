@@ -132,6 +132,10 @@ export interface BucketStat {
   players: number;      // player-games in this bucket
   wins: number;
   winRate: number;      // 0..1
+  // Average game length (totalTurns) for WINNERS in this bucket. Tells us
+  // not just "does this correlate with winning" but "does this correlate
+  // with FAST winning". Null if no winners in bucket.
+  avgWinningTurns: number | null;
 }
 
 export interface SkillWinRate {
@@ -142,7 +146,8 @@ export interface SkillWinRate {
   pctLearned: number;         // 0..1, vs totalPlayerGames
   winRateWhenLearned: number; // among learners
   winRateWhenNot: number;     // among non-learners
-  avgTurnLearned: number | null;
+  avgTurnLearned: number | null;        // avg turn-of-game when skill was picked up
+  avgWinningTurnsWhenLearned: number | null; // avg game length when learner won
 }
 
 export interface SkillComboStat {
@@ -151,6 +156,7 @@ export interface SkillComboStat {
   players: number;
   wins: number;
   winRate: number;
+  avgWinningTurns: number | null;
 }
 
 export interface ActionWinCorrelation {
@@ -164,6 +170,15 @@ export interface ResearchPublished {
   numGames: number;
   decisive: number;
   totalPlayerGames: number;   // = decisive * 2
+  // Overall game length stats across all decisive games.
+  turnsToWin: {
+    avg: number;
+    median: number;
+    p25: number;
+    p75: number;
+    min: number;
+    max: number;
+  };
   // Average final values among winners vs losers (resource curve summary)
   winnerAverages: {
     carrots: number;

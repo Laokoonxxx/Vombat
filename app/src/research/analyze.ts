@@ -504,17 +504,21 @@ function buildAutoInsights(games: ResearchGameRecord[]): string {
 // All correlations bucketed/aggregated up front so the UI renders instantly.
 
 function bucketize(
-  records: { value: number; won: boolean }[],
+  records: { value: number; won: boolean; turns: number }[],
   ranges: { label: string; min: number; max: number }[],
 ): BucketStat[] {
   return ranges.map((r) => {
     const inBucket = records.filter((x) => x.value >= r.min && x.value <= r.max);
-    const wins = inBucket.filter((x) => x.won).length;
+    const winners = inBucket.filter((x) => x.won);
+    const avgWinningTurns = winners.length
+      ? winners.reduce((s, x) => s + x.turns, 0) / winners.length
+      : null;
     return {
       bucket: r.label,
       players: inBucket.length,
-      wins,
-      winRate: inBucket.length ? wins / inBucket.length : 0,
+      wins: winners.length,
+      winRate: inBucket.length ? winners.length / inBucket.length : 0,
+      avgWinningTurns,
     };
   });
 }
@@ -528,8 +532,29 @@ function diceOwnedPeak(p: PlayerResearchRecord): number {
 
 function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
   const decisive = games.filter((g) => g.decisive);
-  const playerGames: PlayerResearchRecord[] = decisive.flatMap((g) => g.players);
+  // Each row pairs a player with the game they were in — so we can carry
+  // game.totalTurns through all bucket aggregations.
+  type Row = { p: PlayerResearchRecord; turns: number };
+  const rows: Row[] = decisive.flatMap((g) => g.players.map((p) => ({ p, turns: g.totalTurns })));
+  const playerGames: PlayerResearchRecord[] = rows.map((r) => r.p);
   const totalPlayerGames = playerGames.length;
+
+  // Helper: given an extractor, build the {value, won, turns} array for bucketize.
+  const extract = (valueFn: (p: PlayerResearchRecord) => number) =>
+    rows.map((r) => ({ value: valueFn(r.p), won: r.p.won, turns: r.turns }));
+
+  // ---- Overall turns-to-win distribution ----
+  const sortedTurns = decisive.map((g) => g.totalTurns).sort((a, b) => a - b);
+  const turnsToWin = sortedTurns.length
+    ? {
+        avg: sortedTurns.reduce((s, t) => s + t, 0) / sortedTurns.length,
+        median: sortedTurns[Math.floor(sortedTurns.length / 2)],
+        p25: sortedTurns[Math.floor(sortedTurns.length * 0.25)],
+        p75: sortedTurns[Math.floor(sortedTurns.length * 0.75)],
+        min: sortedTurns[0],
+        max: sortedTurns[sortedTurns.length - 1],
+      }
+    : { avg: 0, median: 0, p25: 0, p75: 0, min: 0, max: 0 };
 
   // ---- Winner / loser averages ----
   const winners = playerGames.filter((p) => p.won);
@@ -559,29 +584,33 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
   const skillIds = Object.keys(SKILL_REQUIREMENTS) as SkillId[];
   const perSkill: SkillWinRate[] = skillIds.map((sid) => {
     const req = SKILL_REQUIREMENTS[sid];
-    const withSkill = playerGames.filter((p) => p.finalSkills.includes(sid));
-    const withoutSkill = playerGames.filter((p) => !p.finalSkills.includes(sid));
-    const wWins = withSkill.filter((p) => p.won).length;
-    const woWins = withoutSkill.filter((p) => p.won).length;
-    const turns = withSkill.flatMap((p) =>
-      p.skillPurchases.filter((sp) => sp.skill === sid).map((sp) => sp.turn)
+    const withSkillRows = rows.filter((r) => r.p.finalSkills.includes(sid));
+    const withoutSkillRows = rows.filter((r) => !r.p.finalSkills.includes(sid));
+    const wWinners = withSkillRows.filter((r) => r.p.won);
+    const wWins = wWinners.length;
+    const woWins = withoutSkillRows.filter((r) => r.p.won).length;
+    const turns = withSkillRows.flatMap((r) =>
+      r.p.skillPurchases.filter((sp) => sp.skill === sid).map((sp) => sp.turn)
     );
     return {
       skillId: sid,
       label: req.label,
       treesCost: req.trees,
-      learned: withSkill.length,
-      pctLearned: withSkill.length / Math.max(1, totalPlayerGames),
-      winRateWhenLearned: withSkill.length ? wWins / withSkill.length : 0,
-      winRateWhenNot: withoutSkill.length ? woWins / withoutSkill.length : 0,
+      learned: withSkillRows.length,
+      pctLearned: withSkillRows.length / Math.max(1, totalPlayerGames),
+      winRateWhenLearned: withSkillRows.length ? wWins / withSkillRows.length : 0,
+      winRateWhenNot: withoutSkillRows.length ? woWins / withoutSkillRows.length : 0,
       avgTurnLearned: turns.length ? turns.reduce((s, t) => s + t, 0) / turns.length : null,
+      avgWinningTurnsWhenLearned: wWinners.length
+        ? wWinners.reduce((s, r) => s + r.turns, 0) / wWinners.length
+        : null,
     };
   });
   perSkill.sort((a, b) => b.learned - a.learned);
 
   // Skill count → win rate
   const skillCountBuckets = bucketize(
-    playerGames.map((p) => ({ value: p.finalSkills.length, won: p.won })),
+    extract((p) => p.finalSkills.length),
     [
       { label: '0', min: 0, max: 0 },
       { label: '1', min: 1, max: 1 },
@@ -593,13 +622,16 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
   );
 
   // Top skill combos (canonical sorted SkillId[])
-  const comboMap = new Map<string, { skills: SkillId[]; players: number; wins: number }>();
-  for (const p of playerGames) {
-    const sorted = [...p.finalSkills].sort();
+  const comboMap = new Map<string, { skills: SkillId[]; players: number; wins: number; winningTurnsSum: number }>();
+  for (const r of rows) {
+    const sorted = [...r.p.finalSkills].sort();
     const key = sorted.join(',');
-    const c = comboMap.get(key) ?? { skills: sorted as SkillId[], players: 0, wins: 0 };
+    const c = comboMap.get(key) ?? { skills: sorted as SkillId[], players: 0, wins: 0, winningTurnsSum: 0 };
     c.players++;
-    if (p.won) c.wins++;
+    if (r.p.won) {
+      c.wins++;
+      c.winningTurnsSum += r.turns;
+    }
     comboMap.set(key, c);
   }
   const topCombos: SkillComboStat[] = [...comboMap.values()]
@@ -611,11 +643,12 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
       players: c.players,
       wins: c.wins,
       winRate: c.players ? c.wins / c.players : 0,
+      avgWinningTurns: c.wins ? c.winningTurnsSum / c.wins : null,
     }));
 
   // ---- Resource buckets ----
   const carrotBuckets = bucketize(
-    playerGames.map((p) => ({ value: p.finalCarrotTrack, won: p.won })),
+    extract((p) => p.finalCarrotTrack),
     [
       { label: '0', min: 0, max: 0 },
       { label: '1-2', min: 1, max: 2 },
@@ -626,7 +659,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     ],
   );
   const treeBuckets = bucketize(
-    playerGames.map((p) => ({ value: p.finalBobekTrack, won: p.won })),
+    extract((p) => p.finalBobekTrack),
     [
       { label: '0', min: 0, max: 0 },
       { label: '1', min: 1, max: 1 },
@@ -636,7 +669,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     ],
   );
   const diceBuckets = bucketize(
-    playerGames.map((p) => ({ value: diceOwnedPeak(p), won: p.won })),
+    extract(diceOwnedPeak),
     [
       { label: '0-2', min: 0, max: 2 },
       { label: '3-4', min: 3, max: 4 },
@@ -647,7 +680,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     ],
   );
   const potatoBuckets = bucketize(
-    playerGames.map((p) => ({ value: p.finalPotatoes, won: p.won })),
+    extract((p) => p.finalPotatoes),
     [
       { label: '0-2', min: 0, max: 2 },
       { label: '3-5', min: 3, max: 5 },
@@ -661,7 +694,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
   // For each action category we care about, bucket by count and compute win rate.
   function actionBuckets(cat: ActionCategory): BucketStat[] {
     return bucketize(
-      playerGames.map((p) => ({ value: p.actionCounts[cat] ?? 0, won: p.won })),
+      extract((p) => p.actionCounts[cat] ?? 0),
       [
         { label: '0', min: 0, max: 0 },
         { label: '1', min: 1, max: 1 },
@@ -697,6 +730,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     numGames: games.length,
     decisive: decisive.length,
     totalPlayerGames,
+    turnsToWin,
     winnerAverages: winnerAvg,
     loserAverages: loserAvg,
     skillStats: { perSkill, byCount: skillCountBuckets, topCombos },

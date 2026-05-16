@@ -126,6 +126,7 @@ interface ResearchBucket {
   players: number;
   wins: number;
   winRate: number;
+  avgWinningTurns: number | null;
 }
 
 interface ResearchSkillRow {
@@ -137,6 +138,7 @@ interface ResearchSkillRow {
   winRateWhenLearned: number;
   winRateWhenNot: number;
   avgTurnLearned: number | null;
+  avgWinningTurnsWhenLearned: number | null;
 }
 
 interface ResearchSkillCombo {
@@ -145,6 +147,7 @@ interface ResearchSkillCombo {
   players: number;
   wins: number;
   winRate: number;
+  avgWinningTurns: number | null;
 }
 
 interface ResearchActionCorrelation {
@@ -158,6 +161,14 @@ interface ResearchData {
   numGames: number;
   decisive: number;
   totalPlayerGames: number;
+  turnsToWin: {
+    avg: number;
+    median: number;
+    p25: number;
+    p75: number;
+    min: number;
+    max: number;
+  };
   winnerAverages: {
     carrots: number; trees: number; potatoes: number;
     handSize: number; reserveSize: number;
@@ -1173,6 +1184,27 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
 
       {open && (
         <>
+          {/* ===== Overall turns-to-win distribution ===== */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: 8,
+              marginBottom: 14,
+              padding: 10,
+              background: '#fff',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+            }}
+          >
+            <TurnStatCard label="Ø Tahů k výhře" value={research.turnsToWin.avg.toFixed(1)} accent />
+            <TurnStatCard label="Medián" value={String(research.turnsToWin.median)} />
+            <TurnStatCard label="P25" value={String(research.turnsToWin.p25)} />
+            <TurnStatCard label="P75" value={String(research.turnsToWin.p75)} />
+            <TurnStatCard label="Min" value={String(research.turnsToWin.min)} />
+            <TurnStatCard label="Max" value={String(research.turnsToWin.max)} />
+          </div>
+
           {/* ===== Winner vs Loser averages ===== */}
           <Section title="🆚 Výherci vs poražení (průměrné finální hodnoty)">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1224,12 +1256,13 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
               <thead>
                 <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
                   <th style={{ padding: '4px 6px' }}>Dovednost</th>
-                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>🌳</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }} title="Cena ve stromech">🌳</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>% hráčů</th>
-                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Ø tah</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }} title="Průměrný tah ZÍSKÁNÍ dovednosti">Ø tah získání</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win když má</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win když nemá</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>Δ</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }} title="Průměrný počet tahů hry, když hráč s touto dovedností vyhrál">Ø tahů k výhře (s ní)</th>
                 </tr>
               </thead>
               <tbody>
@@ -1263,6 +1296,11 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
                       >
                         {delta >= 0 ? '+' : ''}{(delta * 100).toFixed(1)}%
                       </td>
+                      <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: 600 }}>
+                        {s.avgWinningTurnsWhenLearned != null
+                          ? s.avgWinningTurnsWhenLearned.toFixed(1)
+                          : '—'}
+                      </td>
                     </tr>
                   );
                 })}
@@ -1270,7 +1308,9 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
             </table>
             <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
               💡 <strong>Δ negativní</strong> = dovednost je <em>anti-korelovaná</em> s výhrou. Možná že AI ji
-              učí jen v zoufalých situacích, nebo její zisk stojí příliš mnoho času.
+              učí jen v zoufalých situacích, nebo její zisk stojí příliš mnoho času. <br />
+              💡 <strong>Ø tahů k výhře (s ní)</strong> &gt; celkový průměr ({research.turnsToWin.avg.toFixed(1)})
+              = výhry s touto dovedností trvají déle.
             </p>
           </Section>
 
@@ -1285,6 +1325,7 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
                   <th style={{ padding: '4px 6px' }}>Sada</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>Hráčů</th>
                   <th style={{ padding: '4px 6px', textAlign: 'right' }}>Win rate</th>
+                  <th style={{ padding: '4px 6px', textAlign: 'right' }}>Ø tahů k výhře</th>
                 </tr>
               </thead>
               <tbody>
@@ -1296,6 +1337,9 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
                     <td style={{ padding: '4px 6px', textAlign: 'right' }}>{c.players}</td>
                     <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: 600 }}>
                       {(c.winRate * 100).toFixed(1)}%
+                    </td>
+                    <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                      {c.avgWinningTurns != null ? c.avgWinningTurns.toFixed(1) : '—'}
                     </td>
                   </tr>
                 ))}
@@ -1341,9 +1385,16 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
   );
 }
 
-// Horizontal bar chart for a list of buckets, showing player count + win-rate bar.
+// Horizontal bar chart for a list of buckets, showing player count + win-rate + avg winning turns.
 function BucketBars({ buckets, unitLabel }: { buckets: ResearchBucket[]; unitLabel: string }) {
   const maxPlayers = Math.max(...buckets.map((b) => b.players), 1);
+  // Compute overall avg winning turns to color-code "fast wins" vs "slow wins"
+  const allWinTurns = buckets
+    .map((b) => b.avgWinningTurns)
+    .filter((t): t is number => t != null);
+  const overallAvg = allWinTurns.length
+    ? allWinTurns.reduce((s, t) => s + t, 0) / allWinTurns.length
+    : 60;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {buckets.map((b) => {
@@ -1355,8 +1406,23 @@ function BucketBars({ buckets, unitLabel }: { buckets: ResearchBucket[]; unitLab
           winPct > 0 ? '#9b1f1f' :
           '#888';
         const widthPct = b.players === 0 ? 0 : Math.max(2, (b.players / maxPlayers) * 100);
+        // Turn color: faster than overall avg = green; slower = orange
+        const turnColor =
+          b.avgWinningTurns == null ? '#888' :
+          b.avgWinningTurns < overallAvg - 5 ? '#2d4f1a' :
+          b.avgWinningTurns > overallAvg + 5 ? '#a05e2e' :
+          '#555';
         return (
-          <div key={b.bucket} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 60px 80px', gap: 6, alignItems: 'center', fontSize: 12 }}>
+          <div
+            key={b.bucket}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '70px 1fr 60px 80px 90px',
+              gap: 6,
+              alignItems: 'center',
+              fontSize: 12,
+            }}
+          >
             <span style={{ fontWeight: 600, textAlign: 'right' }}>{b.bucket} {unitLabel}</span>
             <div style={{ background: '#f5efe0', borderRadius: 4, height: 18, position: 'relative', overflow: 'hidden' }}>
               <div
@@ -1387,9 +1453,37 @@ function BucketBars({ buckets, unitLabel }: { buckets: ResearchBucket[]; unitLab
             <span style={{ color: 'var(--muted)', fontSize: 11 }}>
               {b.players === 0 ? '' : `${b.wins} výh.`}
             </span>
+            <span
+              style={{ textAlign: 'right', color: turnColor, fontWeight: 600 }}
+              title="Průměrný počet tahů hry, když hráč v tomto bucketu vyhrál"
+            >
+              {b.avgWinningTurns != null ? `${b.avgWinningTurns.toFixed(1)} t.` : '—'}
+            </span>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Small stat card used in the turns-to-win header row
+function TurnStatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div
+      style={{
+        padding: '6px 10px',
+        background: accent ? '#f1e2c4' : '#fafafa',
+        border: `1px solid ${accent ? '#d6a35d' : 'var(--border)'}`,
+        borderRadius: 6,
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: accent ? '#a05e2e' : 'var(--text)' }}>
+        {value}
+      </div>
     </div>
   );
 }
