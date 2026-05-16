@@ -10,6 +10,7 @@ import {
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
+  cancelPendingChoice,
 } from '../game/engine';
 import { aiStep } from '../game/ai';
 
@@ -504,8 +505,11 @@ function DirtActionModal({ state, setState }: { state: GameState; setState: (s: 
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h2>Hlína / Poušť — vyber akci</h2>
-        <div className="actions">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h2 style={{ margin: 0 }}>Hlína / Poušť — vyber akci</h2>
+          <button onClick={() => setState(cancelPendingChoice(state))}>✕ Storno</button>
+        </div>
+        <div className="actions" style={{ marginTop: 8 }}>
           <button onClick={() => setState(useField(state, pc.hex, { dirtAction: 'plant' }))}>
             🥕 Zasaď mrkev
           </button>
@@ -525,13 +529,34 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
   const pc = state.pendingChoice;
   if (pc?.kind !== 'pick_skill') return null;
   const p = currentPlayer(state);
+  const skills = Object.keys(SKILL_REQUIREMENTS) as SkillId[];
+  // Anything affordable?
+  const anyAffordable = skills.some((sid) => {
+    if (p.skills.has(sid)) return false;
+    const req = SKILL_REQUIREMENTS[sid];
+    return p.bobekTrack >= req.trees || p.bobekTrack * 3 + p.potatoes >= req.trees * 3;
+  });
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h2>🧠 Uč se</h2>
-        <p>Vyber dovednost. Trees: {p.bobekTrack} (eukalypty), brambor: {p.potatoes}.</p>
-        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Pro MVP: 1 strom = 1 tvůj eukalyptus (nezdrojuje). 1 strom lze nahradit 3 bramborami nebo 1 odhozenou kostkou (zatím zjednodušeno - používáme jen stromy/brambory).</p>
-        {(Object.keys(SKILL_REQUIREMENTS) as SkillId[]).map((sid) => {
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h2 style={{ margin: 0 }}>🧠 Uč se</h2>
+          <button onClick={() => setState(cancelPendingChoice(state))}>✕ Storno</button>
+        </div>
+        <p style={{ marginTop: 6 }}>
+          Vyber dovednost. Stromy: <strong>{p.bobekTrack}</strong> 🌳 ·
+          Brambory: <strong>{p.potatoes}</strong> 🥔
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+          1 chybějící strom lze nahradit 3 🥔 brambory.
+        </p>
+        {!anyAffordable && (
+          <p style={{ fontSize: 13, color: '#a05e2e', fontWeight: 600 }}>
+            ⚠️ Žádnou dovednost si momentálně nemůžeš naučit. Klikni „Storno“
+            a zvol jinou akci na Hlíně.
+          </p>
+        )}
+        {skills.map((sid) => {
           const req = SKILL_REQUIREMENTS[sid];
           const owned = p.skills.has(sid);
           const enoughTrees = p.bobekTrack >= req.trees;
@@ -555,7 +580,7 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
                     setState(learnSkill(state, sid, treesAvailable, missing * 3, []));
                   }}
                 >
-                  Naučit (nahradit chybějící stromy bramborami)
+                  Nahradit {req.trees - Math.min(p.bobekTrack, req.trees)}× 🥔×3
                 </button>
               </div>
             </div>

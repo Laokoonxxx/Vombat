@@ -488,6 +488,21 @@ export function endTurnNow(state: GameState): GameState {
   return s;
 }
 
+// Cancel a pending sub-choice (e.g. mid-Hlína action) without using the
+// field. Returns state to 'rolled' phase so the player can pick again.
+// Does NOT mark the field, refund anything, or end the turn.
+export function cancelPendingChoice(state: GameState): GameState {
+  if (!state.pendingChoice) return state;
+  // Only allow cancellation of dirt/skill sub-choices that haven't yet
+  // committed a marker. Attack-surrender is non-cancellable.
+  const pc = state.pendingChoice;
+  if (pc.kind !== 'select_dirt_action' && pc.kind !== 'pick_skill') return state;
+  const s = cloneState(state);
+  s.pendingChoice = null;
+  logEntry(s, `${currentPlayer(s).name} stornoval volbu.`);
+  return s;
+}
+
 // =============================================================================
 // FIELD ACTIONS
 // =============================================================================
