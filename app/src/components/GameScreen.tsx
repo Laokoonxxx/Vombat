@@ -249,10 +249,15 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                   >
                     ⚔️ Bojuj s Čertem (vyhlášení před hodem)
                   </button>
-                  <button className="primary" onClick={() => setState(rollDice(state))}>
-                    🎲 Hoď kostkami ({p.hand.length})
-                  </button>
-                  <button onClick={() => setMode('sleepMenu')}>💤 Spánek</button>
+                  {p.hand.length > 0 ? (
+                    <button className="primary" onClick={() => setState(rollDice(state))}>
+                      🎲 Hoď kostkami ({p.hand.length})
+                    </button>
+                  ) : (
+                    <button onClick={() => setMode('sleepMenu')}>
+                      💤 Spánek (Ruka je prázdná, není co házet)
+                    </button>
+                  )}
                 </>
               )}
               {rolled && !state.pendingChoice && (() => {

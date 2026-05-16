@@ -3,7 +3,7 @@ import type { GameState, DiceLevel, Hex } from '../game/types';
 import { ALL_DICE_LEVELS, DICE_PRICES } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { Legend } from './Legend';
-import { buyDie, buySecondVombat, finishSetup, placeStartingVombat } from '../game/engine';
+import { buyDie, finishSetup, placeStartingVombat } from '../game/engine';
 import { aiSetupStep } from '../game/ai';
 
 export interface SetupScreenProps {
@@ -145,18 +145,6 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
                     level={d as DiceLevel}
                   />
                 ))}
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <button
-                    onClick={() => setState(buySecondVombat(state, activeShopPlayer.id))}
-                    disabled={activeShopPlayer.vombats.length !== 1 || activeShopPlayer.potatoes < 5}
-                    title="Druhý Vombat se umístí na stejné pole jako první. Lze koupit POUZE teď v setupu."
-                  >
-                    🐾🐾 Koupit druhého Vombata (5 🥔)
-                  </button>
-                  <p style={{ gridColumn: '1 / -1', fontSize: 11, color: 'var(--muted)', margin: '4px 0 0' }}>
-                    💡 Druhý Vombat lze koupit jen tady v setupu, ne během hry. Vejde se na stejné pole jako první.
-                  </p>
-                </div>
               </div>
             </div>
             <button

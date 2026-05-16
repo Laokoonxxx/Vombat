@@ -203,18 +203,6 @@ export function buyDie(state: GameState, playerId: string, level: DiceLevel): Ga
   return s;
 }
 
-export function buySecondVombat(state: GameState, playerId: string): GameState {
-  const s = cloneState(state);
-  const p = s.players.find((p) => p.id === playerId)!;
-  if (p.vombats.length !== 1) return state;
-  if (p.potatoes < 5) return state;
-  p.potatoes -= 5;
-  // Place on same hex as first vombat per user's rule interpretation
-  p.vombats.push({ id: `${p.id}-v1`, hex: { ...p.vombats[0].hex } });
-  logEntry(s, `${p.name} si pořídil druhého Vombata (na stejné pole).`);
-  return s;
-}
-
 export function finishSetup(state: GameState): GameState {
   // Verify each player has at least 1 vombat and at least 1 die
   if (state.players.some((p) => p.vombats.length === 0 || p.hand.length === 0)) return state;
