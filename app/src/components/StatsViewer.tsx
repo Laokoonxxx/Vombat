@@ -629,6 +629,9 @@ function GameDetail({ game }: { game: GameStats }) {
       {/* Per-turn winner actions */}
       {game.events && game.events.length > 0 && <PerTurnActions game={game} />}
 
+      {/* AI rules cheat sheet */}
+      <AIRules />
+
       {/* Log tail */}
       <details>
         <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 12 }}>📜 Posledních 25 log záznamů</summary>
@@ -775,6 +778,220 @@ function stripPlayerName(detail: string, name: string): string {
   // Trim player-prefix to reduce repetition. E.g. "AI-A přesunul..." → "přesunul..."
   if (detail.startsWith(`${name} `)) return detail.slice(name.length + 1);
   return detail;
+}
+
+// -----------------------------------------------------------------------------
+// AI rules cheat sheet — readable summary of the heuristics in src/game/ai.ts
+// -----------------------------------------------------------------------------
+
+function AIRules() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 14, marginBottom: 4 }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: '100%',
+          textAlign: 'left',
+          padding: 8,
+          fontSize: 12,
+          textTransform: 'uppercase',
+          color: 'var(--muted)',
+          background: 'transparent',
+          border: '1px dashed var(--border)',
+          borderRadius: 4,
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span>🤖 AI pravidla podle kterých se rozhoduje</span>
+        <span>{open ? '▾' : '▸'}</span>
+      </button>
+      {open && (
+        <div
+          style={{
+            marginTop: 6,
+            padding: 12,
+            background: '#fffaf0',
+            border: '1px solid var(--border)',
+            borderRadius: 4,
+            fontSize: 12,
+            lineHeight: 1.6,
+          }}
+        >
+          <p style={{ marginTop: 0, color: 'var(--muted)' }}>
+            AI používá greedy heuristiku — v každém okamžiku vypočítá skóre pro všechny možné akce
+            a vybere tu s nejvyšším skóre. Žádný look-ahead. Definováno v <code>src/game/ai.ts</code>.
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🎯 Strategický plán (priority pořadí)</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Posbírat <strong>volné kostky</strong> z Houští 🌵 (k4/k6/k8 zdarma)</li>
+            <li>Obsadit <strong>Eukalypty</strong> 🌳 pro stromový kapitál</li>
+            <li>Naučit <strong>Kapacitu</strong> 🧠 nejdřív (1 strom)</li>
+            <li>Plantovat mrkve na Hlíně/Záhonu pro <strong>Kakej</strong> ramp</li>
+            <li>Smashovat <strong>Kočky</strong> 🐱 (11-14 = 1k20 + tunel + auto-Koupel)</li>
+            <li>Jakmile má 6+ kostek s k10+ a je u Čerta → <strong>bojovat</strong></li>
+          </ol>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🏁 Setup placement</h4>
+          <p style={{ margin: 0 }}>
+            Skóre pro každé pole na mapě:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Stojí na k4 Houští: <code>+8</code> (k6: +4, k8: +2)</li>
+            <li>Stojí na Hlíně: <code>+6</code> · Záhon: +3</li>
+            <li>Sousední k4 Houští: <code>+5</code> · sousední Hlína: +2 · sousední Strom: +3</li>
+            <li>Sousední živá Kočka: <code>-6</code></li>
+            <li>Vzdálenost k Čertovi 3-4 hexů: <code>+0 až +4</code> (sweet spot)</li>
+          </ul>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🛒 Setup nákup</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>1k6 (9 🥔) pokud má alespoň 9 brambor</li>
+            <li>Jinak 1k4 (7 🥔)</li>
+            <li>Jinak 1k2 (5 🥔)</li>
+          </ol>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
+            (Hand limit ze startu 10 brambor většinou neumožní druhou kostku.)
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>▶️ Začátek tahu (idle fáze)</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              Pokud stojí/sousedí s Čertem A je <strong>ready</strong> (viz níže) → <strong>boj s Čertem</strong>
+            </li>
+            <li>
+              Pokud Ruka prázdná → Spánek (koupit dovednost pokud jde, jinak +1 brambora)
+            </li>
+            <li>Jinak → Hod kostkami</li>
+          </ol>
+          <p style={{ margin: '4px 0 0' }}>
+            <strong>"Ready" k boji:</strong> handMax ≥ k10 (pokud 10+ zranění chybí), handMax ≥ k8 (pokud 7+ chybí),
+            počet kostek ≥ zbývajících zranění + 2, sumPotential ≥ 25 + 6×zbývajících zranění.
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🎲 Po hodu - výběr akce</h4>
+          <p style={{ margin: 0 }}>
+            AI ohodnotí každou možnost a vybere nejvyšší. Spánek má základní skóre <code>0.5</code>.
+          </p>
+
+          <details style={{ marginTop: 6 }}>
+            <summary style={{ cursor: 'pointer', color: 'var(--muted)' }}>Skóre využití pole</summary>
+            <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+              <li><strong>🌵 Houští:</strong> 12 + lvl (k4 = 16, k6 = 18, k8 = 20). −6 pokud se kostka nevejde</li>
+              <li><strong>🌳 Eukalyptus:</strong> 14 − bobekTrack×2 (první strom nejcennější)</li>
+              <li><strong>🌱 Záhon:</strong> 7 pokud carrot &lt; 4, jinak 4</li>
+              <li><strong>🟫 Hlína:</strong> max ze tří voleb:
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  <li>Uč se → <code>13</code> pokud má dost stromů/brambor na nějakou dovednost</li>
+                  <li>Kakej → <code>6 + sousední markery × 2 + min(carrot, 4)</code></li>
+                  <li>Plant → <code>7</code> pokud carrot &lt; 2</li>
+                </ul>
+              </li>
+              <li><strong>🏜️ Poušť</strong> (s Koupelí): stejné jako Hlína bez plantu</li>
+            </ul>
+          </details>
+
+          <details style={{ marginTop: 6 }}>
+            <summary style={{ cursor: 'pointer', color: 'var(--muted)' }}>Skóre pohybu</summary>
+            <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+              <li><strong>🐱 Smash živé Kočky:</strong> <code>40</code> 🎉 (jackpot)</li>
+              <li><strong>👹 Čert:</strong> 15 pokud ready, jinak 2</li>
+              <li><strong>🌳 Strom (volný):</strong> 7</li>
+              <li><strong>🟫 Hlína (volná):</strong> 4</li>
+              <li><strong>🌱 Záhon (volný):</strong> 3</li>
+              <li><strong>🌵 Houští (po sklizni):</strong> 2</li>
+              <li><strong>🏜️ Poušť (s Koupelí, volná):</strong> 4</li>
+              <li><strong>🕳️ Tunel:</strong> +1 bonus</li>
+              <li>Vzdálenost k užitečným polím: +max(0, 2 − minDist)</li>
+            </ul>
+          </details>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🟫 Volba akce na Hlíně</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Pokud má dost stromů/brambor na nějakou dovednost → <strong>Uč se</strong></li>
+            <li>Pokud carrotTrack + sousední markery ≥ 2 → <strong>Kakej</strong></li>
+            <li>Pokud carrotTrack &lt; 3 → <strong>Plant</strong> (mrkev)</li>
+            <li>Jinak → Kakej</li>
+          </ol>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🧠 Pořadí dovedností pro učení</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Kapacita (1 🌳)</li>
+            <li>Sprint (2 🌳)</li>
+            <li>Masáž Střev (2 🌳)</li>
+            <li>Ajurvédská Medicína (3 🌳)</li>
+            <li>Koupel (2 🌳)</li>
+            <li>Klystýr (2 🌳)</li>
+          </ol>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
+            AI bere první "affordable" v pořadí. Koupel je nízko, protože ji typicky dostane zdarma za rozmačkání Kočky.
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>⚔️ Souboj s Čertem (per-iteration)</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              Aplikuj <strong>jedno zranění</strong> tento krok. Pořadí slotů: 1 → 2 → 7+ → 10+.
+              Vyber <strong>nejmenší kostku</strong> co splňuje (velké kostky šetří pro 25+).
+            </li>
+            <li>
+              Po aplikaci všech 4 zranění:
+              <ul style={{ margin: 0, paddingLeft: 16 }}>
+                <li>Pokud aktuální sum ≥ 25 → <strong>vítězství</strong></li>
+                <li>Pokud sumPotential zbylých kostek ≥ 25 → re-roll</li>
+                <li>Jinak ukončit boj (uchovat kostky)</li>
+              </ul>
+            </li>
+            <li>
+              Pokud zranění zbývají & nelze hit:
+              <ul style={{ margin: 0, paddingLeft: 16 }}>
+                <li>Pokud má ≥ 4 kostky & sumPotential ≥ 25 & může hit všechny → re-roll</li>
+                <li>Jinak ukončit boj</li>
+              </ul>
+            </li>
+          </ol>
+
+          <h4 style={{ margin: '12px 0 4px' }}>💤 Spánek (smart sleep)</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              Iteruj seznam dovedností v pořadí priority — pokud má dost brambor na nějakou nenaučenou (5/10/15 🥔),
+              kup ji → <strong>buy_skill</strong>
+            </li>
+            <li>Jinak <strong>gain_potato</strong></li>
+          </ol>
+
+          <h4 style={{ margin: '12px 0 4px' }}>⚠️ Reakce na útok (Kočka / Čert)</h4>
+          <ol style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Pokud má brambory → odevzdat 1 bramboru</li>
+            <li>Jinak odevzdat nejmenší dostupnou kostku (z Ruky nebo Zásoby)</li>
+          </ol>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🎚️ Co AI <strong>nedělá</strong> (známé slabiny)</h4>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              <strong>Žádný lookahead</strong> — nepřemýšlí dopředu. "Plánovat 2-3 tahy" by zlepšilo
+              hru proti slabší kostkové ruce.
+            </li>
+            <li>
+              <strong>Nevyužívá brambory pro Kakej</strong> investice (engine to neumožňuje skrz UI).
+            </li>
+            <li>
+              <strong>Nepoužívá Teleport</strong> (Sleep akce). Mohl by se rychle dostat k Čertovi.
+            </li>
+            <li>
+              <strong>Downgrade kostek</strong> ve Spánku se nepoužívá. AI udrží velké kostky které mohou
+              vést k "wasted" sumům (např. roll 11 se hodí jen na smash, ale jen pokud je u Kočky).
+            </li>
+            <li>
+              <strong>Nepřebírá soupeřovy markery</strong> strategicky.
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ActionCountsTable({ counts }: { counts: Record<string, PlayerActionCounts> }) {
