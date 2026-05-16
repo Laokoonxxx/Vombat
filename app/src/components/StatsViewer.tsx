@@ -951,15 +951,43 @@ function AIRules() {
             </li>
           </ol>
 
-          <h4 style={{ margin: '12px 0 4px' }}>💤 Spánek (smart sleep)</h4>
+          <h4 style={{ margin: '12px 0 4px' }}>💤 Spánek (smart sleep, anti-stall)</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Pokud má dost brambor na nenaučenou dovednost → <strong>buy_skill</strong></li>
             <li>
-              Pokud stojí u Čerta + má v Zásobě velkou kostku (≥8) co se dá dostat do Ruky →
-              <strong> swap reserve→hand</strong> (boj prep)
+              <strong>Emergency:</strong> Hand je prázdná A Zásoba má kostky →
+              swap reserve→hand (jinak by AI věčně spal)
+            </li>
+            <li>
+              <strong>Boj prep:</strong> u Čerta + Zásoba má velkou kostku ≥8 →
+              swap reserve→hand (přesně tak jak strategie říká)
+            </li>
+            <li>
+              <strong>Anti-stall:</strong> Hand má víc než 2 kostky a avg lvl ≥ 5
+              (= mostly k6/k8/k10+) → stash 1-3 největších kostek do Zásoby. Tím se
+              průměrný hod sníží, AI může navigovat na malé aktivace (Hlína 2-4, Záhon 4-6).
             </li>
             <li>Jinak <strong>gain_potato</strong></li>
           </ol>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
+            Klystýr dovednost umožní 3 swap ops v jednom Spánku (jinak 1).
+          </p>
+
+          <h4 style={{ margin: '12px 0 4px' }}>🛡️ Anti-stall pravidla (z analýzy zaseknutých her)</h4>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              <strong>Hand bloat:</strong> 8+ kostek průměru ~6 znamená skoro vždy
+              hod 30+ → nemůže Hlína/Záhon. Sleep stash do Reserve.
+            </li>
+            <li>
+              <strong>Empty hand:</strong> všechny kostky v Reserve, ale není u Čerta →
+              emergency swap.
+            </li>
+            <li>
+              <strong>Final blow conservatism:</strong> 4 zranění hotová, ale sum
+              potential &lt; 32 → nezapočítává souboj (zabraňuje loop bez šance na 25+).
+            </li>
+          </ul>
 
           <h4 style={{ margin: '12px 0 4px' }}>⚠️ Reakce na útok (Kočka / Čert)</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>

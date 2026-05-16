@@ -213,8 +213,11 @@ function readyToFightDevil(state: GameState, p: PlayerState): boolean {
   const handMax = Math.max(...p.hand);
   const sumPotential = p.hand.reduce((a, lvl) => a + lvl, 0);
 
-  // Final blow — all 4 wounds done; just need sum potential >= 25.
-  if (woundsTaken === 4) return sumPotential >= 25;
+  // Final blow — all 4 wounds done; we just need to ROLL 25+ in one shot.
+  // sumPotential is the MAX possible sum; avg roll is sumPotential/2.
+  // Require sumPotential >= 32 to have reasonable chance — otherwise we'd
+  // loop forever trying & failing (verified in self-play).
+  if (woundsTaken === 4) return sumPotential >= 32;
 
   // Capability: must be able to hit each remaining wound type.
   if (wounds['10+'] == null && handMax < 10) return false;
@@ -443,9 +446,20 @@ function aiSleep(state: GameState): GameState {
     }
   }
 
-  // Priority 2: targeted dice swap — only when standing next to Devil with
-  // big dice waiting in Reserve. This is the "boj prep" step per strategy.
   const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
+  const ready = readyToFightDevil(state, p);
+
+  // Priority 2: EMERGENCY — Hand empty but Reserve has dice. Pull one out.
+  // Without this AI can't roll → eternal sleep loop.
+  if (p.hand.length === 0 && p.reserve.length > 0) {
+    return sleep(state, {
+      kind: 'swap',
+      ops: [{ op: 'reserve_to_hand', index: 0 }],
+    });
+  }
+
+  // Priority 3: BOJ PREP — at Devil and need bigger hand → pull big dice
+  // from Reserve into Hand.
   if (adjDevil && p.reserve.length > 0) {
     const reserveBigIdx = p.reserve.findIndex((d) => d >= 8);
     if (reserveBigIdx >= 0) {
@@ -460,8 +474,55 @@ function aiSleep(state: GameState): GameState {
     }
   }
 
+  // Priority 4: ANTI-STALL — stash big dice when Hand is bloated.
+  // Bloated = avg level > 4 (mostly k6/k8/k10/k12/k20) → most rolls go
+  // out of range for low-activation fields where we'd build resources.
+  if (!ready) {
+    const stashOps = computeStashBigDice(p);
+    if (stashOps.length > 0) {
+      return sleep(state, { kind: 'swap', ops: stashOps });
+    }
+  }
+
   // Fallback: gain potato
   return sleep(state, { kind: 'gain_potato' });
+}
+
+// Stash big-ish dice from Hand to Reserve when Hand is bloated.
+//   - "Bloated" = avg level >= 5 (mostly k6/k8/k10+)
+//   - We stash dice ≥ 6 (anything big enough to push avg over target)
+//   - Keep at least 2 dice in Hand (or stop when avg ≤ 4)
+//   - Klystýr allows up to 3 swap ops per Sleep
+function computeStashBigDice(p: PlayerState): import('./engine').SwapOp[] {
+  if (p.hand.length <= 2) return []; // keep enough dice in hand to roll
+  const avgLevel = p.hand.reduce((s, d) => s + d, 0) / p.hand.length;
+  if (avgLevel < 5) return [];
+
+  const ops: import('./engine').SwapOp[] = [];
+  const maxOps = p.skills.has('klystyr') ? 3 : 1;
+  const handSim = [...p.hand];
+  let reserveCount = p.reserve.length;
+
+  for (let i = 0; i < maxOps; i++) {
+    if (handSim.length <= 2) break; // keep at least 2 in hand
+    // Pick the LARGEST die to stash first (preserves variety)
+    let bestIdx = -1;
+    let bestLvl = 0;
+    for (let j = 0; j < handSim.length; j++) {
+      if (handSim[j] >= 6 && handSim[j] > bestLvl) {
+        bestLvl = handSim[j];
+        bestIdx = j;
+      }
+    }
+    if (bestIdx === -1) break;
+    if (!p.skills.has('kapacita') && reserveCount >= 3) break;
+    ops.push({ op: 'hand_to_reserve', index: bestIdx });
+    handSim.splice(bestIdx, 1);
+    reserveCount++;
+    const remainingAvg = handSim.length ? handSim.reduce((s, d) => s + d, 0) / handSim.length : 0;
+    if (remainingAvg <= 4) break;
+  }
+  return ops;
 }
 
 function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
