@@ -221,10 +221,18 @@ Ihned po akci "Zasaď" se můžeš rozhodnout, že na Záhoně necháš některo
 ---
 
 ### 6.3. Eukalyptový Strom 🌳 (modrá, aktivace 7–8)
-Eukalyptové stromy slouží jako "kapitál vědění" pro učení dovedností. Jediná akce:
+Eukalyptové stromy slouží jako "kapitál vědění" pro učení dovedností. Akce:
 
-#### Obsaď 💩
+#### Obsaď 💩 (vždy možné)
 Polož na Eukalyptus žeton Bobku. Ukazatel Bobku +1.
+
+#### Obsaď + Uč se 🌳🧠 (volitelné, 1× za hru)
+Místo standardního Obsaď můžeš ve stejném tahu **i hned naučit dovednost**.
+- Strom se obsadí jako obvykle (+1 ukazatel stromů).
+- Bezprostředně pak vybereš dovednost (jako akce **Uč se** na Hlíně).
+- Strom který si právě obsadil **se počítá do požadovaných stromů**.
+
+⚠️ **Omezení 1× za hru:** Hráč může využít akci „Obsaď + Uč se" pouze **jednou za celou hru** (nezáleží zda potom soupeř strom přebere — omezení zůstává).
 
 **Převzetí soupeři** a **Obrana** fungují identicky jako u Záhonu.
 
@@ -458,6 +466,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
 | Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
 | Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
+| Eukalyptus: Obsaď + Uč se | **přidáno** — 1× za hru lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti |
 
 ---
 

@@ -66,6 +66,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
       markersPlaced: { bobek: 0, mrkev: 0 },
       vombats: [], // placed during setup
       skills: new Set<SkillId>(),
+      usedTreeLearnOnce: false,
       lastRoll: null,
       fighting: false,
     };
@@ -578,12 +579,16 @@ export function canUseField(state: GameState, hex: Hex): boolean {
 }
 
 // Use a field: dispatch by type
-export function useField(state: GameState, hex: Hex, opts?: { dirtAction?: 'plant' | 'poop' | 'learn'; }): GameState {
+export function useField(
+  state: GameState,
+  hex: Hex,
+  opts?: { dirtAction?: 'plant' | 'poop' | 'learn'; treeAction?: 'occupy' | 'occupy_and_learn' }
+): GameState {
   const cell = state.board.get(hexKey(hex));
   if (!cell) return state;
   switch (cell.type) {
     case 'bed':    return useBed(state, hex);
-    case 'tree':   return useTree(state, hex);
+    case 'tree':   return useTree(state, hex, opts?.treeAction);
     case 'thorn':  return useThorn(state, hex);
     case 'desert':
       // Acts like dirt — same submenu
@@ -625,7 +630,22 @@ function useBed(state: GameState, hex: Hex): GameState {
 }
 
 // --- TREE (Eukalyptus) ---
-function useTree(state: GameState, hex: Hex): GameState {
+function useTree(state: GameState, hex: Hex, action?: 'occupy' | 'occupy_and_learn'): GameState {
+  const p0 = currentPlayer(state);
+  // If no sub-action specified AND the tree-learn option is available
+  // (1× per game per player + at least one skill affordable AFTER the
+  // upcoming +1 tree bobekTrack), ask the player to pick.
+  if (!action) {
+    const couldLearn = !p0.usedTreeLearnOnce && canAffordSomeSkill(p0, +1);
+    if (couldLearn) {
+      const s = cloneState(state);
+      s.pendingChoice = { kind: 'select_tree_action', hex };
+      return s;
+    }
+    // No learn option — go straight to occupy.
+    action = 'occupy';
+  }
+
   const s = cloneState(state);
   const p = currentPlayer(s);
   const cell = s.board.get(hexKey(hex))!;
@@ -647,8 +667,31 @@ function useTree(state: GameState, hex: Hex): GameState {
   p.markersPlaced.bobek += 1;
   s.usedFieldThisTurn = true;
   logEntry(s, `${p.name} obsadil Eukalyptový strom (celkem ${p.bobekTrack}).`);
+
+  if (action === 'occupy_and_learn') {
+    // Open the skill picker with source='tree'. The tree-learn flag is set
+    // when learnSkill actually succeeds (not here, so canceling doesn't
+    // burn the once-per-game allowance).
+    s.pendingChoice = { kind: 'pick_skill', hex, source: 'tree' };
+    return s;
+  }
   endTurn(s);
   return s;
+}
+
+// Used by useTree gating: with +bonus extra trees, is any unlearned
+// skill affordable? Used to decide whether to even offer the
+// "Obsaď + Uč se" option.
+function canAffordSomeSkill(p: PlayerState, bonusTrees: number): boolean {
+  for (const sid of Object.keys(SKILL_REQUIREMENTS) as SkillId[]) {
+    if (p.skills.has(sid)) continue;
+    const req = SKILL_REQUIREMENTS[sid];
+    const trees = p.bobekTrack + bonusTrees;
+    if (trees >= req.trees) return true;
+    const missing = req.trees - trees;
+    if (missing > 0 && p.potatoes >= missing * 3) return true;
+  }
+  return false;
 }
 
 // --- THORN (Houští) ---
@@ -806,10 +849,17 @@ export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, 
   p.reserve = reserveCopy;
   p.potatoes -= potatoesUsed;
   grantSkill(s, p, skill);
-  // We do NOT decrement bobekTrack — eukalypty zůstávají obsazeny.
-  // Mark a dirt cell (current) with bobek as the learning marker (already set by Dirt action).
-  const cell = s.board.get(hexKey((s.pendingChoice as any).hex));
-  if (cell) cell.marker = { playerId: p.id, kind: 'bobek' };
+  // Tree-source learn: mark the once-per-game flag now (only after success).
+  const pc = s.pendingChoice as any;
+  const source: 'dirt' | 'tree' = pc?.source ?? 'dirt';
+  if (source === 'tree') {
+    p.usedTreeLearnOnce = true;
+  } else {
+    // Dirt-source: mark the dirt cell with bobek as the learning marker.
+    // (Tree cells are already marked by useTree before this runs.)
+    const cell = s.board.get(hexKey(pc.hex));
+    if (cell) cell.marker = { playerId: p.id, kind: 'bobek' };
+  }
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
   logEntry(s, `${p.name} se naučil "${req.label}"!`);

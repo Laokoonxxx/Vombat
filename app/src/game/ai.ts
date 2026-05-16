@@ -180,6 +180,14 @@ function aiResolvePending(state: GameState): GameState | null {
     return aiChooseDirtAction(state, pc.hex);
   }
 
+  if (pc.kind === 'select_tree_action') {
+    // Always pick "occupy_and_learn" if we can afford a skill — it's a
+    // once-per-game bonus that grants effectively a free skill on top
+    // of the tree claim. Otherwise just occupy.
+    const action = bestAffordableSkill(p) ? 'occupy_and_learn' : 'occupy';
+    return useField(state, pc.hex, { treeAction: action });
+  }
+
   if (pc.kind === 'pick_skill') {
     return aiPickSkill(state);
   }

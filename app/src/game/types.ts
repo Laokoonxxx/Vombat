@@ -75,6 +75,9 @@ export interface PlayerState {
   markersPlaced: { bobek: number; mrkev: number }; // celkové počty
   vombats: { id: string; hex: Hex }[];
   skills: Set<SkillId>;
+  // Tree learning is allowed once per game per player (combined Obsaď + Uč se
+  // on a Eukalyptus). Persists even if opponent takes over the tree later.
+  usedTreeLearnOnce: boolean;
   // Dice currently rolled at start of turn (parallel to hand)
   lastRoll: number[] | null; // null = not yet rolled this turn
   // For devil combat tracking (only when fighting this turn)
@@ -135,8 +138,9 @@ export interface GameState {
 export type PendingChoice =
   | { kind: 'attack_surrender'; playerId: string; from: 'cat' | 'devil' }
   | { kind: 'pick_dice_for_action'; hex: Hex; reason: string }
-  | { kind: 'pick_skill'; hex: Hex; potatoesUsed?: number; diceForTrees?: DiceLevel[] }
+  | { kind: 'pick_skill'; hex: Hex; potatoesUsed?: number; diceForTrees?: DiceLevel[]; source?: 'dirt' | 'tree' }
   | { kind: 'select_dirt_action'; hex: Hex }
+  | { kind: 'select_tree_action'; hex: Hex }
   | { kind: 'shop_choose_die'; hex: Hex; maxLevel: DiceLevel } // after Kakej success
   | { kind: 'pick_die_acquisition'; offered: DiceLevel; source: string }
   | { kind: 'sleep_options' }

@@ -315,6 +315,9 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
           {state.pendingChoice?.kind === 'select_dirt_action' && (
             <DirtActionModal state={state} setState={setState} />
           )}
+          {state.pendingChoice?.kind === 'select_tree_action' && (
+            <TreeActionModal state={state} setState={setState} />
+          )}
           {state.pendingChoice?.kind === 'pick_skill' && (
             <SkillModal state={state} setState={setState} />
           )}
@@ -636,6 +639,39 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// Modal shown when the player uses an Eukalyptus and tree-learn is available.
+function TreeActionModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+  const pc = state.pendingChoice;
+  if (pc?.kind !== 'select_tree_action') return null;
+  return (
+    <div className="modal-backdrop">
+      <div className="modal">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h2 style={{ margin: 0 }}>🌳 Eukalyptový strom — vyber akci</h2>
+          <button onClick={() => setState(cancelPendingChoice(state))}>✕ Storno</button>
+        </div>
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
+          Můžeš si jen <strong>obsadit strom</strong>, nebo zároveň využít k <strong>učení dovednosti</strong>.
+          Učení přes strom je možné <strong>jen 1× za hru</strong> (i pokud později strom přebere soupeř).
+        </p>
+        <div className="actions" style={{ marginTop: 10 }}>
+          <button
+            className="primary"
+            onClick={() => setState(useField(state, pc.hex, { treeAction: 'occupy' }))}
+          >
+            💩 Jen obsadit (+1 strom)
+          </button>
+          <button
+            onClick={() => setState(useField(state, pc.hex, { treeAction: 'occupy_and_learn' }))}
+          >
+            🌳🧠 Obsadit + Uč se dovednost (1× za hru)
+          </button>
+        </div>
       </div>
     </div>
   );
