@@ -181,10 +181,12 @@ function aiResolvePending(state: GameState): GameState | null {
   }
 
   if (pc.kind === 'select_tree_action') {
-    // Always pick "occupy_and_learn" if we can afford a skill — it's a
-    // once-per-game bonus that grants effectively a free skill on top
-    // of the tree claim. Otherwise just occupy.
-    const action = bestAffordableSkill(p) ? 'occupy_and_learn' : 'occupy';
+    // CRITICAL: when this choice opens, the tree HASN'T been claimed yet —
+    // p.bobekTrack is still the pre-occupy count. We must check skill
+    // affordability AS IF the +1 tree from this very occupy is already in.
+    // Otherwise the AI takes a tree but never claims the once-per-game
+    // "Obsaď + Uč se" bonus even when it could have learned for free.
+    const action = bestAffordableSkill(p, 1) ? 'occupy_and_learn' : 'occupy';
     return useField(state, pc.hex, { treeAction: action });
   }
 
@@ -679,13 +681,16 @@ const SKILL_PRIORITY: SkillId[] = [
   'klystyr',       // 2 trees, swap helper (least important in MVP)
 ];
 
-function bestAffordableSkill(p: PlayerState): SkillId | null {
+// bonusTrees = phantom trees to add to bobekTrack for the check. Used when
+// the AI is deciding whether to take the "Obsaď + Uč se" path on a tree
+// that hasn't been physically placed yet.
+function bestAffordableSkill(p: PlayerState, bonusTrees: number = 0): SkillId | null {
   for (const sid of SKILL_PRIORITY) {
     if (p.skills.has(sid)) continue;
     const req = SKILL_REQUIREMENTS[sid].trees;
-    // Can afford via trees only, or trees + potato substitution (3 brambory = 1 strom)
-    if (p.bobekTrack >= req) return sid;
-    const missing = req - p.bobekTrack;
+    const treesAvail = p.bobekTrack + bonusTrees;
+    if (treesAvail >= req) return sid;
+    const missing = req - treesAvail;
     if (p.potatoes >= missing * 3) return sid;
   }
   return null;

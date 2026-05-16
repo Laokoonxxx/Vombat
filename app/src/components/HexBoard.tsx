@@ -91,12 +91,16 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
 
 export interface HexBoardProps {
   state: GameState;
-  clickableHexes?: Hex[]; // for current action — highlighted & clickable
+  clickableHexes?: Hex[]; // for current action — clickable
+  // Cells where the player can act with their current roll (move OR use field).
+  // Rendered with a distinct yellow glow so the player sees the affordance
+  // at a glance, independent of which inspect/sub-mode is active.
+  actionableHexes?: Hex[];
   selectedHex?: Hex | null;
   onHexClick?: (hex: Hex, event?: MouseEvent) => void;
 }
 
-export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: HexBoardProps) {
+export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, onHexClick }: HexBoardProps) {
   const cells = useMemo(() => Array.from(state.board.values()), [state.board]);
 
   const clickableSet = useMemo(() => {
@@ -104,6 +108,12 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
     clickableHexes?.forEach((h) => s.add(hexKey(h)));
     return s;
   }, [clickableHexes]);
+
+  const actionableSet = useMemo(() => {
+    const s = new Set<string>();
+    actionableHexes?.forEach((h) => s.add(hexKey(h)));
+    return s;
+  }, [actionableHexes]);
 
   // Compute bounds
   const bounds = useMemo(() => {
@@ -143,6 +153,7 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
         const points = corners.map((p) => `${x + p.x},${y + p.y}`).join(' ');
         const k = hexKey(c.hex);
         const clickable = clickableSet.has(k);
+        const actionable = actionableSet.has(k);
         const isSelected = selectedHex && c.hex.q === selectedHex.q && c.hex.r === selectedHex.r;
         // Determine display: emoji for entity, otherwise activation label.
         const isTunnelOnly = c.type !== 'devil' && c.type !== 'cat' && c.isTunnel;
@@ -159,10 +170,15 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
         // Build a tooltip explaining what this cell does
         const tooltip = buildTooltip(c, isBlockedThorn);
 
+        // Stroke priority: selected (orange-yellow, thickest) > actionable
+        // (golden glow) > default (dark brown thin). Selected wins so the
+        // currently-inspected hex stays distinct.
+        const strokeColor = isSelected ? '#ffd95e' : actionable ? '#f0a830' : '#3d2f1a';
+        const strokeWidth = isSelected ? 3 : actionable ? 2.5 : 1;
         return (
           <g
             key={k}
-            className={`hex-cell ${clickable ? 'clickable' : ''} ${isSelected ? 'highlighted' : ''}`}
+            className={`hex-cell ${clickable ? 'clickable' : ''} ${actionable ? 'actionable' : ''} ${isSelected ? 'highlighted' : ''}`}
             onClick={(e) => clickable && onHexClick && onHexClick(c.hex, e)}
           >
             <title>{tooltip}</title>
@@ -170,9 +186,19 @@ export function HexBoard({ state, clickableHexes, selectedHex, onHexClick }: Hex
               points={points}
               fill={fill}
               opacity={opacity}
-              stroke={isSelected ? '#ffd95e' : '#3d2f1a'}
-              strokeWidth={isSelected ? 3 : 1}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
             />
+            {/* Soft golden overlay for actionable hexes — adds glow without
+                hiding the underlying hex color. */}
+            {actionable && !isSelected && (
+              <polygon
+                points={points}
+                fill="#ffd95e"
+                opacity={0.18}
+                pointerEvents="none"
+              />
+            )}
             {/* Diagonal-hatch overlay marking blocked thorn (impassable until die is taken) */}
             {isBlockedThorn && (
               <polygon

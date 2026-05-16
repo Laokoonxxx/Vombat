@@ -279,10 +279,10 @@ Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušt
 | Dovednost | 🌳 | Účinek |
 |---|---|---|
 | **Kapacita** | 1 | Ruší oba limity: max 2 kostky stejného lvl v Ruce **i** max 3 kostky v Zásobě. |
-| **Koupel** | 2 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
-| **Klystýr** | 2 | Při Spánku: výměna Ruka ↔ Zásoba až 3× (místo 1×). |
-| **Masáž Střev** | 2 | Při Spánku: Upgrade 1 kostky o 1 lvl. |
-| **Ajurvédská Medicína** | 3 | Při Spánku: Upgrade 1 kostky o 2 lvly, nebo 2 kostky o 1 lvl, nebo 1k12 → 1k20. |
+| **Lázně** (Koupel) | 1 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
+| **Třídění** (Klystýr) | 1 | Při Spánku: neomezený počet výměn mezi Rukou a Zásobou. |
+| **Žvýkání** (Masáž Střev) | 2 | Při Spánku: Upgrade 1 kostky o 1 lvl. |
+| **Bylinkový elixír** (Ajurvédská Medicína) | 3 | Při Spánku: Upgrade 1 kostky o 2 lvly, nebo 2 kostky o 1 lvl, nebo 1k12 → 1k20. |
 | **Sprint** | 2 | Po Pohybu můžeš v témže tahu **Využít** pole, na které jsi se přesunul. |
 
 ---
@@ -322,9 +322,9 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Vyměň kostku v Ruce s kostkou v Zásobě.
 - **Teleport (5 🥔)** — přemísti Vombata na libovolné pole mapy. Cílem nesmí být pole Čerta ani živé Kočky a nesmí na něm stát jiný Vombat.
 - **Skill shop** — kup libovolnou dovednost za **5 🥔 × počet požadovaných stromů**:
-  - 1-strom dovednost (Kapacita) = **5 🥔**
-  - 2-strom dovednost (Koupel, Klystýr, Masáž Střev, Sprint) = **10 🥔**
-  - 3-strom dovednost (Ajurvédská Medicína) = **15 🥔**
+  - 1-strom dovednost (Kapacita, Lázně, Třídění) = **5 🥔**
+  - 2-strom dovednost (Žvýkání, Sprint) = **10 🥔**
+  - 3-strom dovednost (Bylinkový elixír) = **15 🥔**
   - Skill shop je alternativa k tradičnímu "Uč se" na Hlíně — nepotřebuje Eukalypty ani vybavení Hlíny.
 
 ### Možnosti s dovednostmi
@@ -380,23 +380,31 @@ Hody pokračují, dokud:
 
 ---
 
-## 10. Úkoly (formace) — *není v MVP*
+## 10. Úkoly (formace)
 
-Tato sekce je v digitální verzi **neaktivní**. Pravidla jsou zde zachována pro pozdější implementaci.
+Vedle hlavního cíle (rozmačkat Čerta) hráči mohou splnit jeden ze 3 **prostorových úkolů**. Splnění se vyhodnocuje **automaticky** po každém umístění tvé značky (Bobek 💩 nebo Mrkev 🥕).
 
-Bobky a Mrkve jsou pro vyhodnocení formace ekvivalentní. Postava Vombata se do formace nezapočítává. Odměnu za stejnou formaci může každý hráč získat maximálně 1×.
+Bobky a Mrkve jsou pro vyhodnocení formace ekvivalentní. Postava Vombata se do formace nezapočítává. **Odměnu za stejnou formaci může každý hráč získat maximálně 1×.**
 
-| Pořadí splnění | Odměna |
+### Odměny podle pořadí splnění (pro každý druh formace zvlášť)
+
+| Pořadí | Odměna |
 |---|---|
-| 1. | 1k20 |
-| 2. | 1k12 |
-| 3. | 1k6 |
-| 4. a další | žádná |
+| 1. hráč | 1k20 |
+| 2. hráč | 1k12 |
+| 3. hráč | 1k6 |
+| 4.+ | žádná (formaci přesto získáš započítanou) |
+
+> Odměna je kostka – přidá se jako jakákoli jiná získaná kostka (volíš velikost ≤ nabídka a kam ji umístit: Ruka/Zásoba/Čekající).
 
 ### Formace
-- **Přímka 5** — 5+ žetonů v libovolně orientované přímce. S žádným žetonem v přímce nesmí sousedit žeton soupeře.
-- **Obklíčení** — 4+ žetonů kolem soupeřova žetonu.
-- **Průzkumník** — obsadit min. 6 dílků mapy (dílek = 7 hexů s černým/modrým středem).
+
+- **Přímka 5** — 5+ tvých značek v libovolně orientované **hex-přímce po sobě jdoucích polí**. S žádným z těchto 5 hexů nesmí sousedit značka soupeře.
+- **Obklíčení** — 4+ tvých značek kolem jedné značky soupeře (kolem libovolného z jeho hexů s 🥕/💩 leží minimálně 4 tvé sousední značky).
+- **Průzkumník** — tvé značky leží na minimálně **6 různých dílcích** mapy (dílek = sada 7 hexů s černým/modrým středem).
+
+### Detekce v digitální verzi
+Detekce probíhá ihned po každém umístění značky. Pokud jednou akcí splníš více formací najednou (např. „Vyformuj kostku" zároveň dokončí Přímku 5 i Obklíčení), získáš odměny postupně – jednu po druhé.
 
 ---
 
@@ -480,6 +488,6 @@ Tyto věci jsou v aktuální digitální verzi zjednodušené:
 
 1. **Obrana kostkou** na Záhonu/Eukalyptu — takeover lze provést bez ověření vyšší kostky.
 2. **Investice brambor do Vyformování** — UI dialog zatím nenabízí; počítá se jen carrotTrack + sousední markery.
-3. **Úkoly (formace)** — celá sekce neimplementována.
+3. ~~**Úkoly (formace)** — celá sekce neimplementována.~~ ✅ Implementováno.
 4. **3–4 hráči** — neimplementováno (vyžaduje další šablony a layout 10/13 dílků).
 5. **Vítězné cíle 2 a 3** — neimplementováno.

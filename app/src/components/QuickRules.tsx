@@ -168,6 +168,21 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           </ul>
         </Section>
 
+        <Section title="🏅 Úkoly (formace) — bonus kostka navrch">
+          <p style={{ margin: '0 0 6px' }}>
+            Vedle souboje s Čertem můžeš plnit 3 prostorové úkoly. Splnění se
+            vyhodnocuje samo po každém umístění tvé značky (💩 nebo 🥕).
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li><strong>Přímka 5</strong> — 5+ tvých značek v rovné hex-linii (po sobě), bez sousedící značky soupeře.</li>
+            <li><strong>Obklíčení</strong> — 4+ tvých značek kolem jedné značky soupeře.</li>
+            <li><strong>Průzkumník</strong> — značky na 6+ různých dílcích mapy.</li>
+          </ul>
+          <p style={{ margin: '6px 0 0', fontSize: 12 }}>
+            Odměna podle pořadí: 1.&nbsp;<strong>1k20</strong>, 2.&nbsp;<strong>1k12</strong>, 3.&nbsp;<strong>1k6</strong>. Každou formaci jen 1× za hráče.
+          </p>
+        </Section>
+
         <Section title="💤 Spánek — co můžeš dělat">
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>Získat 1 🥔 bramboru</li>

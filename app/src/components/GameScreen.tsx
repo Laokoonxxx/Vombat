@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
-import type { GameState, Hex, DiceLevel, SkillId, WoundType } from '../game/types';
-import { hexKey, WOUND_TYPES } from '../game/types';
+import type { GameState, Hex, DiceLevel, SkillId, WoundType, FormationKind } from '../game/types';
+import {
+  hexKey, WOUND_TYPES, FORMATION_LABEL, FORMATION_DESC, FORMATION_REWARDS,
+} from '../game/types';
 import { HexBoard } from './HexBoard';
 import { PlayerBoard } from './PlayerBoard';
 import { DiceTray } from './DiceTray';
@@ -126,6 +128,31 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
     return [];
   }, [mode, selectedVombatId, p, state]);
 
+  // Cells where the player can ACTUALLY do something with the current roll.
+  // Computed in 'rolled' phase regardless of sub-mode — the player always
+  // wants to see at a glance which hexes match their roll. Distinct from
+  // `clickable` (which controls cursor/click handlers).
+  const actionable = useMemo(() => {
+    if (state.phase !== 'rolled' || state.pendingChoice) return [];
+    const hexes: Hex[] = [];
+    const seen = new Set<string>();
+    // Movement targets from any vombat
+    for (const v of p.vombats) {
+      for (const t of legalMoveTargets(state, v.hex)) {
+        const k = hexKey(t);
+        if (!seen.has(k)) { seen.add(k); hexes.push(t); }
+      }
+    }
+    // Field-use targets
+    state.board.forEach((c) => {
+      if (canUseField(state, c.hex)) {
+        const k = hexKey(c.hex);
+        if (!seen.has(k)) { seen.add(k); hexes.push(c.hex); }
+      }
+    });
+    return hexes;
+  }, [p, state]);
+
   function onHexClick(hex: Hex, event?: MouseEvent) {
     if (event) setInspectPos({ x: event.clientX, y: event.clientY });
     if (state.phase === 'using_field' && p.skills.has('sprint')) {
@@ -200,6 +227,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
         <HexBoard
           state={state}
           clickableHexes={clickable}
+          actionableHexes={actionable}
           selectedHex={inspectHex}
           onHexClick={onHexClick}
         />
@@ -340,6 +368,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
             />
           )}
         </div>
+        <FormationsPanel state={state} />
         <div className="panel">
           <h3>Čertova zranění (každý bojuje vlastního)</h3>
           {state.players.map((pl) => (
@@ -704,6 +733,44 @@ function DieAcquisitionModal({ state, setState }: { state: GameState; setState: 
         <p style={{ margin: 0, color: 'var(--muted)' }}>
           Zdroj: <strong>{pc.source}</strong> · Maximum: <strong>1k{offered}</strong>
         </p>
+        {pc.breakdown && pc.breakdown.length > 0 && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: 8,
+              background: '#fff5e0',
+              border: '1px solid #e8c997',
+              borderRadius: 6,
+              fontSize: 12,
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>📐 Jak vyšla velikost:</div>
+            {pc.breakdown.map((b, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>{b.label}</span>
+                <strong>{b.value >= 0 ? `+${b.value}` : b.value}</strong>
+              </div>
+            ))}
+            {pc.totalScore != null && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: 4,
+                  paddingTop: 4,
+                  borderTop: '1px dashed #d6c8a9',
+                  fontWeight: 700,
+                }}
+              >
+                <span>Σ skóre</span>
+                <span>{pc.totalScore} → 1k{offered}</span>
+              </div>
+            )}
+            <div style={{ marginTop: 4, color: 'var(--muted)', fontStyle: 'italic' }}>
+              Stupnice: 1→k2 · 2→k4 · 3→k6 · 4→k8 · 5→k10 · 6–7→k12 · 8+→k20
+            </div>
+          </div>
+        )}
         <p style={{ margin: '8px 0 4px', fontSize: 13 }}>
           Můžeš si vzít kostku až do velikosti <strong>1k{offered}</strong>, nebo libovolnou menší.
           Vyber kam ji chceš umístit:
@@ -911,6 +978,94 @@ function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s:
         </button>
         <button onClick={() => setState(devilStop(state))}>Ukončit boj</button>
       </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// FormationsPanel — sidebar progress for the 3 formation objectives
+// =============================================================================
+// Shows per-formation status: which players already claimed it (in order),
+// and for each LIVE player, how close they are. Helps the player see at a
+// glance whether they should chase a formation or focus on the devil.
+function FormationsPanel({ state }: { state: GameState }) {
+  const formations: FormationKind[] = ['primka5', 'obkliceni', 'pruzkumnik'];
+  // Quick per-player marker counts per tile — used for Průzkumník progress.
+  function tilesCovered(playerId: string): number {
+    const tiles = new Set<number>();
+    state.board.forEach((c) => {
+      if (c.marker && c.marker.playerId === playerId) tiles.add(c.tileId);
+    });
+    return tiles.size;
+  }
+  function markerCount(playerId: string): number {
+    let n = 0;
+    state.board.forEach((c) => {
+      if (c.marker && c.marker.playerId === playerId) n++;
+    });
+    return n;
+  }
+  return (
+    <div className="panel">
+      <h3>🏅 Úkoly (formace)</h3>
+      <p style={{ fontSize: 11, color: 'var(--muted)', margin: '0 0 8px' }}>
+        Splníš formaci → odměna podle pořadí: 1.&nbsp;<strong>1k20</strong>, 2.&nbsp;<strong>1k12</strong>, 3.&nbsp;<strong>1k6</strong>.
+        Každý hráč jen 1× každou formaci.
+      </p>
+      {formations.map((f) => {
+        const claims = state.completedFormations.filter((c) => c.formation === f);
+        return (
+          <div key={f} style={{ borderTop: '1px solid #eee', padding: '6px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <strong>{FORMATION_LABEL[f]}</strong>
+              <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                {claims.length === 0
+                  ? 'nikdo'
+                  : `${claims.length}/${state.players.length}`}
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+              {FORMATION_DESC[f]}
+            </div>
+            {claims.length > 0 && (
+              <div style={{ fontSize: 11, marginTop: 3 }}>
+                Pořadí:{' '}
+                {claims.map((c, i) => {
+                  const pl = state.players.find((pp) => pp.id === c.playerId);
+                  const reward = FORMATION_REWARDS[Math.min(i, FORMATION_REWARDS.length - 1)];
+                  return (
+                    <span key={i} style={{ color: pl?.color, fontWeight: 600 }}>
+                      {i + 1}. {pl?.name} {reward ? `(1k${reward})` : '(∅)'}
+                      {i < claims.length - 1 ? ' · ' : ''}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {f === 'pruzkumnik' && (
+              <div style={{ fontSize: 11, marginTop: 2 }}>
+                {state.players.map((pl) => {
+                  const cov = tilesCovered(pl.id);
+                  return (
+                    <div key={pl.id} style={{ color: pl.color }}>
+                      {pl.name}: {cov}/6 dílků
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {f === 'primka5' && (
+              <div style={{ fontSize: 11, marginTop: 2 }}>
+                {state.players.map((pl) => (
+                  <div key={pl.id} style={{ color: pl.color }}>
+                    {pl.name}: {markerCount(pl.id)} značek (min 5 v linii)
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

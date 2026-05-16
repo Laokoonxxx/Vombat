@@ -1,7 +1,10 @@
 import type {
-  BoardCell, DiceLevel, GameConfig, GameState, Hex, PlayerState, SkillId, WoundType,
+  BoardCell, DiceLevel, FormationKind, GameConfig, GameState, Hex, PlayerState, SkillId, WoundType,
 } from './types';
-import { hexKey, hexEq, ALL_DICE_LEVELS, WOUND_TYPES } from './types';
+import {
+  hexKey, hexEq, ALL_DICE_LEVELS, WOUND_TYPES,
+  FORMATION_LABEL, FORMATION_REWARDS,
+} from './types';
 import { hexNeighbors } from './hex';
 import { generateMap } from './map';
 import type { RNG } from './rng';
@@ -88,6 +91,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
     log: ['Hra připravena. Každý hráč nyní zvolí startovní pole.'],
     winnerId: null,
     devilWounds,
+    completedFormations: [],
     pendingChoice: null,
   };
 }
@@ -128,6 +132,7 @@ function cloneState(state: GameState): GameState {
     players: newPlayers,
     log: [...state.log],
     devilWounds: newDevil,
+    completedFormations: [...(state.completedFormations ?? [])],
   };
 }
 
@@ -234,9 +239,20 @@ export function canAddDieToReserve(p: PlayerState): boolean {
 // For AI/no-kind: auto-places (Hand → Reserve → Pending).
 // Returns true when the caller should PAUSE (defer endTurn) because a
 // human choice is now pending.
-function addDieOrPending(s: GameState, p: PlayerState, lvl: DiceLevel, source: string): boolean {
+//
+// `breakdown` is an optional list of (label, value) pairs the modal renders
+// to show *why* the offered die has the size it does (e.g. Vyformuj kostku:
+// 🥕 mrkve + 🔗 sousední značky + 🥔 brambory).
+function addDieOrPending(
+  s: GameState,
+  p: PlayerState,
+  lvl: DiceLevel,
+  source: string,
+  breakdown?: import('./types').DieAcquisitionBreakdownLine[],
+  totalScore?: number,
+): boolean {
   if (p.kind === 'human') {
-    s.pendingChoice = { kind: 'pick_die_acquisition', offered: lvl, source };
+    s.pendingChoice = { kind: 'pick_die_acquisition', offered: lvl, source, breakdown, totalScore };
     return true;
   }
   // AI / fallback: auto-place
@@ -276,12 +292,183 @@ export function resolveDieAcquisition(
       `→ ${location === 'hand' ? 'Ruka' : location === 'reserve' ? 'Zásoba' : 'Čekající'}.`
   );
   s.pendingChoice = null;
+  // After a die is placed, check pending formations (a previously placed
+  // marker may have completed one whose reward was queued behind this
+  // acquisition). If that opens ANOTHER pick_die_acquisition, keep
+  // pendingPostAcquisition set so we still end the turn afterwards.
+  const paused = processPendingFormations(s, p.id);
+  if (paused) return s;
   // Continue with any deferred end-of-turn step
   if (s.pendingPostAcquisition === 'end_turn') {
     s.pendingPostAcquisition = null;
     endTurn(s);
   }
   return s;
+}
+
+// =============================================================================
+// FORMATIONS (úkoly) — detection + reward
+// =============================================================================
+// After each marker placement, call processPendingFormations(s, playerId).
+// For every formation kind the player has NOT yet claimed, check whether
+// their current marker set satisfies it. If yes, push to completedFormations
+// and award a die based on rank (1st=1k20, 2nd=1k12, 3rd=1k6, 4th+=∅).
+// Returns true if a human die-acquisition is now pending → caller should
+// defer endTurn via pendingPostAcquisition.
+
+const ALL_FORMATIONS: FormationKind[] = ['primka5', 'obkliceni', 'pruzkumnik'];
+
+function playerMarkerHexes(state: GameState, playerId: string): Hex[] {
+  const out: Hex[] = [];
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) out.push(c.hex);
+  });
+  return out;
+}
+
+// All hexes that hold ANY opponent's marker.
+function opponentMarkerHexSet(state: GameState, playerId: string): Set<string> {
+  const set = new Set<string>();
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId !== playerId) set.add(hexKey(c.hex));
+  });
+  return set;
+}
+
+// Přímka 5: 5+ player markers along one of 3 hex axes, consecutive (no gap),
+// with NO opponent marker adjacent to any hex in the run.
+function checkPrimka5(state: GameState, playerId: string): boolean {
+  const markerHexes = playerMarkerHexes(state, playerId);
+  if (markerHexes.length < 5) return false;
+  const markerSet = new Set(markerHexes.map((h) => hexKey(h)));
+  const oppAdj = opponentMarkerHexSet(state, playerId);
+  // Three axes in axial coords; we identify a hex's "line id" along each
+  // axis by the coordinate that's constant. Position along the line is the
+  // other (sortable) coordinate.
+  //   axis 'q': constant q, position = r        (column ↕)
+  //   axis 'r': constant r, position = q        (row ↔ ish)
+  //   axis 's': constant s=-q-r, position = q   (diagonal)
+  const axes: { keyFn: (h: Hex) => string; posFn: (h: Hex) => number }[] = [
+    { keyFn: (h) => `q=${h.q}`,            posFn: (h) => h.r },
+    { keyFn: (h) => `r=${h.r}`,            posFn: (h) => h.q },
+    { keyFn: (h) => `s=${-h.q - h.r}`,     posFn: (h) => h.q },
+  ];
+  for (const axis of axes) {
+    // Group by line key
+    const byLine = new Map<string, { hex: Hex; pos: number }[]>();
+    for (const h of markerHexes) {
+      const k = axis.keyFn(h);
+      if (!byLine.has(k)) byLine.set(k, []);
+      byLine.get(k)!.push({ hex: h, pos: axis.posFn(h) });
+    }
+    for (const positions of byLine.values()) {
+      if (positions.length < 5) continue;
+      positions.sort((a, b) => a.pos - b.pos);
+      // Slide a window: find any consecutive run of 5 with pos[i+4]-pos[i]===4
+      for (let i = 0; i + 4 < positions.length; i++) {
+        if (positions[i + 4].pos - positions[i].pos !== 4) continue;
+        // All 5 positions present? (no gaps)
+        let consecutive = true;
+        for (let j = 1; j < 5; j++) {
+          if (positions[i + j].pos !== positions[i].pos + j) { consecutive = false; break; }
+        }
+        if (!consecutive) continue;
+        // No opponent marker adjacent to any of these 5 hexes?
+        const run = positions.slice(i, i + 5);
+        let blocked = false;
+        for (const r of run) {
+          for (const nb of hexNeighbors(r.hex)) {
+            if (oppAdj.has(hexKey(nb))) { blocked = true; break; }
+          }
+          if (blocked) break;
+        }
+        if (!blocked) return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Obklíčení: any opponent marker has ≥ 4 adjacent hexes containing the
+// player's markers (a hex has up to 6 neighbors).
+function checkObkliceni(state: GameState, playerId: string): boolean {
+  const myMarkers = new Set(playerMarkerHexes(state, playerId).map((h) => hexKey(h)));
+  let found = false;
+  state.board.forEach((c) => {
+    if (found) return;
+    if (!c.marker || c.marker.playerId === playerId) return;
+    let count = 0;
+    for (const nb of hexNeighbors(c.hex)) {
+      if (myMarkers.has(hexKey(nb))) count++;
+    }
+    if (count >= 4) found = true;
+  });
+  return found;
+}
+
+// Průzkumník: player's markers cover ≥ 6 distinct tileIds.
+function checkPruzkumnik(state: GameState, playerId: string): boolean {
+  const tiles = new Set<number>();
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) tiles.add(c.tileId);
+  });
+  return tiles.size >= 6;
+}
+
+function isFormationCompleted(state: GameState, playerId: string, f: FormationKind): boolean {
+  switch (f) {
+    case 'primka5':    return checkPrimka5(state, playerId);
+    case 'obkliceni':  return checkObkliceni(state, playerId);
+    case 'pruzkumnik': return checkPruzkumnik(state, playerId);
+  }
+}
+
+// Detect formations the given player has newly completed and award dice.
+// Multiple formations completed in one placement are processed sequentially;
+// the FIRST one that triggers a human pick_die_acquisition pauses processing
+// (the rest are picked up after resolveDieAcquisition via this same fn).
+// Returns true if a pending choice is now active.
+function processPendingFormations(s: GameState, playerId: string): boolean {
+  const p = s.players.find((pp) => pp.id === playerId);
+  if (!p) return false;
+  for (const f of ALL_FORMATIONS) {
+    const alreadyDone = s.completedFormations.some(
+      (c) => c.playerId === playerId && c.formation === f
+    );
+    if (alreadyDone) continue;
+    if (!isFormationCompleted(s, playerId, f)) continue;
+    // Determine reward rank: how many players already completed THIS kind?
+    const rank = s.completedFormations.filter((c) => c.formation === f).length;
+    const reward = FORMATION_REWARDS[Math.min(rank, FORMATION_REWARDS.length - 1)];
+    s.completedFormations.push({ formation: f, playerId, turn: s.turnNumber });
+    const rankLabel = ['1.', '2.', '3.', '4.+'][Math.min(rank, 3)];
+    if (reward != null) {
+      logEntry(
+        s,
+        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) → odměna 1k${reward}.`
+      );
+      const paused = addDieOrPending(s, p, reward, `úkol ${FORMATION_LABEL[f]}`);
+      if (paused) return true;
+    } else {
+      logEntry(
+        s,
+        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) — bez odměny (pozdě).`
+      );
+    }
+  }
+  return false;
+}
+
+// Finalize an action that placed a marker: run formation detection, then
+// either pause for human die choice or call endTurn.
+function finishMarkerAction(s: GameState): void {
+  const p = currentPlayer(s);
+  const paused = processPendingFormations(s, p.id);
+  if (paused) {
+    s.pendingPostAcquisition = 'end_turn';
+    return;
+  }
+  endTurn(s);
 }
 
 // Move all pendingDice into Hand. Called whenever Kapacita is granted.
@@ -625,7 +812,7 @@ function useBed(state: GameState, hex: Hex): GameState {
   s.usedFieldThisTurn = true;
   logEntry(s, `${p.name} zasadil mrkev na Záhon (celkem ${p.carrotTrack}).`);
   // Optional defense step skipped in MVP UI flow.
-  endTurn(s);
+  finishMarkerAction(s);
   return s;
 }
 
@@ -675,7 +862,7 @@ function useTree(state: GameState, hex: Hex, action?: 'occupy' | 'occupy_and_lea
     s.pendingChoice = { kind: 'pick_skill', hex, source: 'tree' };
     return s;
   }
-  endTurn(s);
+  finishMarkerAction(s);
   return s;
 }
 
@@ -716,7 +903,7 @@ function useThorn(state: GameState, hex: Hex): GameState {
   if (paused) {
     s.pendingPostAcquisition = 'end_turn';
   } else {
-    endTurn(s);
+    finishMarkerAction(s);
   }
   return s;
 }
@@ -772,7 +959,7 @@ function dirtPlant(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
   logEntry(s, `${p.name} zasadil mrkev na Hlíně.`);
-  endTurn(s);
+  finishMarkerAction(s);
   return s;
 }
 
@@ -788,18 +975,26 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   p.markersPlaced.bobek += 1;
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
-  const breakdown = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
+  const breakdownStr = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
+  // Detailed breakdown for the human modal — keeps UI explanation explicit.
+  const breakdown: import('./types').DieAcquisitionBreakdownLine[] = [
+    { label: '🥕 Tvé mrkve (ukazatel)', value: p.carrotTrack },
+    { label: '🔗 Sousední pole se značkou', value: adj },
+    // Brambory: not yet wired into the action (UI doesn't ask). Shown as
+    // 0 so the modal explicitly tells the player that path exists.
+    { label: '🥔 Investované brambory', value: 0 },
+  ];
   let paused = false;
   if (dieLevel === null) {
-    logEntry(s, `${p.name} vyformoval kostku (${breakdown}) - nic nezískává.`);
+    logEntry(s, `${p.name} vyformoval kostku (${breakdownStr}) - nic nezískává.`);
   } else {
-    paused = addDieOrPending(s, p, dieLevel, 'Vyformování kostky');
-    logEntry(s, `${p.name} vyformoval kostku (${breakdown}) → 1k${dieLevel}!`);
+    paused = addDieOrPending(s, p, dieLevel, 'Vyformování kostky', breakdown, result);
+    logEntry(s, `${p.name} vyformoval kostku (${breakdownStr}) → 1k${dieLevel}!`);
   }
   if (paused) {
     s.pendingPostAcquisition = 'end_turn';
   } else {
-    endTurn(s);
+    finishMarkerAction(s);
   }
   return s;
 }
@@ -818,8 +1013,8 @@ function poopResult(score: number): DiceLevel | null {
 // --- LEARN SKILL ---
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
   kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Vombat má roztaženou kapsičku. Žádné limity na kostky (Ruka i Zásoba neomezené).' },
-  koupel:       { trees: 2, label: 'Lázně',              desc: 'Vombat se ochladí v poušti, zvládne písek. Můžeš využívat Poušť jako Hlínu (hod 7+).' },
-  klystyr:      { trees: 2, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. Při Spánku: neomezené přesouvání mezi Rukou a Zásobou.' },
+  koupel:       { trees: 1, label: 'Lázně',              desc: 'Vombat se ochladí v poušti, zvládne písek. Můžeš využívat Poušť jako Hlínu (hod 7+).' },
+  klystyr:      { trees: 1, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. Při Spánku: neomezené přesouvání mezi Rukou a Zásobou.' },
   masaz_strev:  { trees: 2, label: 'Žvýkání',            desc: 'Vombat žvýká důkladněji = větší výstup. Při Spánku: Upgrade 1 kostky o 1 lvl.' },
   ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Eukalyptus + bylinky = mocná medicína. Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
   sprint:       { trees: 2, label: 'Sprint',             desc: 'Vombat běží jak vítr. Po Pohybu rovnou Využij pole, na které jsi se přesunul.' },
@@ -863,7 +1058,7 @@ export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, 
   s.usedFieldThisTurn = true;
   s.pendingChoice = null;
   logEntry(s, `${p.name} se naučil "${req.label}"!`);
-  endTurn(s);
+  finishMarkerAction(s);
   return s;
 }
 
@@ -1024,6 +1219,22 @@ export function beginDevilCombat(state: GameState, rng?: RNG): GameState {
   p.fighting = true;
   s.phase = 'devil_combat';
   logEntry(s, `⚔️ ${p.name} bojuje s Čertem! Hod: [${p.lastRoll.join(', ')}]`);
+  // Instant win check: when the player ALREADY has all 4 wounds from prior
+  // turns and this opening roll sums to ≥25, no need to apply any wound or
+  // re-roll — the killing blow is delivered immediately. This avoids forcing
+  // the player to click "Hoď znovu" with dice that already sum to 25+.
+  if (allWoundsTaken(s, p.id)) {
+    const sum = p.lastRoll.reduce((a, b) => a + b, 0);
+    if (sum >= 25) {
+      s.winnerId = p.id;
+      s.phase = 'game_over';
+      p.fighting = false;
+      logEntry(
+        s,
+        `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Otevírací hod ${sum} (≥25) je smrtelná rána.`
+      );
+    }
+  }
   return s;
 }
 

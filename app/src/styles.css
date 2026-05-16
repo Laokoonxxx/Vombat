@@ -216,6 +216,7 @@ button.primary:hover:not(:disabled) { background: #a05e2e; }
 .hex-cell { cursor: default; transition: filter 120ms; }
 .hex-cell.clickable { cursor: pointer; }
 .hex-cell.clickable:hover { filter: brightness(1.1); }
+.hex-cell.actionable:hover { filter: brightness(1.15) drop-shadow(0 0 4px rgba(240, 168, 48, 0.6)); }
 .hex-cell.highlighted { stroke: #ffd95e; stroke-width: 3; }
 .hex-label {
   pointer-events: none;

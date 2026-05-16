@@ -114,6 +114,36 @@ export type Phase =
   | 'devil_combat'      // mid-combat hitting wounds
   | 'game_over';
 
+// =============================================================================
+// FORMATIONS (úkoly)
+// =============================================================================
+// Players pursue 3 spatial objectives on the side. Each formation kind awards
+// dice based on completion order (1st = 1k20, 2nd = 1k12, 3rd = 1k6, 4th+ = ∅).
+// Each player can claim a given formation kind only once.
+
+export type FormationKind = 'primka5' | 'obkliceni' | 'pruzkumnik';
+
+export const FORMATION_LABEL: Record<FormationKind, string> = {
+  primka5:    'Přímka 5',
+  obkliceni:  'Obklíčení',
+  pruzkumnik: 'Průzkumník',
+};
+
+export const FORMATION_DESC: Record<FormationKind, string> = {
+  primka5:    '5+ tvých značek v rovné hex-linii. Žádná značka soupeře sousedící s těmito hexy.',
+  obkliceni:  '4+ tvých značek kolem značky soupeře.',
+  pruzkumnik: 'Tvé značky na 6+ různých dílcích mapy.',
+};
+
+// Reward by completion rank (1st, 2nd, 3rd, 4th+).
+export const FORMATION_REWARDS: (DiceLevel | null)[] = [20, 12, 6, null];
+
+export interface FormationCompletion {
+  formation: FormationKind;
+  playerId: string;
+  turn: number; // turnNumber when claimed
+}
+
 export interface GameState {
   config: GameConfig;
   board: Map<string, BoardCell>; // key = hexKey
@@ -124,6 +154,9 @@ export interface GameState {
   log: string[];
   winnerId: string | null;
   devilWounds: DevilWounds;
+  // Formation tracking. Order of entries = order of completion. Used both to
+  // determine reward rank and to render the sidebar progress panel.
+  completedFormations: FormationCompletion[];
   // Transient UI/turn state
   pendingAttack?: { playerId: string; from: 'cat' | 'devil' }; // need to surrender potato/die
   pendingChoice?: PendingChoice | null;
@@ -135,6 +168,13 @@ export interface GameState {
   fightingDevil?: { playerId: string; deviceHex: Hex } | null;
 }
 
+// Detailed line in a die-acquisition modal explaining how the offered die
+// size was reached (e.g. for Vyformuj kostku: carrots + neighbors + potatoes).
+export interface DieAcquisitionBreakdownLine {
+  label: string;
+  value: number;
+}
+
 export type PendingChoice =
   | { kind: 'attack_surrender'; playerId: string; from: 'cat' | 'devil' }
   | { kind: 'pick_dice_for_action'; hex: Hex; reason: string }
@@ -142,6 +182,6 @@ export type PendingChoice =
   | { kind: 'select_dirt_action'; hex: Hex }
   | { kind: 'select_tree_action'; hex: Hex }
   | { kind: 'shop_choose_die'; hex: Hex; maxLevel: DiceLevel } // after Kakej success
-  | { kind: 'pick_die_acquisition'; offered: DiceLevel; source: string }
+  | { kind: 'pick_die_acquisition'; offered: DiceLevel; source: string; breakdown?: DieAcquisitionBreakdownLine[]; totalScore?: number }
   | { kind: 'sleep_options' }
   | { kind: 'defend_with_die'; hex: Hex; fieldKind: 'zahon' | 'tree' };
