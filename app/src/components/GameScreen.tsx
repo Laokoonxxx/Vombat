@@ -29,7 +29,7 @@ function eventIcon(entry: string): string {
   if (entry.includes('se naučil')) return '🧠';
   if (entry.includes('získal 1k') && entry.includes('Houští')) return '🌵';
   if (entry.includes('zasadil mrkev')) return '🥕';
-  if (entry.includes('Kakej')) return '💩';
+  if (entry.includes('vyformoval kostku')) return '💩';
   if (entry.includes('obsadil Eukalyptový')) return '🌳';
   if (entry.includes('teleportoval')) return '🌀';
   if (entry.includes('uvolnil čekající')) return '🔓';
@@ -567,7 +567,7 @@ function DirtActionModal({ state, setState }: { state: GameState; setState: (s: 
             🥕 Zasaď mrkev
           </button>
           <button onClick={() => setState(useField(state, pc.hex, { dirtAction: 'poop' }))}>
-            💩 Kakej (získej kostku)
+            💩 Vyformuj kostku
           </button>
           <button onClick={() => setState(useField(state, pc.hex, { dirtAction: 'learn' }))}>
             🧠 Uč se dovednost

@@ -1,6 +1,8 @@
-# Vombat — pravidla hry (digitální verze)
+# Vombat & Co. — Inženýři krychlí
 
-Tahová desková hra pro 2–4 hráče. Tento dokument je úplné znění pravidel pro digitální adaptaci. Zahrnuje původní pravidla z `Pravidla hry.docx` doplněná o rozhodnutí učiněná při návrhu digitální verze.
+*Pravidla digitální verze*
+
+Tahová desková hra pro 2–4 hráče. Vombati žvýkají eukalyptus, vyformovávají kostkové bobky (skutečná biologie!) a chystají se rozmačkat Tasmánského Čerta. Tento dokument je úplné znění pravidel pro digitální adaptaci. Zahrnuje původní pravidla z `Pravidla hry.docx` doplněná o rozhodnutí učiněná při návrhu digitální verze.
 
 > **MVP poznámka:** Aktuální digitální verze podporuje pouze **2 hráče** lokálně (hot-seat) a pouze jeden vítězný cíl **Rozmačkej Tasmánského Čerta**. Pravidla pro 3–4 hráče a ostatní cíle jsou v dokumentu zachována pro pozdější rozšíření.
 
@@ -83,7 +85,7 @@ Pohyb skrz tunel viz § 5.
 | 1k12 | 12 🥔 |
 | 2. Vombat (na stejné pole jako 1.) | 5 🥔 |
 
-> 1k20 nelze koupit. Lze ji pouze získat (rozmačkání Kočky, kakej s vysokým skóre, Ajurvédská Medicína).
+> 1k20 nelze koupit. Lze ji pouze získat (rozmačkání Kočky, Vyformovat s vysokým skóre, Bylinkový elixír).
 
 ---
 
@@ -172,12 +174,12 @@ Hráč vybere jednu z následujících akcí:
 Polož na Hlínu svůj žeton **Mrkve**. Posuň svůj ukazatel Mrkve na společné desce o 1 pole.
 > Pozor: Pokud později soupeř využije tuto Hlínu, může tvoji Mrkev odstranit a využít Hlínu pro jinou akci. Tvůj ukazatel Mrkve se mu sníží o 1. Vlastní Mrkev odstranit nemůžeš.
 
-#### Kakej 💩
-Polož na Hlínu svůj žeton **Bobku**. Získej kostku, jejíž maximální hodnotu určuje vzorec:
+#### Vyformuj kostku 💩
+Vombat má kostkové fekálie (skutečná biologie!). Polož na Hlínu svůj **žeton** a vyformuj kostku, jejíž maximální hodnotu určuje vzorec:
 ```
 score = počet polí Mrkve (tvůj ukazatel)
       + počet brambor, které do akce investuješ (odhodíš)
-      + počet polí sousedících s touto Hlínou, jež jsou obsazeny Bobkem nebo Mrkví (libovolného hráče)
+      + počet polí sousedících s touto Hlínou, jež jsou obsazeny značkou (libovolného hráče)
 ```
 
 | score | Zisk |
@@ -203,7 +205,7 @@ Každou dovednost lze naučit pouze 1×.
 ---
 
 ### 6.2. Záhon 🌱 (šedá, aktivace 4–6)
-Záhony slouží jako "katalyzátor" pro Hlínu (zvyšují skóre Kakej). Jediná akce:
+Záhony slouží jako "katalyzátor" pro Hlínu (zvyšují skóre Vyformování). Jediná akce:
 
 #### Zasaď 🥕
 Polož na Záhon žeton Mrkve. Ukazatel Mrkve +1.
@@ -257,7 +259,7 @@ Aktivační rozsah pro **pohyb** přes Houští (pokud na poli žádná kostka n
 ---
 
 ### 6.5. Poušť 🏜️ (písková, aktivace 7+)
-Poušť **nelze využít**, dokud nezískáš dovednost **Koupel** (§ 6.7). Po jejím získání ji můžeš využít stejně jako Hlínu (Zasaď / Kakej / Uč se / Vrtej), s tím rozdílem, že stále potřebuješ hod 7+.
+Poušť **nelze využít**, dokud nezískáš dovednost **Lázně** (§ 6.7). Po jejím získání ji můžeš využít stejně jako Hlínu (Zasaď / Vyformuj / Uč se), s tím rozdílem, že stále potřebuješ hod 7+.
 
 ---
 
@@ -287,9 +289,9 @@ Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušt
 Každé pole lze využít **pouze 1× za hru**, s těmito výjimkami:
 
 - **Záhon** a **Eukalyptus** — lze přebrat soupeři (viz Převzetí).
-- **Hlína** s Mrkví soupeře — soupeř ji může odstranit a využít Hlínu pro jinou akci (Kakej, Uč se, Vrtej).
+- **Hlína** s Mrkví soupeře — soupeř ji může odstranit a využít Hlínu pro jinou akci (Vyformuj kostku, Uč se).
 
-Když je pole označeno Bobkem (Kakej, Uč se, Vrtej), je trvale obsazeno a nelze ho znovu využít.
+Když je pole označeno značkou (Vyformuj kostku, Uč se), je trvale obsazeno a nelze ho znovu využít.
 
 ---
 
@@ -331,7 +333,7 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
 ### Brambora jako prostředek
 Bramboru lze použít na:
 - Odvrácení útoku Kočky / Čerta (1 brambora).
-- Investice do Kakej (každá brambora +1 ke skóre).
+- Investice do Vyformování (každá brambora +1 ke skóre).
 - Upgrade kostky (3 brambory = +1 lvl).
 - Náhrada Eukalyptu při Uč se (3 brambory = 1 strom).
 
@@ -403,7 +405,7 @@ Bobky a Mrkve jsou pro vyhodnocení formace ekvivalentní. Postava Vombata se do
 - **Zásoba** — max 3 kostky. Limit zruší **Kapacita**.
 
 ### Overflow přes Kapacitu (📥 Čekající kostky)
-Když hráč získá kostku během hry (Houští, Kakej, rozmačkaná Kočka), kostka se vždy někam vejde:
+Když hráč získá kostku během hry (Houští, Vyformuj kostku, rozmačkaná Kočka), kostka se vždy někam vejde:
 1. **Pokud se vejde do Ruky** (respektuje limit) → jde do Ruky.
 2. **Jinak pokud se vejde do Zásoby** (respektuje limit) → jde do Zásoby.
 3. **Jinak putuje do "📥 Čekající"** zóny — kostku jsi získal, ale je dočasně zamknutá. Nelze ji použít pro hod ani jako obrana.
@@ -475,7 +477,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 Tyto věci jsou v aktuální digitální verzi zjednodušené:
 
 1. **Obrana kostkou** na Záhonu/Eukalyptu — takeover lze provést bez ověření vyšší kostky.
-2. **Investice brambor do Kakej** — UI dialog zatím nenabízí; počítá se jen carrotTrack + sousední markery.
+2. **Investice brambor do Vyformování** — UI dialog zatím nenabízí; počítá se jen carrotTrack + sousední markery.
 3. **Úkoly (formace)** — celá sekce neimplementována.
 4. **3–4 hráči** — neimplementováno (vyžaduje další šablony a layout 10/13 dílků).
 5. **Vítězné cíle 2 a 3** — neimplementováno.

@@ -49,10 +49,10 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
   const parts: string[] = [TYPE_NAME[c.type]];
   switch (c.type) {
     case 'dirt':
-      parts.push('Aktivace 2-4. Akce: Zasaď / Kakej / Uč se / Vrtej.');
+      parts.push('Aktivace 2-4. Akce: Zasaď mrkev / Vyformuj kostku / Uč se.');
       break;
     case 'bed':
-      parts.push('Aktivace 4-6. Akce: Zasaď mrkev (zvyšuje skóre Kakej).');
+      parts.push('Aktivace 4-6. Akce: Zasaď mrkev (zvyšuje skóre Vyformování).');
       break;
     case 'desert':
       parts.push('Aktivace 7+. Akce jako Hlína - vyžaduje dovednost Koupel.');

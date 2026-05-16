@@ -95,7 +95,7 @@ const ACTION_LABELS: Record<string, string> = {
   sleep_buy_skill: '🛒 Koupit dovednost',
   sleep_skip: '💤 Skip tah',
   use_dirt_plant: '🥕 Hlína: Zasaď',
-  use_dirt_kakej: '💩 Hlína: Kakej',
+  use_dirt_kakej: '💩 Hlína: Vyformuj kostku',
   use_dirt_learn: '🧠 Hlína: Uč se',
   use_bed: '🌱 Záhon',
   use_tree: '🌳 Eukalyptus',
@@ -832,7 +832,7 @@ function AIRules() {
             <li>Posbírat <strong>volné kostky</strong> z Houští 🌵 (k4/k6/k8 zdarma)</li>
             <li>Obsadit <strong>Eukalypty</strong> 🌳 pro stromový kapitál</li>
             <li>Naučit <strong>Kapacitu</strong> 🧠 nejdřív (1 strom)</li>
-            <li>Plantovat mrkve na Hlíně/Záhonu pro <strong>Kakej</strong> ramp</li>
+            <li>Plantovat mrkve na Hlíně/Záhonu pro <strong>Vyformuj kostku</strong> ramp</li>
             <li>Smashovat <strong>Kočky</strong> 🐱 (11-14 = 1k20 + tunel + auto-Koupel)</li>
             <li>Jakmile má 6+ kostek s k10+ a je u Čerta → <strong>bojovat</strong></li>
           </ol>
@@ -884,7 +884,7 @@ function AIRules() {
               <li><strong>🟫 Hlína:</strong> max ze tří voleb:
                 <ul style={{ margin: 0, paddingLeft: 16 }}>
                   <li>Uč se → <code>16</code> pokud má na nějakou dovednost</li>
-                  <li>Kakej: ≥6 raw → 16 (k12+), ≥4 → 13 (k8/10), ≥2 → 8 (k4), &lt;2 → 0</li>
+                  <li>Vyformuj kostku: ≥6 raw → 16 (k12+), ≥4 → 13 (k8/10), ≥2 → 8 (k4), &lt;2 → 0</li>
                   <li>Plant → <code>8</code> pokud carrot &lt; 4 (early ramp na Hlíně)</li>
                 </ul>
               </li>
@@ -910,9 +910,9 @@ function AIRules() {
           <h4 style={{ margin: '12px 0 4px' }}>🟫 Volba akce na Hlíně</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Pokud má dost stromů/brambor na nějakou dovednost → <strong>Uč se</strong></li>
-            <li>Pokud carrotTrack + sousední markery ≥ 2 → <strong>Kakej</strong> (= alespoň k4)</li>
+            <li>Pokud carrotTrack + sousední markery ≥ 2 → <strong>Vyformuj</strong> (= alespoň k4)</li>
             <li>Pokud carrotTrack &lt; 4 → <strong>Plant</strong> (carrot ramp)</li>
-            <li>Jinak → Kakej fallback</li>
+            <li>Jinak → Vyformuj fallback</li>
           </ol>
 
           <h4 style={{ margin: '12px 0 4px' }}>🧠 Pořadí dovedností pro učení</h4>
@@ -1040,7 +1040,7 @@ function AIRules() {
               Monte Carlo přes více vzorků by zlepšilo robustnost vůči pechu na kostkách.
             </li>
             <li>
-              <strong>Nevyužívá brambory pro Kakej</strong> investice (engine to neumožňuje skrz UI).
+              <strong>Nevyužívá brambory pro Vyformuj kostku</strong> investice (engine to neumožňuje skrz UI).
             </li>
             <li>
               <strong>Nepoužívá Teleport</strong> (Sleep akce). Mohl by se rychle dostat k Čertovi.

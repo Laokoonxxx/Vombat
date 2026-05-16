@@ -748,7 +748,7 @@ function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'
       cell.marker = undefined;
       logEntry(s, `${p.name} odstranil mrkev ${opp.name} z Hlíny.`);
     } else if (cell.marker.kind === 'bobek') {
-      // Bobek = pole je trvale obsazeno (akce Kakej, Uč se, Vrtej). Nelze přebrat.
+      // Značka = pole trvale obsazeno (Vyformovat, Uč se). Nelze přebrat.
       logEntry(s, `Pole je obsazeno bobkem - nelze využít.`);
       s.pendingChoice = null;
       return state;
@@ -791,10 +791,10 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   const breakdown = `🥕${p.carrotTrack} + sousedi ${adj} = ${result}`;
   let paused = false;
   if (dieLevel === null) {
-    logEntry(s, `${p.name} provedl Kakej (${breakdown}) - nic nezískává.`);
+    logEntry(s, `${p.name} vyformoval kostku (${breakdown}) - nic nezískává.`);
   } else {
-    paused = addDieOrPending(s, p, dieLevel, 'Kakej');
-    logEntry(s, `${p.name} provedl Kakej (${breakdown}) - získává 1k${dieLevel}!`);
+    paused = addDieOrPending(s, p, dieLevel, 'Vyformování kostky');
+    logEntry(s, `${p.name} vyformoval kostku (${breakdown}) → 1k${dieLevel}!`);
   }
   if (paused) {
     s.pendingPostAcquisition = 'end_turn';
@@ -817,12 +817,12 @@ function poopResult(score: number): DiceLevel | null {
 
 // --- LEARN SKILL ---
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
-  kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Ruší oba limity: "max 2 stejného lvl" v Ruce i "max 3" v Zásobě.' },
-  koupel:       { trees: 2, label: 'Lázně',              desc: 'Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+).' },
-  klystyr:      { trees: 2, label: 'Pročištění',         desc: 'Při Spánku: neomezené výměny Ruka↔Zásoba (bez limitu počtu).' },
-  masaz_strev:  { trees: 2, label: 'Břišní masáž',       desc: 'Při Spánku: Upgrade 1 kostky o 1 lvl.' },
-  ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
-  sprint:       { trees: 2, label: 'Sprint',             desc: 'Pohyb + Využití Pole v jednom tahu (stejné pole).' },
+  kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Vombat má roztaženou kapsičku. Žádné limity na kostky (Ruka i Zásoba neomezené).' },
+  koupel:       { trees: 2, label: 'Lázně',              desc: 'Vombat se ochladí v poušti, zvládne písek. Můžeš využívat Poušť jako Hlínu (hod 7+).' },
+  klystyr:      { trees: 2, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. Při Spánku: neomezené přesouvání mezi Rukou a Zásobou.' },
+  masaz_strev:  { trees: 2, label: 'Žvýkání',            desc: 'Vombat žvýká důkladněji = větší výstup. Při Spánku: Upgrade 1 kostky o 1 lvl.' },
+  ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Eukalyptus + bylinky = mocná medicína. Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
+  sprint:       { trees: 2, label: 'Sprint',             desc: 'Vombat běží jak vítr. Po Pohybu rovnou Využij pole, na které jsi se přesunul.' },
 };
 
 export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, potatoesUsed: number, diceUsed: DiceLevel[]): GameState {

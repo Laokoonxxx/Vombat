@@ -46,10 +46,14 @@ export function App() {
     const meta = getSaveMeta();
     return (
       <div className="setup-screen">
-        <h1>🐾 Vombat</h1>
+        <h1 style={{ marginBottom: 0 }}>🐾 Vombat & Co.</h1>
+        <p style={{ marginTop: 2, fontStyle: 'italic', color: 'var(--muted)' }}>
+          Inženýři krychlí
+        </p>
         <p>
-          Vítej v digitální verzi deskové hry Vombat. MVP podporuje 2 hráče a cíl{' '}
-          <strong>Rozmačkej Tasmánského Čerta</strong>.
+          Tahová desková hra pro 2 hráče. Vombati žvýkají eukalyptus, vyformovávají
+          kostkové bobky a chystají se rozmačkat Tasmánského Čerta. Vyhrává ten,
+          kdo to dotáhne první.
         </p>
         {meta && (
           <p style={{ fontSize: 12, color: 'var(--muted)' }}>

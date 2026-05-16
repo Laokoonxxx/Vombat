@@ -79,14 +79,14 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
                 <td style={{ padding: '4px 6px' }}>🟫 <strong>Hlína</strong></td>
                 <td style={{ padding: '4px 6px' }}><code>2–4</code></td>
                 <td style={{ padding: '4px 6px' }}>
-                  <strong>Zasaď</strong> mrkev · <strong>Kakej</strong> (získej kostku, viz níže) ·
+                  <strong>Zasaď</strong> mrkev · <strong>Vyformuj kostku</strong> (získej kostku, viz níže) ·
                   <strong> Uč se</strong> dovednost
                 </td>
               </tr>
               <tr style={{ borderTop: '1px solid #eee' }}>
                 <td style={{ padding: '4px 6px' }}>🌱 <strong>Záhon</strong></td>
                 <td style={{ padding: '4px 6px' }}><code>4–6</code></td>
-                <td style={{ padding: '4px 6px' }}>Zasaď mrkev (zvyšuje skóre Kakej)</td>
+                <td style={{ padding: '4px 6px' }}>Zasaď mrkev (zvyšuje skóre Vyformuj kostku)</td>
               </tr>
               <tr style={{ borderTop: '1px solid #eee' }}>
                 <td style={{ padding: '4px 6px' }}>🌳 <strong>Eukalyptus</strong></td>
@@ -138,7 +138,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           </p>
         </Section>
 
-        <Section title="💩 Kakej formule (jak získat velkou kostku)">
+        <Section title="💩 Vyformuj kostku formule (jak získat velkou kostku)">
           <p style={{ margin: '0 0 6px' }}>
             Na Hlíně: spočítej <code>tvé mrkve + sousední obsazená pole + investované brambory</code>:
           </p>
@@ -199,7 +199,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
         <Section title="💡 Strategie pro nováčky">
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>První tahy: <strong>plant mrkve</strong> na Záhonu/Hlíně (carrot ramp)</li>
-            <li>S 3+ mrkvemi: <strong>Kakej</strong> na Hlíně s sousedy = velké kostky</li>
+            <li>S 3+ mrkvemi: <strong>Vyformuj kostku</strong> na Hlíně s sousedy = velké kostky</li>
             <li>Zabij sousední Kočku (hod 11–14) = <strong>1k20</strong> + Koupel zdarma</li>
             <li>S 5+ kostkama včetně k10/k12/k20 → najdi Čerta a útoč</li>
           </ol>

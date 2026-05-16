@@ -21,14 +21,14 @@ const LEGEND: LegendRow[] = [
     name: 'Hlína',
     color: 'var(--hex-dirt)',
     activation: '2–4',
-    description: 'Zasaď mrkev / Kakej (získej kostku) / Uč se dovednost / Vrtej',
+    description: 'Zasaď mrkev / Vyformuj kostku / Uč se dovednost',
   },
   {
     emoji: '🌱',
     name: 'Záhon',
     color: 'var(--hex-bed)',
     activation: '4–6',
-    description: 'Zasaď mrkev (zvyšuje skóre Kakej). Soupeř může přebrat.',
+    description: 'Zasaď mrkev (zvyšuje skóre Vyformování). Soupeř může přebrat.',
   },
   {
     emoji: '🏜️',
@@ -76,7 +76,7 @@ const LEGEND: LegendRow[] = [
 
 const ICON_LEGEND = [
   { icon: '🐾', desc: 'Vombat (figurka hráče)' },
-  { icon: '💩', desc: 'Bobek — žeton hráče po akci (Kakej, Obsaď, Uč se…)' },
+  { icon: '💩', desc: 'Značka — žeton hráče po akci (Vyformuj, Obsaď, Uč se…)' },
   { icon: '🥕', desc: 'Mrkev — žeton hráče po akci Zasaď' },
   { icon: '🥔', desc: 'Brambora — měna a obrana proti útoku' },
   { icon: 'kX', desc: 'Kostka (k2/k4/k6/k8/k10/k12/k20)' },
