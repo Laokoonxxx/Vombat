@@ -103,10 +103,15 @@ const ACTION_LABELS: Record<string, string> = {
   win: '🏆 Výhra',
 };
 
+type GameFilter = 'all' | 'decisive' | 'stalled';
+type GameSort = 'order' | 'turns_asc' | 'turns_desc' | 'wounds_desc' | 'cats_desc';
+
 export function StatsViewer({ onClose }: { onClose: () => void }) {
   const [data, setData] = useState<SimData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedGameIdx, setExpandedGameIdx] = useState<number | null>(null);
+  const [filter, setFilter] = useState<GameFilter>('all');
+  const [sort, setSort] = useState<GameSort>('order');
 
   useEffect(() => {
     fetch('/sim/latest.json')
@@ -137,7 +142,18 @@ export function StatsViewer({ onClose }: { onClose: () => void }) {
     );
   }
 
-  return <StatsContent data={data} onClose={onClose} expandedGameIdx={expandedGameIdx} setExpandedGameIdx={setExpandedGameIdx} />;
+  return (
+    <StatsContent
+      data={data}
+      onClose={onClose}
+      expandedGameIdx={expandedGameIdx}
+      setExpandedGameIdx={setExpandedGameIdx}
+      filter={filter}
+      setFilter={setFilter}
+      sort={sort}
+      setSort={setSort}
+    />
+  );
 }
 
 function StatsContent({
@@ -145,11 +161,19 @@ function StatsContent({
   onClose,
   expandedGameIdx,
   setExpandedGameIdx,
+  filter,
+  setFilter,
+  sort,
+  setSort,
 }: {
   data: SimData;
   onClose: () => void;
   expandedGameIdx: number | null;
   setExpandedGameIdx: (i: number | null) => void;
+  filter: GameFilter;
+  setFilter: (f: GameFilter) => void;
+  sort: GameSort;
+  setSort: (s: GameSort) => void;
 }) {
   // ---- Aggregate computations ----
   const decisive = useMemo(() => data.results.filter((r) => r.winnerName != null), [data]);
@@ -217,6 +241,41 @@ function StatsContent({
 
   const sortedActions = useMemo(() => Object.entries(aggActions.counts).sort((a, b) => b[1] - a[1]), [aggActions]);
 
+  // Top 5 fastest wins (across decisive games)
+  const top5Fastest = useMemo(() => {
+    return decisive
+      .map((g, idx) => ({ g, originalIdx: data.results.indexOf(g) }))
+      .sort((a, b) => a.g.totalTurns - b.g.totalTurns)
+      .slice(0, 5);
+  }, [decisive, data.results]);
+
+  // Sorted + filtered game list for per-game section
+  const visibleGames = useMemo(() => {
+    let items = data.results.map((g, originalIdx) => ({ g, originalIdx }));
+    if (filter === 'decisive') items = items.filter((x) => x.g.winnerName != null);
+    else if (filter === 'stalled') items = items.filter((x) => x.g.winnerName == null);
+    switch (sort) {
+      case 'turns_asc':
+        // Sort ascending by turns; stalled (== maxTurns) go to bottom
+        items = items.sort((a, b) => {
+          const aT = a.g.winnerName ? a.g.totalTurns : Number.MAX_SAFE_INTEGER;
+          const bT = b.g.winnerName ? b.g.totalTurns : Number.MAX_SAFE_INTEGER;
+          return aT - bT;
+        });
+        break;
+      case 'turns_desc':
+        items = items.sort((a, b) => b.g.totalTurns - a.g.totalTurns);
+        break;
+      case 'wounds_desc':
+        items = items.sort((a, b) => b.g.woundsTimeline.length - a.g.woundsTimeline.length);
+        break;
+      case 'cats_desc':
+        items = items.sort((a, b) => b.g.catSmashes.length - a.g.catSmashes.length);
+        break;
+    }
+    return items;
+  }, [data.results, filter, sort]);
+
   return (
     <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -239,6 +298,53 @@ function StatsContent({
           <Card label="Průměr finálních hodnot" value={`✋ ${finalAvg.hand.toFixed(1)} 📦 ${finalAvg.reserve.toFixed(1)}`} hint={`🥔 ${finalAvg.potatoes.toFixed(1)} · 🧠 ${finalAvg.skills.toFixed(1)} · 🎲 max ${finalAvg.maxDie.toFixed(1)}`} />
         )}
       </div>
+
+      {/* Top fastest wins */}
+      {top5Fastest.length > 0 && (
+        <Section title={`🏆 Top ${top5Fastest.length} nejrychlejších výher`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {top5Fastest.map((entry, rank) => {
+              const g = entry.g;
+              const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
+              return (
+                <button
+                  key={entry.originalIdx}
+                  onClick={() => {
+                    setExpandedGameIdx(entry.originalIdx);
+                    // Scroll to per-game section
+                    setTimeout(() => {
+                      document.getElementById(`game-${entry.originalIdx}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }}
+                  className="panel"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '48px 1fr auto auto auto auto',
+                    gap: 12,
+                    alignItems: 'center',
+                    padding: 10,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: rank < 3 ? '#fff5e0' : undefined,
+                  }}
+                  title="Klikni pro detail"
+                >
+                  <span style={{ fontSize: 20, textAlign: 'center' }}>{medal}</span>
+                  <span style={{ fontWeight: 600 }}>
+                    Hra {entry.originalIdx + 1} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(seed {g.seed})</span>
+                  </span>
+                  <span style={{ color: '#2d4f1a', fontWeight: 600 }}>🏆 {g.winnerName}</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>{g.totalTurns} tahů</span>
+                  <span style={{ color: 'var(--muted)' }} title="Skills učeno · Kočky · Zranění">
+                    🧠 {g.skillsTimeline.length} · 🐱 {g.catSmashes.length} · 💥 {g.woundsTimeline.length}
+                  </span>
+                  <span style={{ color: 'var(--muted)', fontSize: 18 }}>▸</span>
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       {/* Action bar chart */}
       <Section title="Akce (počty napříč všemi hrami)">
@@ -280,16 +386,51 @@ function StatsContent({
       </Section>
 
       {/* Per-game list */}
-      <Section title={`Detail jednotlivých her (${data.results.length})`}>
+      <Section title={`Detail jednotlivých her (${visibleGames.length} z ${data.results.length})`}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12, alignItems: 'center', fontSize: 12 }}>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <span style={{ color: 'var(--muted)' }}>Filtr:</span>
+            {(['all', 'decisive', 'stalled'] as GameFilter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={filter === f ? 'primary' : ''}
+                style={{ padding: '3px 10px', fontSize: 12 }}
+              >
+                {f === 'all' ? 'Vše' : f === 'decisive' ? '🏆 Rozhodnuté' : '⏱ Nedohrané'}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <span style={{ color: 'var(--muted)' }}>Řazení:</span>
+            {([
+              ['order', 'Pořadí'],
+              ['turns_asc', 'Tahy ↑'],
+              ['turns_desc', 'Tahy ↓'],
+              ['wounds_desc', 'Zranění ↓'],
+              ['cats_desc', 'Kočky ↓'],
+            ] as [GameSort, string][]).map(([s, label]) => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                className={sort === s ? 'primary' : ''}
+                style={{ padding: '3px 10px', fontSize: 12 }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {data.results.map((g, idx) => (
-            <GameRow
-              key={idx}
-              game={g}
-              idx={idx}
-              expanded={expandedGameIdx === idx}
-              onToggle={() => setExpandedGameIdx(expandedGameIdx === idx ? null : idx)}
-            />
+          {visibleGames.map(({ g, originalIdx }) => (
+            <div key={originalIdx} id={`game-${originalIdx}`}>
+              <GameRow
+                game={g}
+                idx={originalIdx}
+                expanded={expandedGameIdx === originalIdx}
+                onToggle={() => setExpandedGameIdx(expandedGameIdx === originalIdx ? null : originalIdx)}
+              />
+            </div>
           ))}
         </div>
       </Section>
