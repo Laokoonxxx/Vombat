@@ -56,7 +56,7 @@ const LEGEND: LegendRow[] = [
     name: 'Kočka',
     color: 'var(--hex-cat)',
     activation: '11–14',
-    description: 'Rozmačkání → získej 1k20, pole se mění na tunel. Útok při hodu <5 v sousedství.',
+    description: 'Rozmačkání → získej 1k8, pole se mění na tunel. Útok při hodu <5 v sousedství.',
   },
   {
     emoji: '👹',

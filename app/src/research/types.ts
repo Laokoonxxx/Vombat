@@ -28,9 +28,10 @@ export type ActionCategory =
   | 'sleep_potato'       // 💤 Získej bramboru
   | 'sleep_buy_skill'    // 💤🛒 Koupil dovednost
   | 'sleep_teleport'     // 💤🌀 Teleport
-  | 'sleep_swap'         // 💤🔄 Výměna
+  | 'sleep_swap'         // 💤🔄 Výměna (ve Spánku)
   | 'sleep_upgrade'      // 💤⬆️ Upgrade kostky
   | 'sleep_skip'         // 💤✖️ Skip
+  | 'pre_roll_swap'      // 🔄 Třídění před hodem
   | 'attack_lost'        // 💔 Zaplatil za útok (kočka/čert)
   | 'other';
 

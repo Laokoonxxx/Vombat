@@ -36,6 +36,10 @@ const OPENING_LENGTH = 6; // how many initial actions we record per player
 // specific patterns first.
 
 function classify(entry: string): ActionCategory | null {
+  // Pre-roll swap (Třídění): logged with "(Třídění)" suffix — match BEFORE
+  // sleep swap so we don't conflate the two distinct mechanics.
+  if (entry.includes('(Třídění)')) return 'pre_roll_swap';
+
   // Sleep variants — keep above generic "spí" patterns
   if (entry.includes('teleportoval Vombata')) return 'sleep_teleport';
   if (entry.includes('koupil dovednost')) return 'sleep_buy_skill';

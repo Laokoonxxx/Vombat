@@ -85,7 +85,7 @@ Pohyb skrz tunel viz § 5.
 | 1k12 | 12 🥔 |
 | 2. Vombat (na stejné pole jako 1.) | 5 🥔 |
 
-> 1k20 nelze koupit. Lze ji pouze získat (rozmačkání Kočky, Vyformovat s vysokým skóre, Bylinkový elixír).
+> 1k20 nelze koupit. Lze ji pouze získat (Vyformovat s vysokým skóre, Bylinkový elixír, 1. místo ve formaci).
 
 ---
 
@@ -109,10 +109,11 @@ Pokud Vombat hráče **nestojí na** ani **nesousedí s** černým polem (Čerte
 Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** rozhodnout, že bude bojovat s Čertem (viz § 9).
 
 ### Standardní tah
-1. Hoď všemi kostkami v Ruce.
-2. Sečti hodnoty všech kostek.
-3. **Zkontroluj Kočku** — pokud Vombat sousedí s živou Kočkou a součet hodu je nižší než 5, musíš odevzdat 🥔 bramboru nebo 1 kostku (viz § 7).
-4. Vyber jednu z akcí:
+1. **(Pouze s Tříděním)** Můžeš až 3× zdarma přesunout kostku Ruka ↔ Zásoba — naladíš si tvar Ruky podle příležitostí, které vidíš.
+2. Hoď všemi kostkami v Ruce.
+3. Sečti hodnoty všech kostek.
+4. **Zkontroluj Kočku** — pokud Vombat sousedí s živou Kočkou a součet hodu je nižší než 5, musíš odevzdat 🥔 bramboru nebo 1 kostku (viz § 7).
+5. Vyber jednu z akcí:
    - **Pohyb** (§ 5)
    - **Využití pole** (§ 6)
    - **Spánek** (§ 8)
@@ -120,6 +121,9 @@ Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** 
 ### Alternativy
 - Pokud nechceš nebo nemůžeš využít hod, můžeš si po hodu zvolit **Spánek** (§ 8).
 - Pokud máš dovednost **Sprint** (§ 6.7), můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
+
+### Třídění před hodem (deck-building knob)
+S dovedností **Třídění** (§ 6.7) si na začátku každého tahu — ještě před hozením kostek — můžeš až **3× zdarma** přesunout kostku mezi Rukou a Zásobou. To je hlavní mechanika aktivního deck-buildingu: vidíš, která sousední pole chceš aktivovat, a stáhneš si do Ruky kostky, které k tomu pasují. Po hodu už tato volba není (kostky které hodíš, jdou na stůl).
 
 ---
 
@@ -150,7 +154,7 @@ Pokud Vombat **stojí na poli s tunelem** nebo **sousedí s polem s tunelem**, m
 Tunely jsou: **všechna černá pole** + **pole bývalé Kočky** (po rozmačkání).
 
 ### Rozdrcení Kočky (zadkem o stěnu nory)
-Hod 11–14 + sousední Kočka → Vombat zaláká kočku do své nory a chrupavčitě zpevněným zadkem ji rozdrtí o strop. Kočka je odstraněna, hráč získá **1k20**, pole se mění na **tunel**.
+Hod 11–14 + sousední Kočka → Vombat zaláká kočku do své nory a chrupavčitě zpevněným zadkem ji rozdrtí o strop. Kočka je odstraněna, hráč získá **1k8**, pole se mění na **tunel**.
 
 > 🔬 **Vědecký fakt:** Vombati skutečně mají osmifolovou strukturu kostí v zadní části (tzv. „armored bum"), kterou zatahují vchody do nor a dokážou s ní zabít predátora. Mechanika v této hře je biologicky autentická.
 
@@ -283,7 +287,7 @@ Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušt
 |---|---|---|
 | **Kapacita** | 1 | Ruší oba limity: max 2 kostky stejného lvl v Ruce **i** max 3 kostky v Zásobě. |
 | **Lázně** (Koupel) | 1 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
-| **Třídění** (Klystýr) | 1 | Při Spánku: neomezený počet výměn Ruka ↔ Zásoba v jednom Spánku (bez dovednosti jen 1×). |
+| **Třídění** (Klystýr) | 1 | **Před každým hodem** až 3× zadarmo přesun Ruka ↔ Zásoba. Umožňuje aktivní deck-building. |
 | **Žvýkání** (Masáž Střev) | 2 | Při Spánku: Upgrade 1 kostky o 1 lvl. |
 | **Bylinkový elixír** (Ajurvédská Medicína) | 3 | Při Spánku: Upgrade 1 kostky o 2 lvly, nebo 2 kostky o 1 lvl, nebo 1k12 → 1k20. |
 | **Sprint** | 2 | Po Pohybu můžeš v témže tahu **Využít** pole, na které jsi se přesunul. |
@@ -331,7 +335,7 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Skill shop je alternativa k tradičnímu "Uč se" na Hlíně — nepotřebuje Eukalypty ani vybavení Hlíny.
 
 ### Možnosti s dovednostmi
-- **Třídění (Klystýr)** → Neomezený počet výměn Ruka ↔ Zásoba v jednom Spánku.
+- **Třídění (Klystýr)** → Před každým hodem (mimo Spánek) až 3× zdarma přesun Ruka ↔ Zásoba.
 - **Masáž Střev** → Upgrade 1 kostky o 1 lvl.
 - **Ajurvédská Medicína** → Upgrade 1 kostky o 2 lvly, nebo 2 kostek o 1 lvl, nebo 1k12 → 1k20.
 
@@ -482,6 +486,8 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
 | Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
 | Eukalyptus: Obsaď + Uč se | **přidáno** — 1× za hru lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti |
+| Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |
+| Odměna za Kočku | **změna** — 1k20 → **1k8**. K20 byla příliš dominantní strategie (84-96 % win rate při 2+ rozdrcených kočkách). 1k8 je solidní bonus, ale ne instant-win. Milestone Lázně zdarma za 1. kočku zachováno. |
 
 ---
 

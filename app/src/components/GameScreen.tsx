@@ -13,6 +13,7 @@ import {
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
   cancelPendingChoice, resolveDieAcquisition,
+  preRollSwap, preRollSwapsRemaining, PRE_ROLL_SWAP_LIMIT,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
 import { aiStep } from '../game/ai';
@@ -277,6 +278,11 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
             <div className="action-buttons">
               {canRoll && (
                 <>
+                  {/* Pre-roll swap panel — visible only with Třídění (Klystýr).
+                      Lets the player tune Hand shape before rolling. */}
+                  {p.skills.has('klystyr') && (
+                    <PreRollSwapPanel state={state} setState={setState} />
+                  )}
                   <button
                     className="primary"
                     disabled={!adjDevilForMe || p.hand.length === 0}
@@ -828,6 +834,83 @@ function DieAcquisitionModal({ state, setState }: { state: GameState; setState: 
           drž v Zásobě, abys mohl navigovat.
         </p>
       </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// PreRollSwapPanel — Třídění (Klystýr) ladění Ruky před hodem
+// =============================================================================
+// Rendered in idle phase when player has Třídění. Lets the player do up to
+// 3 free swap operations BEFORE rolling — Hand ↔ Reserve. The whole point:
+// deck-building agency every turn. After rolling, swaps go back to Sleep.
+function PreRollSwapPanel({
+  state, setState,
+}: { state: GameState; setState: (s: GameState) => void }) {
+  const p = currentPlayer(state);
+  const remaining = preRollSwapsRemaining(state);
+  const used = PRE_ROLL_SWAP_LIMIT - remaining;
+  if (remaining === 0 && used === 0) return null; // shouldn't happen — guard
+  return (
+    <div
+      style={{
+        padding: 8,
+        marginBottom: 6,
+        background: '#fff5e0',
+        border: '1px solid #e8c997',
+        borderRadius: 6,
+        fontSize: 12,
+      }}
+    >
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>
+        🔄 Třídění před hodem · {remaining} / {PRE_ROLL_SWAP_LIMIT} zbývá
+      </div>
+      <div style={{ color: 'var(--muted)', marginBottom: 6 }}>
+        Můžeš teď zdarma přesouvat kostky Ruka ↔ Zásoba. Připrav si ruku na pole, která chceš
+        aktivovat.
+      </div>
+      {remaining === 0 ? (
+        <div style={{ color: 'var(--muted)', fontStyle: 'italic' }}>
+          Limit výměn vyčerpán. Hoď kostkami nebo Spi.
+        </div>
+      ) : (
+        <>
+          {p.hand.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 4 }}>
+              <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)' }}>
+                ✋→📦:
+              </span>
+              {p.hand.map((d, i) => (
+                <button
+                  key={`pr-h2r${i}`}
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                  onClick={() => setState(preRollSwap(state, { op: 'hand_to_reserve', index: i }))}
+                  title={`Přesun 1k${d} do Zásoby (Třídění zdarma)`}
+                >
+                  1k{d}
+                </button>
+              ))}
+            </div>
+          )}
+          {p.reserve.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)' }}>
+                📦→✋:
+              </span>
+              {p.reserve.map((d, i) => (
+                <button
+                  key={`pr-r2h${i}`}
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                  onClick={() => setState(preRollSwap(state, { op: 'reserve_to_hand', index: i }))}
+                  title={`Přesun 1k${d} do Ruky (Třídění zdarma)`}
+                >
+                  1k{d}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -166,6 +166,9 @@ export interface GameState {
   movedThisTurn?: boolean; // tracks Sprint skill usage
   usedFieldThisTurn?: boolean;
   fightingDevil?: { playerId: string; deviceHex: Hex } | null;
+  // Pre-roll swap counter (Třídění skill): up to 3× per turn before rolling.
+  // Reset to 0 on endTurn. 0/missing = no swaps used yet this turn.
+  preRollSwapsUsed?: number;
 }
 
 // Detailed line in a die-acquisition modal explaining how the offered die

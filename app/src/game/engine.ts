@@ -512,6 +512,59 @@ export function rollDice(state: GameState, rng?: RNG): GameState {
   return s;
 }
 
+// =============================================================================
+// PRE-ROLL SWAP (Třídění)
+// =============================================================================
+// With Třídění, the player can perform up to 3 swap ops BEFORE rolling dice
+// each turn. Each op is one of:
+//   - hand_to_reserve (move 1 die from Hand to Reserve)
+//   - reserve_to_hand (move 1 die from Reserve to Hand)
+//   - swap (exchange one Hand die with one Reserve die)
+// The counter resets on endTurn. This is the "deck-building" knob — every
+// turn you can tune your Hand for the opportunities you see.
+
+export const PRE_ROLL_SWAP_LIMIT = 3;
+
+export function preRollSwapsRemaining(state: GameState): number {
+  const p = currentPlayer(state);
+  if (!p.skills.has('klystyr')) return 0;
+  return Math.max(0, PRE_ROLL_SWAP_LIMIT - (state.preRollSwapsUsed ?? 0));
+}
+
+export function preRollSwap(state: GameState, op: SwapOp): GameState {
+  // Only legal in 'idle' phase (before rolling) and only with Třídění.
+  if (state.phase !== 'idle') return state;
+  const p0 = currentPlayer(state);
+  if (!p0.skills.has('klystyr')) return state;
+  if (preRollSwapsRemaining(state) <= 0) return state;
+  const s = cloneState(state);
+  const p = currentPlayer(s);
+  if (op.op === 'hand_to_reserve') {
+    const lvl = p.hand[op.index];
+    if (lvl == null) return state;
+    if (!canAddDieToReserve(p)) return state;
+    p.hand.splice(op.index, 1);
+    p.reserve.push(lvl);
+    logEntry(s, `${p.name} přesunul 1k${lvl} z Ruky do Zásoby (Třídění).`);
+  } else if (op.op === 'reserve_to_hand') {
+    const lvl = p.reserve[op.index];
+    if (lvl == null) return state;
+    if (!canAddDieToHand(p, lvl)) return state;
+    p.reserve.splice(op.index, 1);
+    p.hand.push(lvl);
+    logEntry(s, `${p.name} přesunul 1k${lvl} ze Zásoby do Ruky (Třídění).`);
+  } else if (op.op === 'swap') {
+    const h = p.hand[op.handIndex];
+    const r = p.reserve[op.reserveIndex];
+    if (h == null || r == null) return state;
+    p.hand[op.handIndex] = r;
+    p.reserve[op.reserveIndex] = h;
+    logEntry(s, `${p.name} vyměnil 1k${h} (Ruka) ↔ 1k${r} (Zásoba) — Třídění.`);
+  }
+  s.preRollSwapsUsed = (s.preRollSwapsUsed ?? 0) + 1;
+  return s;
+}
+
 function sumRoll(roll: number[] | null): number {
   return (roll || []).reduce((a, b) => a + b, 0);
 }
@@ -666,8 +719,8 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   if (smashedCat) {
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
-    dieAcquisitionPaused = addDieOrPending(s, p, 20, 'rozmačkaná Kočka');
-    logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k20 a vzniká tunel.`);
+    dieAcquisitionPaused = addDieOrPending(s, p, 8, 'rozmačkaná Kočka');
+    logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k8 a vzniká tunel.`);
     // Milestone: first cat smash → grant Koupel
     if (!p.skills.has('koupel')) {
       grantSkill(s, p, 'koupel');
@@ -707,6 +760,7 @@ export function endTurn(state: GameState): void {
   state.pendingChoice = null;
   state.movedThisTurn = false;
   state.usedFieldThisTurn = false;
+  state.preRollSwapsUsed = 0;
   const next = currentPlayer(state);
   logEntry(state, `--- Tah ${state.turnNumber} · hráč ${next.name} ---`);
 }
@@ -1020,7 +1074,7 @@ function poopResult(score: number): DiceLevel | null {
 export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string; desc: string }> = {
   kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Vombat má roztaženou kapsičku. Žádné limity na kostky (Ruka i Zásoba neomezené).' },
   koupel:       { trees: 1, label: 'Lázně',              desc: 'Vombat se ochladí v poušti, zvládne písek. Můžeš využívat Poušť jako Hlínu (hod 7+).' },
-  klystyr:      { trees: 1, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. Při Spánku: neomezené přesouvání mezi Rukou a Zásobou.' },
+  klystyr:      { trees: 1, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. PŘED hodem: až 3× zadarmo přesun Ruka ↔ Zásoba. (Tvar tvé Ruky můžeš ladit každý tah.)' },
   masaz_strev:  { trees: 2, label: 'Žvýkání',            desc: 'Vombat žvýká důkladněji = větší výstup. Při Spánku: Upgrade 1 kostky o 1 lvl.' },
   ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Eukalyptus + bylinky = mocná medicína. Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
   sprint:       { trees: 2, label: 'Sprint',             desc: 'Vombat běží jak vítr. Po Pohybu rovnou Využij pole, na které jsi se přesunul.' },

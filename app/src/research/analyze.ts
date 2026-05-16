@@ -41,9 +41,10 @@ const ACTION_LABEL: Record<ActionCategory, string> = {
   sleep_potato:    '💤 Brambora',
   sleep_buy_skill: '💤🛒 Koupil dovednost',
   sleep_teleport:  '💤🌀 Teleport',
-  sleep_swap:      '💤🔄 Výměna kostek',
+  sleep_swap:      '💤🔄 Výměna kostek (Spánek)',
   sleep_upgrade:   '💤⬆️ Upgrade kostky',
   sleep_skip:      '💤✖️ Skip',
+  pre_roll_swap:   '🔄 Třídění před hodem',
   attack_lost:     '💔 Útok (kočka/čert)',
   other:           '? Jiné',
 };
@@ -705,7 +706,8 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     );
   }
   const ACTION_LABELS: Partial<Record<ActionCategory, string>> = {
-    sleep_swap: '💤🔄 Výměna kostek (Ruka ↔ Zásoba)',
+    pre_roll_swap: '🔄 Třídění před hodem',
+    sleep_swap: '💤🔄 Výměna kostek (Spánek)',
     sleep_buy_skill: '💤🛒 Koupil dovednost (Sleep)',
     sleep_teleport: '💤🌀 Teleport',
     vyformuj: '💩 Vyformuj kostku',

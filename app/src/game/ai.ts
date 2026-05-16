@@ -39,6 +39,8 @@ import {
   learnSkill,
   skillBuyCost,
   SKILL_REQUIREMENTS,
+  preRollSwap,
+  preRollSwapsRemaining,
 } from './engine';
 
 // -----------------------------------------------------------------------------
@@ -212,7 +214,64 @@ function aiStartTurn(state: GameState): GameState {
   if (p.hand.length === 0) {
     return aiSleep(state);
   }
+
+  // PRE-ROLL SWAP (Třídění): if we have spare swaps and Hand is bloated
+  // (avg > 5 = mostly big dice that miss Hlína/Záhon activations), unload
+  // 1 big die to Reserve. Returns one swap op; aiStep is called again and
+  // can choose to swap more if useful.
+  if (preRollSwapsRemaining(state) > 0) {
+    const op = pickPreRollSwap(state, p);
+    if (op) return preRollSwap(state, op);
+  }
+
   return rollDice(state);
+}
+
+// Pick a single pre-roll swap if we have Třídění and Hand shape is suboptimal.
+// Strategy:
+//   - If Hand avg > 5 (bloated) and Reserve has a small die → swap small in,
+//     big out. Improves chance of hitting Hlína (2-4) / Záhon (4-6).
+//   - If Hand has only small dice (<5 avg) and we need range, swap a big
+//     die from Reserve in.
+//   - Devil-ready: prefer big dice in Hand. If a die in Reserve is bigger
+//     than any in Hand AND we're close to Devil, swap up.
+// Returns null when no useful swap is found.
+function pickPreRollSwap(state: GameState, p: PlayerState): import('./engine').SwapOp | null {
+  if (p.hand.length === 0) return null;
+  const handAvg = p.hand.reduce((s, d) => s + d, 0) / p.hand.length;
+  // Are we devil-ready / close? Then we want big dice in Hand.
+  const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
+  const goingForDevil = adjDevil && p.hand.length >= 3;
+
+  if (goingForDevil) {
+    // Pull biggest die from Reserve into Hand
+    if (p.reserve.length === 0) return null;
+    const bigReserveIdx = p.reserve.reduce(
+      (best, d, i) => (d > p.reserve[best] ? i : best),
+      0,
+    );
+    const lvl = p.reserve[bigReserveIdx];
+    const handMax = Math.max(...p.hand);
+    if (lvl <= handMax) return null; // already have ≥ this
+    // Check it fits in Hand without Kapacita
+    if (!p.skills.has('kapacita') && p.hand.filter((d) => d === lvl).length >= 2) return null;
+    return { op: 'reserve_to_hand', index: bigReserveIdx };
+  }
+
+  // Bloat reduction: hand avg too high → stash one big die
+  if (handAvg > 5 && p.hand.length > 2) {
+    const bigHandIdx = p.hand.reduce(
+      (best, d, i) => (d > p.hand[best] ? i : best),
+      0,
+    );
+    if (p.hand[bigHandIdx] >= 6) {
+      // Stash it (Kapacita removes reserve cap; otherwise must fit)
+      if (!p.skills.has('kapacita') && p.reserve.length >= 3) return null;
+      return { op: 'hand_to_reserve', index: bigHandIdx };
+    }
+  }
+
+  return null;
 }
 
 function readyToFightDevil(state: GameState, p: PlayerState): boolean {
@@ -616,7 +675,12 @@ function canAddDieAnywhere(p: PlayerState, lvl: DiceLevel): boolean {
 
 function scoreMove(target: BoardCell, p: PlayerState, state: GameState): number {
   let s = 0;
-  if (target.type === 'cat' && target.catAlive) return 40; // jackpot
+  if (target.type === 'cat' && target.catAlive) {
+    // Cat smash now yields 1k8 (not 1k20) plus tunnel. First cat still gives
+    // milestone Lázně, so weight it higher when player doesn't have Lázně yet.
+    const milestoneBonus = !p.skills.has('koupel') ? 12 : 0;
+    return 20 + milestoneBonus;
+  }
   if (target.type === 'devil') {
     if (readyToFightDevil(state, p)) return 25;
     return 2; // mild incentive; don't rush Devil
@@ -674,12 +738,12 @@ function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
 // ----- Skill picking --------------------------------------------------------
 
 const SKILL_PRIORITY: SkillId[] = [
-  'kapacita',      // 1 tree, easy first pick (capacity unlock)
-  'sprint',        // 2 trees, movement boost
-  'masaz_strev',   // 2 trees, dice upgrade
+  'kapacita',      // 1 tree, removes both Hand+Reserve limits — auto-pick
+  'klystyr',       // 1 tree, 3× pre-roll swap = active deck-building per turn
+  'koupel',        // 1 tree, opens Poušť — wide map access
+  'sprint',        // 2 trees, movement+use combo
+  'masaz_strev',   // 2 trees, dice upgrade in Sleep
   'ajurveda',      // 3 trees, big upgrade
-  'koupel',        // 2 trees, opens desert
-  'klystyr',       // 2 trees, swap helper (least important in MVP)
 ];
 
 // bonusTrees = phantom trees to add to bobekTrack for the check. Used when

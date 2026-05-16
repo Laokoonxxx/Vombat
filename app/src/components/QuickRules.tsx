@@ -107,7 +107,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
                 <td style={{ padding: '4px 6px' }}>🐱 <strong>Kočka</strong></td>
                 <td style={{ padding: '4px 6px' }}><code>11–14</code></td>
                 <td style={{ padding: '4px 6px' }}>
-                  <strong>Rozdrť zadkem</strong> → získej <strong>1k20</strong> + Lázně zdarma + tunel
+                  <strong>Rozdrť zadkem</strong> → získej <strong>1k8</strong> + Lázně zdarma + tunel
                 </td>
               </tr>
               <tr style={{ borderTop: '1px solid #eee' }}>
@@ -171,6 +171,18 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           </ul>
         </Section>
 
+        <Section title="🔄 Třídění — deck-building dovednost">
+          <p style={{ margin: '0 0 6px' }}>
+            S dovedností <strong>Třídění</strong> (1 strom) můžeš <strong>před každým hodem</strong> až
+            <strong> 3× zdarma</strong> přesunout kostku Ruka ↔ Zásoba. Tím ladíš tvar Ruky pro
+            pole, která chceš aktivovat.
+          </p>
+          <p style={{ margin: 0, fontSize: 11, color: 'var(--muted)' }}>
+            💡 Vidíš sousední Hlínu (2-4)? Stáhni si k4 do Ruky, k10 odlož do Zásoby — vyšší
+            šance trefit aktivaci. Bez Třídění hodíš vše, co máš v Ruce.
+          </p>
+        </Section>
+
         <Section title="🏅 Úkoly (formace) — bonus kostka navrch">
           <p style={{ margin: '0 0 6px' }}>
             Vedle souboje s Čertem můžeš plnit 3 prostorové úkoly. Splnění se
@@ -218,7 +230,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>První tahy: <strong>plant mrkve</strong> na Záhonu/Hlíně (carrot ramp)</li>
             <li>S 3+ mrkvemi: <strong>Vyformuj kostku</strong> na Hlíně s sousedy = velké kostky</li>
-            <li>Zabij sousední Kočku (hod 11–14) = <strong>1k20</strong> + Koupel zdarma</li>
+            <li>Zabij sousední Kočku (hod 11–14) = <strong>1k8</strong> + Lázně zdarma + tunel</li>
             <li>S 5+ kostkama včetně k10/k12/k20 → najdi Čerta a útoč</li>
           </ol>
           <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--muted)' }}>
