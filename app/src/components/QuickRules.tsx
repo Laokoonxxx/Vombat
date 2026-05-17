@@ -65,7 +65,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
               <ul style={{ margin: 0 }}>
                 <li><strong>🐾 Pohyb</strong> — Vombat na sousední pole, pokud součet odpovídá rozsahu</li>
                 <li><strong>🌿 Využij pole</strong> — kde stojíš nebo sousedíš (pole se obsadí)</li>
-                <li><strong>💤 Spánek</strong> — menu speciálních akcí (výměna, teleport, Skill shop…)</li>
+                <li><strong>💤 Spánek</strong> — menu speciálních akcí (výměna kostek, Skill shop, upgrade…)</li>
               </ul>
             </li>
           </ol>
@@ -231,7 +231,6 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
             <li>Získat 1 🥔 bramboru</li>
             <li>Downgrade kostky (z větší na menší)</li>
             <li>Výměna kostek mezi Rukou a Zásobou</li>
-            <li><strong>🌀 Teleport (5 🥔)</strong> → přemísti Vombata kamkoli (mimo Čerta/Kočky)</li>
             <li>
               <strong>🛒 Skill shop</strong>: kup dovednost za <code>5 🥔 × počet stromů</code>:
               <ul style={{ margin: 0 }}>

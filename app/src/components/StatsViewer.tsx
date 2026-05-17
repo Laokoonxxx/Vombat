@@ -1142,7 +1142,7 @@ function AIRules() {
               <strong>Nevyužívá brambory pro Vyformuj kostku</strong> investice (engine to neumožňuje skrz UI).
             </li>
             <li>
-              <strong>Nepoužívá Teleport</strong> (Sleep akce). Mohl by se rychle dostat k Čertovi.
+              <strong>Nepoužívá ±1 k hodu</strong> ze brambor. Hráč to umí ručně, AI by mohl optimalizovat aktivace.
             </li>
             <li>
               <strong>Downgrade kostek</strong> ve Spánku se nepoužívá.

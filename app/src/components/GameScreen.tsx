@@ -11,7 +11,7 @@ import {
   rollDice, legalMoveTargets, moveVombat, canUseField, useField,
   endTurnNow, resolveAttackWithPotato, resolveAttackWithDie, sleep,
   canFightDevil, beginDevilCombat, applyDevilWound, devilContinueRoll, devilStop,
-  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
+  allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, skillBuyCost,
   cancelPendingChoice, resolveDieAcquisition,
   preRollSwap, preRollSwapsRemaining, PRE_ROLL_SWAP_LIMIT,
   skipRollForPotatoes, SKIP_ROLL_POTATOES,
@@ -59,7 +59,7 @@ export interface GameScreenProps {
   onShowProbabilities?: () => void;
 }
 
-type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu' | 'pickTeleport';
+type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu';
 
 export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
@@ -112,17 +112,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
       });
       return hexes;
     }
-    if (mode === 'pickTeleport') {
-      // any non-cat-alive, non-devil, non-vombat hex
-      const hexes: Hex[] = [];
-      state.board.forEach((c) => {
-        if (c.type === 'devil') return;
-        if (c.type === 'cat' && c.catAlive) return;
-        if (state.players.some((pl) => pl.vombats.some((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r))) return;
-        hexes.push(c.hex);
-      });
-      return hexes;
-    }
+    // (Teleport mode removed — feature was deleted.)
     // INSPECT MODE: in 'rolled' phase with no active sub-mode, all hexes are
     // clickable — click reveals available actions for that hex in a side panel.
     if (mode === 'idle' && state.phase === 'rolled' && !state.pendingChoice) {
@@ -184,16 +174,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
       setMode('idle');
       return;
     }
-    if (mode === 'pickTeleport') {
-      // Use first vombat if no selection; otherwise the selected one.
-      const vombatId = selectedVombatId || p.vombats[0]?.id;
-      if (!vombatId) return;
-      const after = sleep(state, { kind: 'teleport', vombatId, targetHex: hex });
-      setState(after);
-      setMode('idle');
-      setSelectedVombatId(null);
-      return;
-    }
+    // (Teleport pickTeleport handler removed — feature deleted.)
     // Inspect mode: open the hex options panel.
     if (mode === 'idle' && state.phase === 'rolled' && !state.pendingChoice) {
       setInspectHex(hex);
@@ -381,10 +362,6 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                 setMode('idle');
               }}
               close={() => setMode('idle')}
-              onPickTeleport={(vombatId) => {
-                setSelectedVombatId(vombatId);
-                setMode('pickTeleport');
-              }}
             />
           )}
         </div>
@@ -993,12 +970,10 @@ function SleepModal({
   state,
   setState,
   close,
-  onPickTeleport,
 }: {
   state: GameState;
   setState: (s: GameState) => void;
   close: () => void;
-  onPickTeleport: (vombatId: string) => void;
 }) {
   const p = currentPlayer(state);
   // Swap operations are STAGED before commit — necessary so that with Třídění
@@ -1083,19 +1058,6 @@ function SleepModal({
           >
             🥔 Získej 1 bramboru
           </button>
-          {p.vombats.map((v, i) => (
-            <button
-              key={`tp${i}`}
-              disabled={p.potatoes < TELEPORT_COST || otherActionsDisabled}
-              onClick={() => {
-                close();
-                onPickTeleport(v.id);
-              }}
-              title="Teleport Vombata na libovolné pole (kromě Čerta a živé Kočky) za 5 brambor"
-            >
-              🌀 Teleport {p.vombats.length > 1 ? `Vombata #${i + 1} ` : ''}({TELEPORT_COST} 🥔)
-            </button>
-          ))}
           <button
             disabled={otherActionsDisabled}
             onClick={() => {

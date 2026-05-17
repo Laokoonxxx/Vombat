@@ -1220,11 +1220,9 @@ export type SleepAction =
   | { kind: 'swap'; ops: SwapOp[] }
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
   | { kind: 'upgrade_die_2x'; location: 'hand' | 'reserve'; index: number }
-  | { kind: 'teleport'; vombatId: string; targetHex: Hex }
   | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
-export const TELEPORT_COST = 8;
 export const SKILL_BUY_COST_PER_TREE = 5;
 export function skillBuyCost(skill: SkillId): number {
   return SKILL_REQUIREMENTS[skill].trees * SKILL_BUY_COST_PER_TREE;
@@ -1316,24 +1314,6 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       p.potatoes -= cost;
       grantSkill(s, p, action.skill);
       logEntry(s, `${p.name} koupil dovednost "${SKILL_REQUIREMENTS[action.skill].label}" za ${cost} 🥔.`);
-      break;
-    }
-    case 'teleport': {
-      if (p.potatoes < TELEPORT_COST) return state;
-      const targetCell = s.board.get(hexKey(action.targetHex));
-      if (!targetCell) return state;
-      // Cannot teleport onto a live cat, a devil, or another vombat
-      if (targetCell.type === 'cat' && targetCell.catAlive) return state;
-      if (targetCell.type === 'devil') return state;
-      if (isHexOccupiedByVombat(s, action.targetHex)) return state;
-      const v = p.vombats.find((vv) => vv.id === action.vombatId);
-      if (!v) return state;
-      p.potatoes -= TELEPORT_COST;
-      v.hex = { ...action.targetHex };
-      logEntry(
-        s,
-        `${p.name} teleportoval Vombata na ${targetCell.type} (${action.targetHex.q},${action.targetHex.r}) za ${TELEPORT_COST} brambor.`
-      );
       break;
     }
     case 'skip':

@@ -121,7 +121,7 @@ Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** 
 ### Alternativy
 - **🥔🥔 Neházej** — strategická volba **místo hodu**. Tah skončí a získáš **2 brambory**. Vhodné, když vidíš že tvá Ruka špatně sedí na sousední pole (např. máš k20 a kolem jen Hlína 2-4 = malá šance trefit). Brambory pak využiješ na Skill shop, defense nebo úpravy hodu (viz dále).
 - **🥔 ±1 k hodu** — **po hodu** můžeš za každou utracenou bramboru posunout součet o ±1, **maximálně 2× za tah** (= max ±2). Použiješ to když ti hod jen tak-tak nesedl: rolled 5 vedle Hlíny → 🥔 → 4 ⇒ trefíš Hlínu. Neplatí v souboji s Čertem (tam jsou per-kostkové hodnoty, ne součet).
-- **💤 Spánek** — komplexnější alternativa s menu: 1 brambor, výměna kostek, teleport, Skill shop, upgrade kostek (s dovednostmi).
+- **💤 Spánek** — komplexnější alternativa s menu: 1 brambor, výměna kostek, Skill shop, upgrade kostek (s dovednostmi).
 - **Sprint** (§ 6.7) — můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
 
 > 💡 **Roll vs. Neházej:** binární strategická volba. AI ji dělá podle pravděpodobnostního skóre: pokud Σ P(rozsah pole) × důležitost &lt; ~4.5, AI vezme brambory místo hodu. Pro hráče: hrubě platí „kdyby všechny kostky padly maximálně a stejně bys netrefil žádný rozsah → ber brambory".
@@ -333,7 +333,6 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Přesuň kostku z Ruky do Zásoby.
   - Přesuň kostku ze Zásoby do Ruky.
   - Vyměň kostku v Ruce s kostkou v Zásobě.
-- **Teleport (5 🥔)** — přemísti Vombata na libovolné pole mapy. Cílem nesmí být pole Čerta ani živé Kočky a nesmí na něm stát jiný Vombat.
 - **Skill shop** — kup libovolnou dovednost za **5 🥔 × počet požadovaných stromů**:
   - 1-strom dovednost (Kapacita, Lázně, Třídění) = **5 🥔**
   - 2-strom dovednost (Žvýkání, Sprint) = **10 🥔**
@@ -486,7 +485,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | 1k12 cena v setupu | 12 🥔 (v pravidlech neuvedeno, doplněno rozumně) |
 | Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
 | Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
-| Teleport (Spánek) | **přidáno** — 5 🥔 → přemístění Vombata kamkoli (mimo Čerta/živé Kočky/jiného Vombata). Řeší dead-end stavy. |
+| Teleport (Spánek) | **odstraněno** — bývalo 5 🥔 → přemístění Vombata kamkoli. Příliš silné (instant Čert přístup), navíc redundantní s tunely. Tunely teď slouží jako jediný "fast travel". |
 | Skill shop (Spánek) | **přidáno** — 5 🥔 × počet stromů → koupíš libovolnou dovednost. Alternativa k tradičnímu Uč se. |
 | Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
 | Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
