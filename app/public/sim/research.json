@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-05-16T22:02:51.655Z",
-  "numGames": 200,
-  "decisive": 172,
-  "totalPlayerGames": 344,
+  "generatedAt": "2026-05-17T12:11:43.301Z",
+  "numGames": 5000,
+  "decisive": 4542,
+  "totalPlayerGames": 9084,
   "turnsToWin": {
-    "avg": 118.37790697674419,
-    "median": 95,
-    "p25": 61,
-    "p75": 145,
-    "min": 31,
-    "max": 399
+    "avg": 85.68780273007485,
+    "median": 74,
+    "p25": 59,
+    "p75": 97,
+    "min": 25,
+    "max": 398
   },
   "winnerAverages": {
-    "carrots": 3.395348837209302,
-    "trees": 1.372093023255814,
-    "potatoes": 3.13953488372093,
-    "handSize": 5.023255813953488,
-    "reserveSize": 2.36046511627907,
-    "skillsLearned": 3.9651162790697674,
-    "diceOwnedPeak": 9
+    "carrots": 3.209158960810216,
+    "trees": 1.083883751651255,
+    "potatoes": 1.0486569793042713,
+    "handSize": 5.0290620871862615,
+    "reserveSize": 2.347424042272127,
+    "skillsLearned": 3.613386173491854,
+    "diceOwnedPeak": 9.016512549537648
   },
   "loserAverages": {
-    "carrots": 2.755813953488372,
-    "trees": 1.0988372093023255,
-    "potatoes": 2.8313953488372094,
-    "handSize": 4.151162790697675,
-    "reserveSize": 2.1802325581395348,
-    "skillsLearned": 3.453488372093023,
-    "diceOwnedPeak": 6.686046511627907
+    "carrots": 2.821664464993395,
+    "trees": 0.9209599295464553,
+    "potatoes": 1.8934390136503743,
+    "handSize": 3.8628357551739323,
+    "reserveSize": 2.8976221928665784,
+    "skillsLearned": 3.116468516072215,
+    "diceOwnedPeak": 7.276530162923822
   },
   "skillStats": {
     "perSkill": [
@@ -35,111 +35,111 @@
         "skillId": "kapacita",
         "label": "Kapacita",
         "treesCost": 1,
-        "learned": 335,
-        "pctLearned": 0.9738372093023255,
-        "winRateWhenLearned": 0.5134328358208955,
+        "learned": 8791,
+        "pctLearned": 0.9677454865697931,
+        "winRateWhenLearned": 0.5166647707883062,
         "winRateWhenNot": 0,
-        "avgTurnLearned": 16.79268292682927,
-        "avgWinningTurnsWhenLearned": 118.37790697674419
+        "avgTurnLearned": 16.371031746031747,
+        "avgWinningTurnsWhenLearned": 85.68780273007485
       },
       {
         "skillId": "koupel",
         "label": "Lázně",
         "treesCost": 1,
-        "learned": 323,
-        "pctLearned": 0.938953488372093,
-        "winRateWhenLearned": 0.5325077399380805,
-        "winRateWhenNot": 0,
-        "avgTurnLearned": 35.90728476821192,
-        "avgWinningTurnsWhenLearned": 118.37790697674419
+        "learned": 8592,
+        "pctLearned": 0.9458388375165125,
+        "winRateWhenLearned": 0.527351024208566,
+        "winRateWhenNot": 0.022357723577235773,
+        "avgTurnLearned": 32.347961568423784,
+        "avgWinningTurnsWhenLearned": 85.75678658132863
       },
       {
         "skillId": "klystyr",
         "label": "Třídění",
         "treesCost": 1,
-        "learned": 269,
-        "pctLearned": 0.7819767441860465,
-        "winRateWhenLearned": 0.5130111524163569,
-        "winRateWhenNot": 0.4533333333333333,
-        "avgTurnLearned": 27.01145038167939,
-        "avgWinningTurnsWhenLearned": 129.83333333333334
+        "learned": 7198,
+        "pctLearned": 0.7923822104799648,
+        "winRateWhenLearned": 0.5376493470408447,
+        "winRateWhenNot": 0.3563096500530223,
+        "avgTurnLearned": 27.313307212305908,
+        "avgWinningTurnsWhenLearned": 89.45193798449613
       },
       {
         "skillId": "sprint",
         "label": "Sprint",
         "treesCost": 2,
-        "learned": 169,
-        "pctLearned": 0.49127906976744184,
-        "winRateWhenLearned": 0.5266272189349113,
-        "winRateWhenNot": 0.4742857142857143,
-        "avgTurnLearned": 44.20183486238532,
-        "avgWinningTurnsWhenLearned": 151.85393258426967
+        "learned": 3376,
+        "pctLearned": 0.3716424482606781,
+        "winRateWhenLearned": 0.5601303317535545,
+        "winRateWhenNot": 0.46443587946741416,
+        "avgTurnLearned": 39.91593695271454,
+        "avgWinningTurnsWhenLearned": 103.15758857747224
       },
       {
         "skillId": "masaz_strev",
         "label": "Žvýkání",
         "treesCost": 2,
-        "learned": 119,
-        "pctLearned": 0.34593023255813954,
-        "winRateWhenLearned": 0.5630252100840336,
-        "winRateWhenNot": 0.4666666666666667,
-        "avgTurnLearned": 48.19512195121951,
-        "avgWinningTurnsWhenLearned": 168.97014925373134
+        "learned": 1857,
+        "pctLearned": 0.20442536327608982,
+        "winRateWhenLearned": 0.5907377490576198,
+        "winRateWhenNot": 0.47668465476684657,
+        "avgTurnLearned": 43.97397260273973,
+        "avgWinningTurnsWhenLearned": 114.71558796718323
       },
       {
         "skillId": "ajurveda",
         "label": "Bylinkový elixír",
         "treesCost": 3,
-        "learned": 61,
-        "pctLearned": 0.17732558139534885,
-        "winRateWhenLearned": 0.7213114754098361,
-        "winRateWhenNot": 0.45229681978798586,
-        "avgTurnLearned": 51,
-        "avgWinningTurnsWhenLearned": 198.6818181818182
+        "learned": 753,
+        "pctLearned": 0.08289299867899604,
+        "winRateWhenLearned": 0.6387782204515272,
+        "winRateWhenNot": 0.4874564878165886,
+        "avgTurnLearned": 46.4375,
+        "avgWinningTurnsWhenLearned": 130.40540540540542
       }
     ],
     "byCount": [
       {
         "bucket": "0",
-        "players": 3,
+        "players": 51,
         "wins": 0,
         "winRate": 0,
         "avgWinningTurns": null
       },
       {
         "bucket": "1",
-        "players": 17,
-        "wins": 0,
-        "winRate": 0,
-        "avgWinningTurns": null
+        "players": 479,
+        "wins": 3,
+        "winRate": 0.006263048016701462,
+        "avgWinningTurns": 43
       },
       {
         "bucket": "2",
-        "players": 62,
-        "wins": 34,
-        "winRate": 0.5483870967741935,
-        "avgWinningTurns": 71.88235294117646
+        "players": 1560,
+        "wins": 677,
+        "winRate": 0.433974358974359,
+        "avgWinningTurns": 64.08714918759232
       },
       {
         "bucket": "3",
-        "players": 93,
-        "wins": 49,
-        "winRate": 0.5268817204301075,
-        "avgWinningTurns": 89.83673469387755
+        "players": 3618,
+        "wins": 1971,
+        "winRate": 0.5447761194029851,
+        "avgWinningTurns": 76.41146626078132
       },
       {
         "bucket": "4",
-        "players": 50,
-        "wins": 22,
-        "winRate": 0.44,
-        "avgWinningTurns": 99.72727272727273
+        "players": 1519,
+        "wins": 794,
+        "winRate": 0.5227123107307439,
+        "avgWinningTurns": 87.18891687657431
       },
       {
         "bucket": "5+",
-        "players": 119,
-        "wins": 67,
-        "winRate": 0.5630252100840336,
-        "avgWinningTurns": 168.97014925373134
+        "players": 1857,
+        "wins": 1097,
+        "winRate": 0.5907377490576198,
+        "avgWinningTurns": 114.71558796718323
       }
     ],
     "topCombos": [
@@ -154,10 +154,62 @@
           "Třídění",
           "Lázně"
         ],
-        "players": 93,
-        "wins": 49,
-        "winRate": 0.5268817204301075,
-        "avgWinningTurns": 89.83673469387755
+        "players": 3618,
+        "wins": 1971,
+        "winRate": 0.5447761194029851,
+        "avgWinningTurns": 76.41146626078132
+      },
+      {
+        "skills": [
+          "kapacita",
+          "klystyr",
+          "koupel",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Třídění",
+          "Lázně",
+          "Sprint"
+        ],
+        "players": 1519,
+        "wins": 794,
+        "winRate": 0.5227123107307439,
+        "avgWinningTurns": 87.18891687657431
+      },
+      {
+        "skills": [
+          "kapacita",
+          "koupel"
+        ],
+        "labels": [
+          "Kapacita",
+          "Lázně"
+        ],
+        "players": 1356,
+        "wins": 669,
+        "winRate": 0.49336283185840707,
+        "avgWinningTurns": 64.10463378176382
+      },
+      {
+        "skills": [
+          "kapacita",
+          "klystyr",
+          "koupel",
+          "masaz_strev",
+          "sprint"
+        ],
+        "labels": [
+          "Kapacita",
+          "Třídění",
+          "Lázně",
+          "Žvýkání",
+          "Sprint"
+        ],
+        "players": 1104,
+        "wins": 616,
+        "winRate": 0.5579710144927537,
+        "avgWinningTurns": 102.46428571428571
       },
       {
         "skills": [
@@ -176,62 +228,22 @@
           "Žvýkání",
           "Sprint"
         ],
-        "players": 61,
-        "wins": 44,
-        "winRate": 0.7213114754098361,
-        "avgWinningTurns": 198.6818181818182
+        "players": 753,
+        "wins": 481,
+        "winRate": 0.6387782204515272,
+        "avgWinningTurns": 130.40540540540542
       },
       {
         "skills": [
-          "kapacita",
-          "klystyr",
-          "koupel",
-          "masaz_strev",
-          "sprint"
-        ],
-        "labels": [
-          "Kapacita",
-          "Třídění",
-          "Lázně",
-          "Žvýkání",
-          "Sprint"
-        ],
-        "players": 58,
-        "wins": 23,
-        "winRate": 0.39655172413793105,
-        "avgWinningTurns": 112.1304347826087
-      },
-      {
-        "skills": [
-          "kapacita",
           "koupel"
         ],
         "labels": [
-          "Kapacita",
           "Lázně"
         ],
-        "players": 55,
-        "wins": 34,
-        "winRate": 0.6181818181818182,
-        "avgWinningTurns": 71.88235294117646
-      },
-      {
-        "skills": [
-          "kapacita",
-          "klystyr",
-          "koupel",
-          "sprint"
-        ],
-        "labels": [
-          "Kapacita",
-          "Třídění",
-          "Lázně",
-          "Sprint"
-        ],
-        "players": 50,
-        "wins": 22,
-        "winRate": 0.44,
-        "avgWinningTurns": 99.72727272727273
+        "players": 242,
+        "wins": 0,
+        "winRate": 0,
+        "avgWinningTurns": null
       },
       {
         "skills": [
@@ -240,10 +252,10 @@
         "labels": [
           "Kapacita"
         ],
-        "players": 11,
-        "wins": 0,
-        "winRate": 0,
-        "avgWinningTurns": null
+        "players": 237,
+        "wins": 3,
+        "winRate": 0.012658227848101266,
+        "avgWinningTurns": 43
       },
       {
         "skills": [
@@ -254,27 +266,15 @@
           "Kapacita",
           "Třídění"
         ],
-        "players": 7,
-        "wins": 0,
-        "winRate": 0,
-        "avgWinningTurns": null
-      },
-      {
-        "skills": [
-          "koupel"
-        ],
-        "labels": [
-          "Lázně"
-        ],
-        "players": 6,
-        "wins": 0,
-        "winRate": 0,
-        "avgWinningTurns": null
+        "players": 204,
+        "wins": 8,
+        "winRate": 0.0392156862745098,
+        "avgWinningTurns": 62.625
       },
       {
         "skills": [],
         "labels": [],
-        "players": 3,
+        "players": 51,
         "wins": 0,
         "winRate": 0,
         "avgWinningTurns": null
@@ -285,163 +285,163 @@
     "carrots": [
       {
         "bucket": "0",
-        "players": 2,
-        "wins": 0,
-        "winRate": 0,
-        "avgWinningTurns": null
+        "players": 40,
+        "wins": 10,
+        "winRate": 0.25,
+        "avgWinningTurns": 92.3
       },
       {
         "bucket": "1-2",
-        "players": 154,
-        "wins": 70,
-        "winRate": 0.45454545454545453,
-        "avgWinningTurns": 88.38571428571429
+        "players": 3742,
+        "wins": 1616,
+        "winRate": 0.4318546231961518,
+        "avgWinningTurns": 70.81992574257426
       },
       {
         "bucket": "3-4",
-        "players": 129,
-        "wins": 60,
-        "winRate": 0.46511627906976744,
-        "avgWinningTurns": 104.98333333333333
+        "players": 4116,
+        "wins": 2184,
+        "winRate": 0.5306122448979592,
+        "avgWinningTurns": 83.69551282051282
       },
       {
         "bucket": "5-6",
-        "players": 46,
-        "wins": 30,
-        "winRate": 0.6521739130434783,
-        "avgWinningTurns": 168.4
+        "players": 1099,
+        "wins": 658,
+        "winRate": 0.5987261146496815,
+        "avgWinningTurns": 118.66413373860182
       },
       {
         "bucket": "7-8",
-        "players": 12,
-        "wins": 11,
-        "winRate": 0.9166666666666666,
-        "avgWinningTurns": 230.1818181818182
+        "players": 86,
+        "wins": 73,
+        "winRate": 0.8488372093023255,
+        "avgWinningTurns": 175.7945205479452
       },
       {
         "bucket": "9+",
         "players": 1,
         "wins": 1,
         "winRate": 1,
-        "avgWinningTurns": 291
+        "avgWinningTurns": 121
       }
     ],
     "trees": [
       {
         "bucket": "0",
-        "players": 108,
-        "wins": 49,
-        "winRate": 0.4537037037037037,
-        "avgWinningTurns": 87.6734693877551
+        "players": 2585,
+        "wins": 1063,
+        "winRate": 0.41121856866537715,
+        "avgWinningTurns": 69.6716839134525
       },
       {
         "bucket": "1",
-        "players": 117,
-        "wins": 62,
-        "winRate": 0.5299145299145299,
-        "avgWinningTurns": 86.35483870967742
+        "players": 4439,
+        "wins": 2388,
+        "winRate": 0.5379589997747241,
+        "avgWinningTurns": 79.44765494137353
       },
       {
         "bucket": "2",
-        "players": 69,
-        "wins": 27,
-        "winRate": 0.391304347826087,
-        "avgWinningTurns": 139.74074074074073
+        "players": 1602,
+        "wins": 808,
+        "winRate": 0.5043695380774033,
+        "avgWinningTurns": 103.90346534653466
       },
       {
         "bucket": "3",
-        "players": 34,
-        "wins": 20,
-        "winRate": 0.5882352941176471,
-        "avgWinningTurns": 191.55
+        "players": 379,
+        "wins": 222,
+        "winRate": 0.5857519788918206,
+        "avgWinningTurns": 139.5045045045045
       },
       {
         "bucket": "4+",
-        "players": 16,
-        "wins": 14,
-        "winRate": 0.875,
-        "avgWinningTurns": 221.92857142857142
+        "players": 79,
+        "wins": 61,
+        "winRate": 0.7721518987341772,
+        "avgWinningTurns": 171.9344262295082
       }
     ],
     "diceOwnedPeak": [
       {
         "bucket": "0-2",
-        "players": 12,
-        "wins": 1,
-        "winRate": 0.08333333333333333,
-        "avgWinningTurns": 182
+        "players": 322,
+        "wins": 15,
+        "winRate": 0.046583850931677016,
+        "avgWinningTurns": 133.86666666666667
       },
       {
         "bucket": "3-4",
-        "players": 55,
-        "wins": 13,
-        "winRate": 0.23636363636363636,
-        "avgWinningTurns": 149.53846153846155
+        "players": 1063,
+        "wins": 323,
+        "winRate": 0.30385700846660396,
+        "avgWinningTurns": 100.96594427244582
       },
       {
         "bucket": "5-6",
-        "players": 72,
-        "wins": 32,
-        "winRate": 0.4444444444444444,
-        "avgWinningTurns": 144.84375
+        "players": 1742,
+        "wins": 769,
+        "winRate": 0.44144661308840416,
+        "avgWinningTurns": 93.12483745123536
       },
       {
         "bucket": "7-8",
-        "players": 59,
-        "wins": 31,
-        "winRate": 0.5254237288135594,
-        "avgWinningTurns": 135.93548387096774
+        "players": 1842,
+        "wins": 907,
+        "winRate": 0.49239956568946797,
+        "avgWinningTurns": 84.54465270121278
       },
       {
         "bucket": "9-10",
-        "players": 65,
-        "wins": 40,
-        "winRate": 0.6153846153846154,
-        "avgWinningTurns": 79.325
+        "players": 1861,
+        "wins": 1089,
+        "winRate": 0.5851692638366469,
+        "avgWinningTurns": 74.94123048668503
       },
       {
         "bucket": "11+",
-        "players": 81,
-        "wins": 55,
-        "winRate": 0.6790123456790124,
-        "avgWinningTurns": 112.96363636363637
+        "players": 2254,
+        "wins": 1439,
+        "winRate": 0.6384205856255546,
+        "avgWinningTurns": 86.63516330785268
       }
     ],
     "potatoes": [
       {
         "bucket": "0-2",
-        "players": 243,
-        "wins": 134,
-        "winRate": 0.551440329218107,
-        "avgWinningTurns": 96.3955223880597
+        "players": 7722,
+        "wins": 4196,
+        "winRate": 0.5433825433825434,
+        "avgWinningTurns": 81.05052430886559
       },
       {
         "bucket": "3-5",
-        "players": 49,
-        "wins": 14,
-        "winRate": 0.2857142857142857,
-        "avgWinningTurns": 183.71428571428572
+        "players": 898,
+        "wins": 219,
+        "winRate": 0.24387527839643652,
+        "avgWinningTurns": 119.23287671232876
       },
       {
         "bucket": "6-10",
-        "players": 36,
-        "wins": 13,
-        "winRate": 0.3611111111111111,
-        "avgWinningTurns": 166
+        "players": 345,
+        "wins": 70,
+        "winRate": 0.2028985507246377,
+        "avgWinningTurns": 153.61428571428573
       },
       {
         "bucket": "11-15",
-        "players": 10,
-        "wins": 6,
-        "winRate": 0.6,
-        "avgWinningTurns": 231.66666666666666
+        "players": 77,
+        "wins": 33,
+        "winRate": 0.42857142857142855,
+        "avgWinningTurns": 181.5151515151515
       },
       {
         "bucket": "16+",
-        "players": 6,
-        "wins": 5,
-        "winRate": 0.8333333333333334,
-        "avgWinningTurns": 264.8
+        "players": 42,
+        "wins": 24,
+        "winRate": 0.5714285714285714,
+        "avgWinningTurns": 260.4583333333333
       }
     ]
   },
@@ -452,38 +452,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 158,
-          "wins": 69,
-          "winRate": 0.43670886075949367,
-          "avgWinningTurns": 100.40579710144928
+          "players": 2511,
+          "wins": 911,
+          "winRate": 0.3628036638789327,
+          "avgWinningTurns": 81.0834248079034
         },
         {
           "bucket": "1",
-          "players": 52,
-          "wins": 27,
-          "winRate": 0.5192307692307693,
-          "avgWinningTurns": 142.96296296296296
+          "players": 185,
+          "wins": 67,
+          "winRate": 0.3621621621621622,
+          "avgWinningTurns": 99.01492537313433
         },
         {
           "bucket": "2",
-          "players": 55,
-          "wins": 29,
-          "winRate": 0.5272727272727272,
-          "avgWinningTurns": 141.0344827586207
+          "players": 289,
+          "wins": 104,
+          "winRate": 0.35986159169550175,
+          "avgWinningTurns": 91.00961538461539
         },
         {
           "bucket": "3-4",
-          "players": 56,
-          "wins": 33,
-          "winRate": 0.5892857142857143,
-          "avgWinningTurns": 103.84848484848484
+          "players": 653,
+          "wins": 260,
+          "winRate": 0.3981623277182236,
+          "avgWinningTurns": 98.71153846153847
         },
         {
           "bucket": "5+",
-          "players": 23,
-          "wins": 14,
-          "winRate": 0.6086956521739131,
-          "avgWinningTurns": 146.85714285714286
+          "players": 5446,
+          "wins": 3200,
+          "winRate": 0.5875872199779655,
+          "avgWinningTurns": 85.4884375
         }
       ]
     },
@@ -493,38 +493,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 182,
-          "wins": 80,
-          "winRate": 0.43956043956043955,
-          "avgWinningTurns": 125.2
+          "players": 4022,
+          "wins": 1914,
+          "winRate": 0.47588264545002484,
+          "avgWinningTurns": 84.21264367816092
         },
         {
           "bucket": "1",
-          "players": 83,
-          "wins": 46,
-          "winRate": 0.5542168674698795,
-          "avgWinningTurns": 112.97826086956522
+          "players": 2317,
+          "wins": 1209,
+          "winRate": 0.5217954251186879,
+          "avgWinningTurns": 85.14061207609595
         },
         {
           "bucket": "2",
-          "players": 54,
-          "wins": 31,
-          "winRate": 0.5740740740740741,
-          "avgWinningTurns": 116.58064516129032
+          "players": 1446,
+          "wins": 792,
+          "winRate": 0.5477178423236515,
+          "avgWinningTurns": 84.25757575757575
         },
         {
           "bucket": "3-4",
-          "players": 21,
-          "wins": 12,
-          "winRate": 0.5714285714285714,
-          "avgWinningTurns": 91.58333333333333
+          "players": 932,
+          "wins": 511,
+          "winRate": 0.5482832618025751,
+          "avgWinningTurns": 90.52054794520548
         },
         {
           "bucket": "5+",
-          "players": 4,
-          "wins": 3,
-          "winRate": 0.75,
-          "avgWinningTurns": 145
+          "players": 367,
+          "wins": 116,
+          "winRate": 0.31607629427792916,
+          "avgWinningTurns": 104.20689655172414
         }
       ]
     },
@@ -534,31 +534,31 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 231,
-          "wins": 126,
-          "winRate": 0.5454545454545454,
-          "avgWinningTurns": 115.81746031746032
+          "players": 6459,
+          "wins": 3412,
+          "winRate": 0.5282551478557053,
+          "avgWinningTurns": 81.34290738569754
         },
         {
           "bucket": "1",
-          "players": 94,
-          "wins": 39,
-          "winRate": 0.4148936170212766,
-          "avgWinningTurns": 122.48717948717949
+          "players": 2392,
+          "wins": 1057,
+          "winRate": 0.4418896321070234,
+          "avgWinningTurns": 96.4399243140965
         },
         {
           "bucket": "2",
-          "players": 19,
-          "wins": 7,
-          "winRate": 0.3684210526315789,
-          "avgWinningTurns": 141.57142857142858
+          "players": 219,
+          "wins": 69,
+          "winRate": 0.3150684931506849,
+          "avgWinningTurns": 131.2753623188406
         },
         {
           "bucket": "3-4",
-          "players": 0,
-          "wins": 0,
-          "winRate": 0,
-          "avgWinningTurns": null
+          "players": 14,
+          "wins": 4,
+          "winRate": 0.2857142857142857,
+          "avgWinningTurns": 164.25
         },
         {
           "bucket": "5+",
@@ -575,10 +575,10 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 344,
-          "wins": 172,
+          "players": 9084,
+          "wins": 4542,
           "winRate": 0.5,
-          "avgWinningTurns": 118.37790697674419
+          "avgWinningTurns": 85.68780273007485
         },
         {
           "bucket": "1",
@@ -616,38 +616,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 25,
-          "wins": 8,
-          "winRate": 0.32,
-          "avgWinningTurns": 177.625
+          "players": 494,
+          "wins": 118,
+          "winRate": 0.2388663967611336,
+          "avgWinningTurns": 118.5677966101695
         },
         {
           "bucket": "1",
-          "players": 82,
-          "wins": 32,
-          "winRate": 0.3902439024390244,
-          "avgWinningTurns": 151.25
+          "players": 1721,
+          "wins": 580,
+          "winRate": 0.337013364323068,
+          "avgWinningTurns": 105.31379310344828
         },
         {
           "bucket": "2",
-          "players": 71,
-          "wins": 35,
-          "winRate": 0.49295774647887325,
-          "avgWinningTurns": 117.34285714285714
+          "players": 1502,
+          "wins": 673,
+          "winRate": 0.44806924101198403,
+          "avgWinningTurns": 93.43239227340267
         },
         {
           "bucket": "3-4",
-          "players": 91,
-          "wins": 52,
-          "winRate": 0.5714285714285714,
-          "avgWinningTurns": 115.6923076923077
+          "players": 3059,
+          "wins": 1780,
+          "winRate": 0.5818895063746322,
+          "avgWinningTurns": 80.55224719101123
         },
         {
           "bucket": "5+",
-          "players": 75,
-          "wins": 45,
-          "winRate": 0.6,
-          "avgWinningTurns": 88.37777777777778
+          "players": 2308,
+          "wins": 1391,
+          "winRate": 0.6026863084922011,
+          "avgWinningTurns": 77.53989935298347
         }
       ]
     },
@@ -657,38 +657,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 56,
-          "wins": 25,
-          "winRate": 0.44642857142857145,
-          "avgWinningTurns": 152.4
+          "players": 1491,
+          "wins": 592,
+          "winRate": 0.3970489604292421,
+          "avgWinningTurns": 103.24155405405405
         },
         {
           "bucket": "1",
-          "players": 108,
-          "wins": 48,
-          "winRate": 0.4444444444444444,
-          "avgWinningTurns": 125.45833333333333
+          "players": 2599,
+          "wins": 1313,
+          "winRate": 0.5051943055021162,
+          "avgWinningTurns": 91.98629093678599
         },
         {
           "bucket": "2",
-          "players": 90,
-          "wins": 51,
-          "winRate": 0.5666666666666667,
-          "avgWinningTurns": 115.47058823529412
+          "players": 2556,
+          "wins": 1358,
+          "winRate": 0.5312989045383412,
+          "avgWinningTurns": 82.52650957290133
         },
         {
           "bucket": "3-4",
-          "players": 88,
-          "wins": 47,
-          "winRate": 0.5340909090909091,
-          "avgWinningTurns": 97.63829787234043
+          "players": 2343,
+          "wins": 1221,
+          "winRate": 0.5211267605633803,
+          "avgWinningTurns": 74.62489762489763
         },
         {
           "bucket": "5+",
-          "players": 2,
-          "wins": 1,
-          "winRate": 0.5,
-          "avgWinningTurns": 51
+          "players": 95,
+          "wins": 58,
+          "winRate": 0.6105263157894737,
+          "avgWinningTurns": 70.84482758620689
         }
       ]
     },
@@ -698,31 +698,31 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 161,
-          "wins": 59,
-          "winRate": 0.36645962732919257,
-          "avgWinningTurns": 150
+          "players": 3425,
+          "wins": 1269,
+          "winRate": 0.3705109489051095,
+          "avgWinningTurns": 106.7612293144208
         },
         {
           "bucket": "1",
-          "players": 127,
-          "wins": 77,
-          "winRate": 0.6062992125984252,
-          "avgWinningTurns": 95.45454545454545
+          "players": 3232,
+          "wins": 1841,
+          "winRate": 0.5696163366336634,
+          "avgWinningTurns": 79.67191743617599
         },
         {
           "bucket": "2",
-          "players": 50,
-          "wins": 32,
-          "winRate": 0.64,
-          "avgWinningTurns": 123.03125
+          "players": 1993,
+          "wins": 1168,
+          "winRate": 0.5860511791269443,
+          "avgWinningTurns": 75.08904109589041
         },
         {
           "bucket": "3-4",
-          "players": 6,
-          "wins": 4,
-          "winRate": 0.6666666666666666,
-          "avgWinningTurns": 56
+          "players": 434,
+          "wins": 264,
+          "winRate": 0.6082949308755761,
+          "avgWinningTurns": 73.23484848484848
         },
         {
           "bucket": "5+",
@@ -739,38 +739,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 244,
-          "wins": 94,
-          "winRate": 0.38524590163934425,
-          "avgWinningTurns": 151.72340425531914
+          "players": 6183,
+          "wins": 2425,
+          "winRate": 0.3922044315057415,
+          "avgWinningTurns": 102.89360824742268
         },
         {
           "bucket": "1",
-          "players": 54,
-          "wins": 40,
-          "winRate": 0.7407407407407407,
-          "avgWinningTurns": 94.55
+          "players": 1730,
+          "wins": 1155,
+          "winRate": 0.6676300578034682,
+          "avgWinningTurns": 72.1073593073593
         },
         {
           "bucket": "2",
-          "players": 24,
-          "wins": 21,
-          "winRate": 0.875,
-          "avgWinningTurns": 52.285714285714285
+          "players": 746,
+          "wins": 631,
+          "winRate": 0.8458445040214477,
+          "avgWinningTurns": 57.84627575277337
         },
         {
           "bucket": "3-4",
-          "players": 22,
-          "wins": 17,
-          "winRate": 0.7727272727272727,
-          "avgWinningTurns": 71.70588235294117
+          "players": 397,
+          "wins": 313,
+          "winRate": 0.7884130982367759,
+          "avgWinningTurns": 59.76996805111821
         },
         {
           "bucket": "5+",
-          "players": 0,
-          "wins": 0,
-          "winRate": 0,
-          "avgWinningTurns": null
+          "players": 28,
+          "wins": 18,
+          "winRate": 0.6428571428571429,
+          "avgWinningTurns": 65.77777777777777
         }
       ]
     },
@@ -780,38 +780,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 84,
-          "wins": 35,
-          "winRate": 0.4166666666666667,
-          "avgWinningTurns": 78.2
+          "players": 2304,
+          "wins": 882,
+          "winRate": 0.3828125,
+          "avgWinningTurns": 81.50340136054422
         },
         {
           "bucket": "1",
-          "players": 159,
-          "wins": 88,
-          "winRate": 0.5534591194968553,
-          "avgWinningTurns": 120.19318181818181
+          "players": 4955,
+          "wins": 2750,
+          "winRate": 0.5549949545913219,
+          "avgWinningTurns": 83.94218181818182
         },
         {
           "bucket": "2",
-          "players": 82,
-          "wins": 42,
-          "winRate": 0.5121951219512195,
-          "avgWinningTurns": 142.76190476190476
+          "players": 1573,
+          "wins": 789,
+          "winRate": 0.501589319771138,
+          "avgWinningTurns": 94.62484157160964
         },
         {
           "bucket": "3-4",
-          "players": 17,
-          "wins": 6,
-          "winRate": 0.35294117647058826,
-          "avgWinningTurns": 157.83333333333334
+          "players": 250,
+          "wins": 121,
+          "winRate": 0.484,
+          "avgWinningTurns": 97.58677685950413
         },
         {
           "bucket": "5+",
           "players": 2,
-          "wins": 1,
-          "winRate": 0.5,
-          "avgWinningTurns": 104
+          "wins": 0,
+          "winRate": 0,
+          "avgWinningTurns": null
         }
       ]
     },
@@ -821,24 +821,24 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 71,
-          "wins": 38,
-          "winRate": 0.5352112676056338,
-          "avgWinningTurns": 124.86842105263158
+          "players": 1604,
+          "wins": 698,
+          "winRate": 0.43516209476309226,
+          "avgWinningTurns": 86.4971346704871
         },
         {
           "bucket": "1",
-          "players": 189,
-          "wins": 84,
-          "winRate": 0.4444444444444444,
-          "avgWinningTurns": 117.17857142857143
+          "players": 4770,
+          "wins": 2408,
+          "winRate": 0.5048218029350104,
+          "avgWinningTurns": 85.9015780730897
         },
         {
           "bucket": "2",
-          "players": 84,
-          "wins": 50,
-          "winRate": 0.5952380952380952,
-          "avgWinningTurns": 115.46
+          "players": 2710,
+          "wins": 1436,
+          "winRate": 0.529889298892989,
+          "avgWinningTurns": 84.93593314763231
         },
         {
           "bucket": "3-4",
@@ -862,38 +862,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 21,
-          "wins": 12,
-          "winRate": 0.5714285714285714,
-          "avgWinningTurns": 82.25
+          "players": 733,
+          "wins": 317,
+          "winRate": 0.4324693042291951,
+          "avgWinningTurns": 81.93375394321767
         },
         {
           "bucket": "1",
-          "players": 73,
-          "wins": 28,
-          "winRate": 0.3835616438356164,
-          "avgWinningTurns": 138.67857142857142
+          "players": 2203,
+          "wins": 1061,
+          "winRate": 0.48161597821152974,
+          "avgWinningTurns": 81.96041470311027
         },
         {
           "bucket": "2",
-          "players": 104,
-          "wins": 49,
-          "winRate": 0.47115384615384615,
-          "avgWinningTurns": 104.0204081632653
+          "players": 2545,
+          "wins": 1311,
+          "winRate": 0.5151277013752456,
+          "avgWinningTurns": 84.27154843630817
         },
         {
           "bucket": "3-4",
-          "players": 105,
-          "wins": 62,
-          "winRate": 0.5904761904761905,
-          "avgWinningTurns": 124.38709677419355
+          "players": 2838,
+          "wins": 1472,
+          "winRate": 0.5186751233262861,
+          "avgWinningTurns": 88.03940217391305
         },
         {
           "bucket": "5+",
-          "players": 41,
-          "wins": 21,
-          "winRate": 0.5121951219512195,
-          "avgWinningTurns": 127.71428571428571
+          "players": 765,
+          "wins": 381,
+          "winRate": 0.4980392156862745,
+          "avgWinningTurns": 94.97900262467192
         }
       ]
     },
@@ -903,38 +903,38 @@
       "buckets": [
         {
           "bucket": "0",
-          "players": 33,
-          "wins": 17,
-          "winRate": 0.5151515151515151,
-          "avgWinningTurns": 79.05882352941177
+          "players": 1080,
+          "wins": 423,
+          "winRate": 0.39166666666666666,
+          "avgWinningTurns": 74.52482269503547
         },
         {
           "bucket": "1",
-          "players": 90,
-          "wins": 34,
-          "winRate": 0.37777777777777777,
-          "avgWinningTurns": 98.55882352941177
+          "players": 1878,
+          "wins": 688,
+          "winRate": 0.3663471778487753,
+          "avgWinningTurns": 91.96220930232558
         },
         {
           "bucket": "2",
-          "players": 86,
-          "wins": 48,
-          "winRate": 0.5581395348837209,
-          "avgWinningTurns": 112.91666666666667
+          "players": 2867,
+          "wins": 1517,
+          "winRate": 0.5291245204046041,
+          "avgWinningTurns": 82.65985497692814
         },
         {
           "bucket": "3-4",
-          "players": 111,
-          "wins": 60,
-          "winRate": 0.5405405405405406,
-          "avgWinningTurns": 138.65
+          "players": 2814,
+          "wins": 1635,
+          "winRate": 0.5810234541577826,
+          "avgWinningTurns": 87.71559633027523
         },
         {
           "bucket": "5+",
-          "players": 24,
-          "wins": 13,
-          "winRate": 0.5416666666666666,
-          "avgWinningTurns": 148.23076923076923
+          "players": 445,
+          "wins": 279,
+          "winRate": 0.6269662921348315,
+          "avgWinningTurns": 91.72043010752688
         }
       ]
     }
