@@ -237,13 +237,13 @@ Eukalyptové stromy slouží jako "kapitál vědění" pro učení dovedností. 
 #### Obsaď 💩 (vždy možné)
 Polož na Eukalyptus žeton Bobku. Ukazatel Bobku +1.
 
-#### Obsaď + Uč se 🌳🧠 (volitelné, 1× za hru)
+#### Obsaď + Uč se 🌳🧠 (volitelné, 1× per strom)
 Místo standardního Obsaď můžeš ve stejném tahu **i hned naučit dovednost**.
 - Strom se obsadí jako obvykle (+1 ukazatel stromů).
 - Bezprostředně pak vybereš dovednost (jako akce **Uč se** na Hlíně).
 - Strom který si právě obsadil **se počítá do požadovaných stromů**.
 
-⚠️ **Omezení 1× za hru:** Hráč může využít akci „Obsaď + Uč se" pouze **jednou za celou hru** (nezáleží zda potom soupeř strom přebere — omezení zůstává).
+⚠️ **Omezení 1× per strom:** Hráč může využít akci „Obsaď + Uč se" **jednou na každém stromě** (ne 1× za hru celkově). Pokud hráč během hry navštíví 3 různé Eukalypty, může na každém z nich kombo využít. Na témže stromě jen 1× — soupeřův takeover stromu na tom nic nemění.
 
 **Převzetí soupeři** a **Obrana** fungují identicky jako u Záhonu.
 
@@ -485,7 +485,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
 | Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
 | Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
-| Eukalyptus: Obsaď + Uč se | **přidáno** — 1× za hru lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti |
+| Eukalyptus: Obsaď + Uč se | **přidáno** — lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti. **1× per strom per hráč** (ne 1× za hru celkově) — když navštívíš 3 různé stromy, můžeš ho použít 3×. |
 | Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |
 | Odměna za Kočku | **změna** — 1k20 → **1k8**. K20 byla příliš dominantní strategie (84-96 % win rate při 2+ rozdrcených kočkách). 1k8 je solidní bonus, ale ne instant-win. Milestone Lázně zdarma za 1. kočku zachováno. |
 

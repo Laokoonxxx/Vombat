@@ -69,7 +69,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
       markersPlaced: { bobek: 0, mrkev: 0 },
       vombats: [], // placed during setup
       skills: new Set<SkillId>(),
-      usedTreeLearnOnce: false,
+      treeLearnUsedHexes: new Set<string>(),
       lastRoll: null,
       fighting: false,
     };
@@ -119,6 +119,7 @@ function cloneState(state: GameState): GameState {
     pendingDice: [...p.pendingDice],
     vombats: p.vombats.map((v) => ({ ...v })),
     skills: new Set(p.skills),
+    treeLearnUsedHexes: new Set(p.treeLearnUsedHexes ?? []),
     markersPlaced: { ...p.markersPlaced },
   }));
   const newDevil = {
@@ -874,10 +875,11 @@ function useBed(state: GameState, hex: Hex): GameState {
 function useTree(state: GameState, hex: Hex, action?: 'occupy' | 'occupy_and_learn'): GameState {
   const p0 = currentPlayer(state);
   // If no sub-action specified AND the tree-learn option is available
-  // (1× per game per player + at least one skill affordable AFTER the
+  // (1× per tree per player + at least one skill affordable AFTER the
   // upcoming +1 tree bobekTrack), ask the player to pick.
   if (!action) {
-    const couldLearn = !p0.usedTreeLearnOnce && canAffordSomeSkill(p0, +1);
+    const alreadyDoneOnThisTree = p0.treeLearnUsedHexes.has(hexKey(hex));
+    const couldLearn = !alreadyDoneOnThisTree && canAffordSomeSkill(p0, +1);
     if (couldLearn) {
       const s = cloneState(state);
       s.pendingChoice = { kind: 'select_tree_action', hex };
@@ -1104,11 +1106,13 @@ export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, 
   p.reserve = reserveCopy;
   p.potatoes -= potatoesUsed;
   grantSkill(s, p, skill);
-  // Tree-source learn: mark the once-per-game flag now (only after success).
+  // Tree-source learn: mark THIS hex as used by this player so they can't
+  // do "Obsaď + Uč se" on the same tree again. Other trees are still
+  // available (1× per tree per player, not 1× per game).
   const pc = s.pendingChoice as any;
   const source: 'dirt' | 'tree' = pc?.source ?? 'dirt';
   if (source === 'tree') {
-    p.usedTreeLearnOnce = true;
+    p.treeLearnUsedHexes.add(hexKey(pc.hex));
   } else {
     // Dirt-source: mark the dirt cell with bobek as the learning marker.
     // (Tree cells are already marked by useTree before this runs.)

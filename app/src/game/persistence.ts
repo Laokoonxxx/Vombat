@@ -12,7 +12,7 @@
 import type { GameState, BoardCell, SkillId } from './types';
 
 const STORAGE_KEY = 'vombat:gameState';
-const SAVE_VERSION = 12; // bump when GameState shape changes or map balance shifts
+const SAVE_VERSION = 13; // bump when GameState shape changes or map balance shifts
 
 interface SerializedState {
   version: number;
@@ -35,6 +35,7 @@ export function serializeState(state: GameState): string {
       players: state.players.map((p) => ({
         ...p,
         skills: Array.from(p.skills),
+        treeLearnUsedHexes: Array.from(p.treeLearnUsedHexes ?? []),
       })),
       // devilWounds is plain objects; safe as-is
       devilWounds: state.devilWounds,
@@ -54,6 +55,7 @@ export function deserializeState(json: string): GameState | null {
       players: s.players.map((p: any) => ({
         ...p,
         skills: new Set<SkillId>(p.skills),
+        treeLearnUsedHexes: new Set<string>(p.treeLearnUsedHexes ?? []),
       })),
     } as GameState;
   } catch {

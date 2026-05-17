@@ -695,7 +695,8 @@ function TreeActionModal({ state, setState }: { state: GameState; setState: (s: 
         </div>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
           Můžeš si jen <strong>obsadit strom</strong>, nebo zároveň využít k <strong>učení dovednosti</strong>.
-          Učení přes strom je možné <strong>jen 1× za hru</strong> (i pokud později strom přebere soupeř).
+          Učení přes strom je možné <strong>1× per strom per hráč</strong> — když navštívíš jiný Eukalyptus,
+          můžeš ho použít znovu.
         </p>
         <div className="actions" style={{ marginTop: 10 }}>
           <button
@@ -707,7 +708,7 @@ function TreeActionModal({ state, setState }: { state: GameState; setState: (s: 
           <button
             onClick={() => setState(useField(state, pc.hex, { treeAction: 'occupy_and_learn' }))}
           >
-            🌳🧠 Obsadit + Uč se dovednost (1× za hru)
+            🌳🧠 Obsadit + Uč se dovednost (1× pro tento strom)
           </button>
         </div>
       </div>

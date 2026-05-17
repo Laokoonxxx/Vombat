@@ -75,9 +75,12 @@ export interface PlayerState {
   markersPlaced: { bobek: number; mrkev: number }; // celkové počty
   vombats: { id: string; hex: Hex }[];
   skills: Set<SkillId>;
-  // Tree learning is allowed once per game per player (combined Obsaď + Uč se
-  // on a Eukalyptus). Persists even if opponent takes over the tree later.
-  usedTreeLearnOnce: boolean;
+  // Tree-learn ("Obsaď + Uč se") is allowed once per game PER TREE per player.
+  // The same player can do it on multiple different trees (e.g., 3× during a
+  // game if they visit 3 different Eukalypts) but not twice on the same tree.
+  // Stored as a set of hex keys (q,r) — opponent taking over the tree later
+  // doesn't reset this flag for the original player.
+  treeLearnUsedHexes: Set<string>;
   // Dice currently rolled at start of turn (parallel to hand)
   lastRoll: number[] | null; // null = not yet rolled this turn
   // For devil combat tracking (only when fighting this turn)
