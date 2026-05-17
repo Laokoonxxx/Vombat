@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vombat — tiskové materiály</title>
+  <style>
+    :root {
+      --dirt: #e8a055;
+      --bed: #9ca3af;
+      --desert: #d4b896;
+      --tree: #3b82f6;
+      --thorn: #4ade80;
+      --cat: #92400e;
+      --devil: #1f2937;
+      --ink: #111;
+      --muted: #555;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.35;
+      color: var(--ink);
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 8mm;
+    }
+    h1 { font-size: 18pt; margin: 0 0 4px; }
+    h2 { font-size: 13pt; margin: 14px 0 6px; border-bottom: 2px solid #333; padding-bottom: 2px; }
+    h3 { font-size: 11pt; margin: 10px 0 4px; }
+    p { margin: 4px 0; }
+    ul, ol { margin: 4px 0; padding-left: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6px 0; }
+    th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f3f4f6; }
+    code { font-size: 9pt; background: #f3f4f6; padding: 0 3px; }
+    .muted { color: var(--muted); font-size: 9pt; }
+    .box { border: 1px solid #ccc; border-radius: 4px; padding: 8px 10px; margin: 8px 0; background: #fafafa; }
+    .box-warn { background: #fff8e6; border-color: #e6c200; }
+    .box-tip { background: #e8f5e0; border-color: #86b86a; }
+    .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .page-break { page-break-after: always; break-after: page; }
+    .tracker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+    .wound-slot {
+      border: 2px dashed #666; border-radius: 6px; padding: 10px 4px;
+      text-align: center; font-weight: bold; min-height: 48px;
+    }
+    .checklist li { margin: 2px 0; }
+    @media print {
+      body { padding: 0; max-width: none; }
+      .no-print { display: none; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+
+<p class="no-print muted" style="background:#e0f2fe;padding:8px;border-radius:4px;">
+  <strong>Tisk:</strong> Ctrl+P → A4, okraje „Výchozí“, zapni <strong>Pozadí grafiky</strong>.
+  Soubor: <code>print/vombat-tisk.html</code>
+</p>
+
+<!-- ========== PAGE 1: PŘEHLED ========== -->
+<h1>🐾 Vombat — přehled pravidel (výlet)</h1>
+<p class="muted">Tahová hex hra · 2 hráči (na výlet) · cíl: rozmačkat Tasmánského Čerta</p>
+
+<h2>🎯 Cíl</h2>
+<p><strong>Rozmačkej Čerta</strong> — 4 zranění (1, 2, 7+, 10+), pak finální hod <strong>součet 25+</strong>.</p>
+<p class="muted">Volitelně: ovládnout 4 eukalypty, nebo 3 eukalypty + 7 záhonů mrkve; nebo plnit úkoly (formace).</p>
+
+<h2>⚙️ Příprava (2 hráči)</h2>
+<ol class="checklist">
+  <li>Slož <strong>7 dílků</strong> do květiny (5× modrý střed 🌳, 2× černý 👹) — mapu připrav zvlášť (app / vlastní dílky).</li>
+  <li>Na <strong>Houští 🌵</strong> polož kostku k4/k6/k8 (na dílku uvedeno, nebo los 2:2:1).</li>
+  <li>Na <strong>Kočky 🐱</strong> polož figurku.</li>
+  <li>Každý: deska hráče, 1–2 Vombati, žetony barvy, <strong>10 🥔</strong> na nákup.</li>
+  <li>Los začínajícího → výběr startovního pole (ne Kočka/Čert) → <strong>nákup kostek</strong> (min. 1 kostka).</li>
+</ol>
+
+<table>
+  <tr><th>Nákup (setup)</th><th>Cena</th></tr>
+  <tr><td>1k2 / 1k4 / 1k6 / 1k8 / 1k10 / 1k12</td><td>5 / 7 / 9 / 10 / 10 / 12 🥔</td></tr>
+  <tr><td>2. Vombat (stejné pole jako 1.)</td><td>5 🥔</td></tr>
+  <tr><td>1k20</td><td>nelze koupit</td></tr>
+</table>
+
+<h2>🔄 Tah</h2>
+<ol>
+  <li><strong>(Třídění)</strong> Až 3× přesun kostky Ruka ↔ Zásoba <em>před hodem</em>.</li>
+  <li>Hoď <strong>všemi kostkami v Ruce</strong>, sečti součet.</li>
+  <li><strong>Kočka:</strong> sousedíš + hod &lt; 5 → odevzdej 1 🥔 nebo 1 kostku.</li>
+  <li><strong>Čert:</strong> stojíš/sousedíš → můžeš <em>před hodem</em> vyhlásit boj (§ boj).</li>
+  <li>Jinak zvol <strong>jednu</strong> akci: Pohyb · Využij pole · Spánek.</li>
+  <li><strong>Sprint:</strong> po Pohybu můžeš ještě Využít pole, kam jsi došel.</li>
+</ol>
+
+<div class="box box-tip">
+  <strong>💡 Ruka / Zásoba:</strong> max 2× stejný level v Ruce, max 3 v Zásobě → ruší <strong>Kapacita</strong>.
+  Kostka co se nevejde → čeká, dokud Kapacitu nezískáš.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ========== PAGE 2: BOJ + TUNELY ========== -->
+<h2>🐾 Pohyb</h2>
+<p>Sousední <strong>neobsazené</strong> pole, součet hodu v rozsahu pole (tabulka cheat sheet).</p>
+<ul>
+  <li>Nelze na cizího Vombata, živou Kočku (kromě rozmačkání 11–14).</li>
+  <li>Nelze na Houští s ležící kostkou (lze po využití / s žetonem).</li>
+  <li><strong>Tunel:</strong> stojíš/sousedíš s tunelem → skoč na libovolné jiné tunelové pole (bez kontroly hodu).</li>
+  <li>Tunely = všechna <strong>černá</strong> pole + pole po rozmačkané Kočce.</li>
+  <li><strong>Kočka 11–14:</strong> znič, získej <strong>1k8</strong>, pole = tunel; <strong>1. kočka</strong> → Lázně zdarma.</li>
+</ul>
+
+<h2>⚔️ Boj s Čertem</h2>
+<ol>
+  <li>Vedle/na Čertovi → <strong>před hodem</strong> vyhlás boj.</li>
+  <li>Hodíš vše z Ruky — <strong>každá kostka zvlášť</strong> (ne součet).</li>
+  <li>Zranění: přesně <strong>1</strong>, <strong>2</strong>, <strong>≥7</strong>, <strong>≥10</strong> — každý typ 1×, kostka propadá.</li>
+  <li>Máš-li aspoň 1 zásah → házíš znovu se zbytkem. Žádný zásah → útok Čerta, konec boje.</li>
+  <li>Po 4 zraněních → finální hod zbytkem: <strong>součet ≥ 25 = výhra</strong>, jinak útok Čerta.</li>
+</ol>
+<p class="muted">1. zranění Čerta kdykoliv → <strong>Kapacita</strong> zdarma.</p>
+
+<h2>😾 Útok Kočky / Čerta</h2>
+<p>Odevzdej <strong>1 🥔</strong> nebo <strong>1 kostku</strong> (tvoje volba). Jen 1 kostka celkem a žádná brambora → downgrade o 1 level. Jen 1k2 → ignoruj.</p>
+
+<h2>🏷️ Pole 1× za hru</h2>
+<p>Každé pole využiješ max jednou (značka 💩/🥕). Výjimky: převzetí Záhonu/Eukalyptu; Hlína s mrkví soupeře.</p>
+
+<div class="page-break"></div>
+
+<!-- ========== PAGE 3: POLE CHEAT ========== -->
+<h1>📋 Cheat sheet — typy polí</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pole</th>
+      <th>Pohyb (součet)</th>
+      <th>Využití (součet)</th>
+      <th>Akce / poznámka</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>🟫 <strong>Hlína</strong></td>
+      <td>2–4</td>
+      <td>2–4</td>
+      <td>
+        <strong>🥕 Zasaď</strong> — mrkev +1 track<br>
+        <strong>💩 Vyformuj</strong> — bobek, kostka dle skóre (níže)<br>
+        <strong>🧠 Uč se</strong> — bobek, dovednost (potřeba 🌳)
+      </td>
+    </tr>
+    <tr>
+      <td>🌱 <strong>Záhon</strong></td>
+      <td>4–6</td>
+      <td>4–6</td>
+      <td>
+        <strong>🥕 Zasaď</strong> — mrkev +1<br>
+        <strong>Převzetí</strong> — sundej mrkev soupeře, polož svou<br>
+        <strong>Obrana</strong> — po Zasaď nech kostku na poli (volitelné)
+      </td>
+    </tr>
+    <tr>
+      <td>🌳 <strong>Eukalyptus</strong></td>
+      <td>7–8</td>
+      <td>7–8</td>
+      <td>
+        <strong>💩 Obsaď</strong> — bobek track +1<br>
+        <strong>Obsaď + Uč se</strong> — 1× za celou hru!<br>
+        Převzetí + obrana jako Záhon
+      </td>
+    </tr>
+    <tr>
+      <td>🌵 <strong>Houští</strong></td>
+      <td>5–9*</td>
+      <td>k4: 5+ · k6: 7+ · k8: 9+</td>
+      <td>Vezmi kostku z pole → Ruka/Zásoba, označ 💩<br>
+        *pohyb jen pokud na poli už není „volná“ kostka</td>
+    </tr>
+    <tr>
+      <td>🏜️ <strong>Poušť</strong></td>
+      <td>7+</td>
+      <td>7+ (po <strong>Lázních</strong>)</td>
+      <td>Stejné akce jako Hlína</td>
+    </tr>
+    <tr>
+      <td>🐱 <strong>Kočka</strong></td>
+      <td>11–14 = rozmačkat</td>
+      <td>—</td>
+      <td>Útok při hodu &lt;5 vedle; po smrti = tunel + 1k8</td>
+    </tr>
+    <tr>
+      <td>👹 <strong>Čert</strong></td>
+      <td>12+</td>
+      <td>boj zvlášť</td>
+      <td>Tunel; souboj před hodem</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>💩 Vyformuj kostku — skóre</h3>
+<p><code>skóre = tvé mrkve + sousední značky SOUPEŘE + 🥔 investované (volitelné)</code></p>
+<table style="max-width: 280px;">
+  <tr><th>Skóre</th><th>Kostka</th></tr>
+  <tr><td>0</td><td>nic</td></tr>
+  <tr><td>1–5</td><td>k2 → k4 → k6 → k8 → k10</td></tr>
+  <tr><td>6–7</td><td>1k12</td></tr>
+  <tr><td>8+</td><td>1k20</td></tr>
+</table>
+<p class="muted">Při získání můžeš zvolit menší kostku. Záhony zvyšují skóre jen nepřímo (více mrkví).</p>
+
+<div class="page-break"></div>
+
+<!-- ========== PAGE 4: SKILLS ========== -->
+<h1>🧠 Dovednosti</h1>
+<p>Učení: akce <strong>Uč se</strong> na Hlíně/Poušti, nebo <strong>skill shop</strong> ve Spánku. Každou dovednost max <strong>1×</strong>.</p>
+
+<table>
+  <tr><th>Dovednost</th><th>🌳</th><th>Účinek</th><th>Shop</th></tr>
+  <tr><td><strong>Kapacita</strong></td><td>1</td><td>Ruší limit 2× stejný level v Ruce i max 3 v Zásobě; uvolní čekající kostky</td><td>5 🥔</td></tr>
+  <tr><td><strong>Lázně</strong> (Koupel)</td><td>1</td><td>Můžeš využívat Poušť jako Hlínu (hod 7+)</td><td>5 🥔</td></tr>
+  <tr><td><strong>Třídění</strong> (Klystýr)</td><td>1</td><td>Před každým hodem až 3× Ruka ↔ Zásoba zdarma</td><td>5 🥔</td></tr>
+  <tr><td><strong>Žvýkání</strong> (Masáž střev)</td><td>2</td><td>Ve Spánku: upgrade 1 kostky o 1 level</td><td>10 🥔</td></tr>
+  <tr><td><strong>Sprint</strong></td><td>2</td><td>Po Pohybu ještě Využij pole, kam jsi šel</td><td>10 🥔</td></tr>
+  <tr><td><strong>Bylinkový elixír</strong> (Ajurvéda)</td><td>3</td><td>Spánek: +2 lvl na 1 kostku, nebo +1 na 2, nebo k12→k20</td><td>15 🥔</td></tr>
+</table>
+
+<p><strong>Uč se na Hlíně:</strong> potřebuješ N eukalyptů (🌳 obsazených). 1 strom nahradíš: odhozená kostka <em>nebo</em> 3 🥔.</p>
+
+<h2>💤 Spánek (kdykoliv po hodu, nebo místo akce při 0 kostkách v Ruce)</h2>
+<ul>
+  <li>+1 🥔</li>
+  <li>Downgrade libovolných kostek</li>
+  <li>1× výměna Ruka ↔ Zásoba (přesun / swap)</li>
+  <li><strong>Teleport</strong> — 5 🥔, Vombat kamkoli (ne Čert, ne živá Kočka, ne obsazeno)</li>
+  <li><strong>Skill shop</strong> — 5 🥔 × počet 🌳 uvedených u dovednosti</li>
+  <li>+ dovednosti Žvýkání / Ajurvéda (viz tabulka)</li>
+</ul>
+<p class="muted">🥔 také: útok, Vyformuj (+1 skóre/kus), náhrada stromu při Uč se (3 🥔), upgrade (+3 🥔 = +1 level).</p>
+
+<div class="page-break"></div>
+
+<!-- ========== PAGE 5: ÚKOLY ========== -->
+<h1>🏅 Úkoly (formace)</h1>
+<p>Po každém položení <strong>💩 nebo 🥕</strong> zkontroluj (Bobek a Mrkev jsou stejné; Vombat se nepočítá). Každou formaci max <strong>1× na hráče</strong>.</p>
+
+<table>
+  <tr><th>Úkol</th><th>Splnění</th><th>Odměna (pořadí)</th></tr>
+  <tr>
+    <td><strong>Přímka 5</strong></td>
+    <td>5+ tvých značek v jedné hex-přímce; žádná značka soupeře nesmí sousedit s těmi 5 hex-y</td>
+    <td>1. → 1k20 · 2. → 1k12 · 3. → 1k6 · 4.+ → ∅</td>
+  </tr>
+  <tr>
+    <td><strong>Obklíčení</strong></td>
+    <td>4+ tvých značek kolem jedné značky soupeře (sousedí s hexem soupeře)</td>
+    <td>stejné</td>
+  </tr>
+  <tr>
+    <td><strong>Průzkumník</strong></td>
+    <td>Tvé značky na <strong>6+ různých dílcích</strong> mapy</td>
+    <td>stejné</td>
+  </tr>
+</table>
+<p class="muted">Více formací najednou = odměny postupně. Můžeš zvolit menší kostku než nabídka.</p>
+
+<div class="box">
+  <strong>Tracker formací</strong> (zaškrtni při splnění):
+  <table style="font-size:8.5pt;margin-top:4px;">
+    <tr><th></th><th>Přímka 5</th><th>Obklíčení</th><th>Průzkumník</th></tr>
+    <tr><td>Hráč 1 — 1. místo</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>Hráč 1 — splněno</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>Hráč 2 — 1. místo</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>Hráč 2 — splněno</td><td>☐</td><td>☐</td><td>☐</td></tr>
+  </table>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ========== PAGE 6: NÁPADY ========== -->
+<h1>💭 K testování na výletě — co digitál ještě nemá / zjednodušuje</h1>
+<p class="muted">Poznámky pro tebe — co zkusit fyzicky a přemýšlet, co do appky doplnit.</p>
+
+<div class="cols2">
+  <div>
+    <h3>🔴 Zjednodušeno v appce</h3>
+    <ul>
+      <li><strong>Obrana kostkou</strong> na Záhonu/Eukalyptu — v app bez ověření vyšší kostky; fyzicky zkus plné pravidlo.</li>
+      <li><strong>Investice 🥔 do Vyformuj</strong> — app nepočítá; na papíru si veď skóre ručně.</li>
+      <li><strong>Jen cíl „Čert“</strong> — app MVP; fyzicky zkus i cíle 4 stromy / 3+7 mrkví.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>🟡 Chybí v appce</h3>
+    <ul>
+      <li><strong>3–4 hráči</strong> (10 / 13 dílků, jiný layout).</li>
+      <li>Více layoutů mapy než „květina 7“.</li>
+      <li>Vrtej (odstraněno z MVP).</li>
+    </ul>
+  </div>
+</div>
+
+<h3>🟢 Nápady k rozhodnutí</h3>
+<ul>
+  <li>Je <strong>skill shop ve Spánku</strong> moc silný vs. Uč se na Hlíně?</li>
+  <li><strong>Teleport (5 🥔)</strong> — řeší dead-end, nebo moc úniku?</li>
+  <li><strong>Milestone</strong> Kapacita / Lázně zdarma — správná síla?</li>
+  <li><strong>1k8 za Kočku</strong> (dříve k20) — stále moc silné?</li>
+  <li><strong>Třídění 3× před hodem</strong> — cítí se deck-building?</li>
+  <li><strong>Formace</strong> — mění tempo hry? Jsou odměny férové?</li>
+  <li><strong>Tunel</strong> — příliš silný teleport?</li>
+  <li><strong>Délka hry</strong> — kolik tahů do vítězství je OK na výlet?</li>
+  <li>Potřebuješ <strong>referenční list pro souboj s Čertem</strong> u stolu? (je na str. 2)</li>
+  <li>Pravidla pro <strong>2. Vombata</strong> — kdy se vyplatí?</li>
+</ul>
+
+<div class="box box-warn">
+  <strong>📝 Protokol testu:</strong> Datum · hráči · setup dílků · vítěz za kolik tahů · co bylo matoucí · co změnit
+</div>
+
+<h2>👹 Tracker zranění Čerta (každý hráč vlastní)</h2>
+<div class="cols2">
+  <div>
+    <strong>Hráč A</strong>
+    <div class="tracker">
+      <div class="wound-slot">1</div>
+      <div class="wound-slot">2</div>
+      <div class="wound-slot">7+</div>
+      <div class="wound-slot">10+</div>
+    </div>
+    <p class="muted">Finální hod 25+: ☐</p>
+  </div>
+  <div>
+    <strong>Hráč B</strong>
+    <div class="tracker">
+      <div class="wound-slot">1</div>
+      <div class="wound-slot">2</div>
+      <div class="wound-slot">7+</div>
+      <div class="wound-slot">10+</div>
+    </div>
+    <p class="muted">Finální hod 25+: ☐</p>
+  </div>
+</div>
+
+</body>
+</html>

@@ -12,9 +12,10 @@ export interface SetupScreenProps {
   onNewGame?: () => void;
   onShowStats?: () => void;
   onShowRules?: () => void;
+  onShowProbabilities?: () => void;
 }
 
-export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRules }: SetupScreenProps) {
+export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: SetupScreenProps) {
   // Phase 1: each player picks a starting hex in order.
   // Phase 2: each player buys at least 1 die and optionally a 2nd vombat.
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
@@ -67,6 +68,7 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
         <h1>🐾 Vombat — příprava hry</h1>
         <div style={{ display: 'flex', gap: 8 }}>
           {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
+          {onShowProbabilities && <button onClick={onShowProbabilities}>🎲 Pravděpodobnosti</button>}
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
             <button

@@ -54,11 +54,12 @@ export interface GameScreenProps {
   onNewGame?: () => void;
   onShowStats?: () => void;
   onShowRules?: () => void;
+  onShowProbabilities?: () => void;
 }
 
 type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu' | 'pickTeleport';
 
-export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRules }: GameScreenProps) {
+export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
@@ -213,6 +214,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
             Tah #{state.turnNumber} · {p.name}
           </div>
           {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
+          {onShowProbabilities && <button onClick={onShowProbabilities}>🎲 Pravděpodobnosti</button>}
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
             <button

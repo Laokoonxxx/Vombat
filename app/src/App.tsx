@@ -4,6 +4,7 @@ import type { GameState } from './game/types';
 import { SetupScreen } from './components/SetupScreen';
 import { GameScreen } from './components/GameScreen';
 import { StatsViewer } from './components/StatsViewer';
+import { DiceProbabilityViewer } from './components/DiceProbabilityViewer';
 import { QuickRules, shouldAutoShowQuickRules } from './components/QuickRules';
 import { loadFromStorage, saveToStorage, clearStorage, getSaveMeta } from './game/persistence';
 
@@ -17,6 +18,7 @@ export function App() {
   const [p2Name, setP2Name] = useState('Hráč 2');
   const [aiName, setAiName] = useState('AI');
   const [showStats, setShowStats] = useState(false);
+  const [showProbabilities, setShowProbabilities] = useState(false);
   const [showRules, setShowRules] = useState<boolean>(() => shouldAutoShowQuickRules());
 
   // Wrapper that always persists.
@@ -37,6 +39,10 @@ export function App() {
 
   if (showStats) {
     return <StatsViewer onClose={() => setShowStats(false)} />;
+  }
+
+  if (showProbabilities) {
+    return <DiceProbabilityViewer onClose={() => setShowProbabilities(false)} />;
   }
 
   // QuickRules can render on top of any screen
@@ -131,6 +137,12 @@ export function App() {
           📖 Jak hrát (rychlý úvod)
         </button>
         <button
+          onClick={() => setShowProbabilities(true)}
+          style={{ marginTop: 8, width: '100%' }}
+        >
+          🎲 Pravděpodobnosti kostek (tabulka pro plánování ruky)
+        </button>
+        <button
           onClick={() => setShowStats(true)}
           style={{ marginTop: 8, width: '100%' }}
         >
@@ -150,6 +162,7 @@ export function App() {
           onNewGame={startNewGame}
           onShowStats={() => setShowStats(true)}
           onShowRules={() => setShowRules(true)}
+          onShowProbabilities={() => setShowProbabilities(true)}
         />
         {rulesOverlay}
       </>
@@ -163,6 +176,7 @@ export function App() {
         onNewGame={startNewGame}
         onShowStats={() => setShowStats(true)}
         onShowRules={() => setShowRules(true)}
+        onShowProbabilities={() => setShowProbabilities(true)}
       />
       {rulesOverlay}
     </>
