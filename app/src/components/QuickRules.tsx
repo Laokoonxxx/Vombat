@@ -52,17 +52,27 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
 
         <Section title="🐾 Tvůj tah">
           <ol style={{ margin: 0, paddingLeft: 20 }}>
-            <li>Hoď všemi kostkami v <strong>Ruce</strong>. Spočítej součet.</li>
+            <li>
+              <strong>Rozhodni se:</strong>
+              <ul style={{ margin: 0 }}>
+                <li><strong>🎲 Hoď</strong> všemi kostkami v Ruce, spočítej součet.</li>
+                <li><strong>🥔🥔 Neházej</strong> — vezmi 2 brambory, tah skončí. Dobrá volba, když máš špatnou ruku na sousední pole.</li>
+              </ul>
+            </li>
             <li>Pokud jsi <em>vedle Kočky</em> a hodil &lt; 5 → odevzdej 🥔 bramboru nebo kostku.</li>
             <li>
-              Vyber 1 akci:
+              Pokud jsi hodil, vyber 1 akci:
               <ul style={{ margin: 0 }}>
                 <li><strong>🐾 Pohyb</strong> — Vombat na sousední pole, pokud součet odpovídá rozsahu</li>
                 <li><strong>🌿 Využij pole</strong> — kde stojíš nebo sousedíš (pole se obsadí)</li>
-                <li><strong>💤 Spánek</strong> — když nemáš co dělat (vyber bonus)</li>
+                <li><strong>💤 Spánek</strong> — menu speciálních akcí (výměna, teleport, Skill shop…)</li>
               </ul>
             </li>
           </ol>
+          <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+            💡 Volba „🥔🥔 Neházej" je strategická — brambory jsou cennější, než to vypadá:
+            za 5 🥔 koupíš dovednost, 1 🥔 = obrana vs Kočka/Čert, 3 🥔 = chybějící strom při učení.
+          </p>
         </Section>
 
         <Section title="🟫 Typy polí (rozsah pro pohyb / akce na poli)">

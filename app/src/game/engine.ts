@@ -514,6 +514,30 @@ export function rollDice(state: GameState, rng?: RNG): GameState {
 }
 
 // =============================================================================
+// SKIP ROLL FOR POTATOES — strategic alternative to rolling
+// =============================================================================
+// At turn start, instead of rolling, the player can declare "neházím" and gain
+// 2 brambory. Tah končí. Useful when:
+//   - Hand doesn't match nearby field activations
+//   - You want to save up for skill shop, defense, or future ±roll adjustment
+//
+// This is intentionally NOT a Sleep menu option — it's a top-level binary
+// decision parallel to Roll. Sleep menu's gain_potato (1 🥔) stays as-is
+// (deprecated by this for pure brambor farming, but retained for legacy).
+
+export const SKIP_ROLL_POTATOES = 2;
+
+export function skipRollForPotatoes(state: GameState): GameState {
+  if (state.phase !== 'idle') return state;
+  const s = cloneState(state);
+  const p = currentPlayer(s);
+  p.potatoes += SKIP_ROLL_POTATOES;
+  logEntry(s, `${p.name} se rozhodl tento tah neházet → získává ${SKIP_ROLL_POTATOES} 🥔.`);
+  endTurn(s);
+  return s;
+}
+
+// =============================================================================
 // PRE-ROLL SWAP (Třídění)
 // =============================================================================
 // With Třídění, the player can perform up to 3 swap ops BEFORE rolling dice

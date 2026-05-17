@@ -40,6 +40,9 @@ function classify(entry: string): ActionCategory | null {
   // sleep swap so we don't conflate the two distinct mechanics.
   if (entry.includes('(Třídění)')) return 'pre_roll_swap';
 
+  // Skip roll for potatoes — strategic alternative to rolling at turn start
+  if (entry.includes('rozhodl tento tah neházet')) return 'skip_roll_potatoes';
+
   // Sleep variants — keep above generic "spí" patterns
   if (entry.includes('teleportoval Vombata')) return 'sleep_teleport';
   if (entry.includes('koupil dovednost')) return 'sleep_buy_skill';

@@ -45,6 +45,7 @@ const ACTION_LABEL: Record<ActionCategory, string> = {
   sleep_upgrade:   '💤⬆️ Upgrade kostky',
   sleep_skip:      '💤✖️ Skip',
   pre_roll_swap:   '🔄 Třídění před hodem',
+  skip_roll_potatoes: '🥔🥔 Neházej (vezmi 2 🥔)',
   attack_lost:     '💔 Útok (kočka/čert)',
   other:           '? Jiné',
 };
@@ -706,6 +707,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     );
   }
   const ACTION_LABELS: Partial<Record<ActionCategory, string>> = {
+    skip_roll_potatoes: '🥔🥔 Neházej (vezmi 2 brambory)',
     pre_roll_swap: '🔄 Třídění před hodem',
     sleep_swap: '💤🔄 Výměna kostek (Spánek)',
     sleep_buy_skill: '💤🛒 Koupil dovednost (Sleep)',

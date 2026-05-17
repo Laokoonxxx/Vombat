@@ -14,6 +14,7 @@ import {
   allWoundsTaken, currentPlayer, SKILL_REQUIREMENTS, learnSkill, TELEPORT_COST, skillBuyCost,
   cancelPendingChoice, resolveDieAcquisition,
   preRollSwap, preRollSwapsRemaining, PRE_ROLL_SWAP_LIMIT,
+  skipRollForPotatoes, SKIP_ROLL_POTATOES,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
 import { aiStep } from '../game/ai';
@@ -293,9 +294,17 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                     ⚔️ Bojuj s Čertem (vyhlášení před hodem)
                   </button>
                   {p.hand.length > 0 ? (
-                    <button className="primary" onClick={() => setState(rollDice(state))}>
-                      🎲 Hoď kostkami ({p.hand.length})
-                    </button>
+                    <>
+                      <button className="primary" onClick={() => setState(rollDice(state))}>
+                        🎲 Hoď kostkami ({p.hand.length})
+                      </button>
+                      <button
+                        onClick={() => setState(skipRollForPotatoes(state))}
+                        title={`Tah neházíš, místo toho dostaneš ${SKIP_ROLL_POTATOES} brambory. Vhodné když máš na sousední pole špatnou ruku — radši šetři.`}
+                      >
+                        🥔🥔 Neházej (vezmi {SKIP_ROLL_POTATOES} brambory)
+                      </button>
+                    </>
                   ) : (
                     <button onClick={() => setMode('sleepMenu')}>
                       💤 Spánek (Ruka je prázdná, není co házet)

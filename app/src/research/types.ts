@@ -32,6 +32,7 @@ export type ActionCategory =
   | 'sleep_upgrade'      // 💤⬆️ Upgrade kostky
   | 'sleep_skip'         // 💤✖️ Skip
   | 'pre_roll_swap'      // 🔄 Třídění před hodem
+  | 'skip_roll_potatoes' // 🥔🥔 Neházej (vezmi 2 brambory)
   | 'attack_lost'        // 💔 Zaplatil za útok (kočka/čert)
   | 'other';
 

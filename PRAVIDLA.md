@@ -110,8 +110,8 @@ Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** 
 
 ### Standardní tah
 1. **(Pouze s Tříděním)** Můžeš až 3× zdarma přesunout kostku Ruka ↔ Zásoba — naladíš si tvar Ruky podle příležitostí, které vidíš.
-2. Hoď všemi kostkami v Ruce.
-3. Sečti hodnoty všech kostek.
+2. **Rozhodni se:** hod kostkami, nebo „neházej" (viz Alternativy).
+3. (Pokud hodíš) Sečti hodnoty všech kostek.
 4. **Zkontroluj Kočku** — pokud Vombat sousedí s živou Kočkou a součet hodu je nižší než 5, musíš odevzdat 🥔 bramboru nebo 1 kostku (viz § 7).
 5. Vyber jednu z akcí:
    - **Pohyb** (§ 5)
@@ -119,8 +119,11 @@ Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** 
    - **Spánek** (§ 8)
 
 ### Alternativy
-- Pokud nechceš nebo nemůžeš využít hod, můžeš si po hodu zvolit **Spánek** (§ 8).
-- Pokud máš dovednost **Sprint** (§ 6.7), můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
+- **🥔🥔 Neházej** — strategická volba **místo hodu**. Tah skončí a získáš **2 brambory**. Vhodné, když vidíš že tvá Ruka špatně sedí na sousední pole (např. máš k20 a kolem jen Hlína 2-4 = malá šance trefit). Brambory pak využiješ na Skill shop, defense nebo (v budoucnu) jiné mechaniky.
+- **💤 Spánek** — komplexnější alternativa s menu: 1 brambor, výměna kostek, teleport, Skill shop, upgrade kostek (s dovednostmi).
+- **Sprint** (§ 6.7) — můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
+
+> 💡 **Roll vs. Neházej:** binární strategická volba. AI ji dělá podle pravděpodobnostního skóre: pokud Σ P(rozsah pole) × důležitost &lt; ~4.5, AI vezme brambory místo hodu. Pro hráče: hrubě platí „kdyby všechny kostky padly maximálně a stejně bys netrefil žádný rozsah → ber brambory".
 
 ### Třídění před hodem (deck-building knob)
 S dovedností **Třídění** (§ 6.7) si na začátku každého tahu — ještě před hozením kostek — můžeš až **3× zdarma** přesunout kostku mezi Rukou a Zásobou. To je hlavní mechanika aktivního deck-buildingu: vidíš, která sousední pole chceš aktivovat, a stáhneš si do Ruky kostky, které k tomu pasují. Po hodu už tato volba není (kostky které hodíš, jdou na stůl).
@@ -488,6 +491,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Eukalyptus: Obsaď + Uč se | **přidáno** — lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti. **1× per strom per hráč** (ne 1× za hru celkově) — když navštívíš 3 různé stromy, můžeš ho použít 3×. |
 | Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |
 | Odměna za Kočku | **změna** — 1k20 → **1k8**. K20 byla příliš dominantní strategie (84-96 % win rate při 2+ rozdrcených kočkách). 1k8 je solidní bonus, ale ne instant-win. Milestone Lázně zdarma za 1. kočku zachováno. |
+| Neházej (skip roll) | **přidáno** — strategická volba místo hodu: vezmeš 2 🥔, tah skončí. Buduje brambor-economy a snižuje frustraci ze špatných hodů, aniž by se musela komplikovat Spánek menu. |
 
 ---
 

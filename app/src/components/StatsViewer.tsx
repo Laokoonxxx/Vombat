@@ -91,6 +91,7 @@ const ACTION_LABELS: Record<string, string> = {
   sleep_downgrade: '💤 Downgrade',
   sleep_swap: '💤 Výměna (Spánek)',
   pre_roll_swap: '🔄 Třídění před hodem',
+  skip_roll_potatoes: '🥔🥔 Neházej (vezmi 2 brambory)',
   sleep_upgrade: '💤 Upgrade',
   sleep_teleport: '🌀 Teleport',
   sleep_buy_skill: '🛒 Koupit dovednost',

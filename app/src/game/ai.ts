@@ -42,6 +42,7 @@ import {
   SKILL_REQUIREMENTS,
   preRollSwap,
   preRollSwapsRemaining,
+  skipRollForPotatoes,
 } from './engine';
 
 // -----------------------------------------------------------------------------
@@ -223,6 +224,35 @@ function aiStartTurn(state: GameState): GameState {
   if (preRollSwapsRemaining(state) > 0) {
     const op = pickPreRollSwap(state, p);
     if (op) return preRollSwap(state, op);
+  }
+
+  // SKIP-ROLL DECISION: after pre-roll swaps are settled, evaluate whether
+  // rolling is worth it. If expected value from rolling is much lower than
+  // the guaranteed value of 2 brambor, take brambor.
+  //
+  // CRITICAL guard: brambor accumulation must have a cap, otherwise AI in
+  // a "bad position" (e.g., Vombat surrounded by own markers, hand mismatch)
+  // would loop on skip forever — situation never changes. We cap at
+  // POTATO_CAP. Beyond that, AI must roll even with poor odds.
+  //
+  // Threshold tuning: 2 brambor ≈ 3-4 score units (5 🥔 = skill). We pick
+  // 3.0 to be conservative — only skip when roll is clearly bad.
+  const POTATO_CAP = 8;
+  const SKIP_THRESHOLD = 3.0;
+  if (p.hand.length > 0 && p.potatoes < POTATO_CAP) {
+    const targets = computeSwapTargets(state, p);
+    if (targets.length > 0) {
+      const catThreat = p.vombats.some((v) =>
+        hexNeighbors(v.hex).some((h) => {
+          const c = state.board.get(hexKey(h));
+          return !!c && c.type === 'cat' && c.catAlive;
+        }),
+      );
+      const rollScore = scoreHandForTurn(p.hand, targets, catThreat);
+      if (rollScore < SKIP_THRESHOLD) {
+        return skipRollForPotatoes(state);
+      }
+    }
   }
 
   return rollDice(state);
