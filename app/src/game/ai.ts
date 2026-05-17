@@ -617,18 +617,24 @@ function aiChooseAction(state: GameState): GameState {
     return pick;
   }
 
-  // LOOKAHEAD (own-turns only, opponent ignored per user request):
-  //   For each of top-K candidates by heuristic:
-  //     1. Apply my action
-  //     2. Resolve my sub-pendingChoice (dirt action, skill pick, …)
-  //     3. SKIP opponent's turn (force their Sleep-skip, no resource impact)
-  //     4. Simulate my NEXT turn greedily (roll + heuristic best action)
-  //     5. Score resulting state from MY POV
+  // MONTE-CARLO LOOKAHEAD (own-turns only, opponent ignored):
+  //   For each of top-K candidates by heuristic, run MC_SAMPLES simulations,
+  //   each with FRESH random rolls (makeRNG() defaults to Math.random for seed).
+  //   Average the resulting stateValue. Average reduces variance — single-
+  //   sample lookahead was prone to "unlucky-roll dismisses good action" and
+  //   "lucky-roll overrates bad action" errors.
   //
-  // This gives "2 of my turns deep" without spending compute on opponent
-  // moves whose outcomes we can't reliably predict anyway.
+  // Per sample:
+  //   1. Apply my action (deterministic)
+  //   2. Resolve sub-pendingChoice (dirt action, skill pick, …)
+  //   3. For next K turns: skip opponent's turn, simulate my turn greedily
+  //   4. Score resulting state from MY POV
+  //
+  // Performance: 10 samples × ~1ms per lookahead ≈ 10ms per AI decision.
+  // Invisible in UI (700ms tick); for headless sim, ~3-4× slower (acceptable).
   const K = 6;
-  const MY_TURN_LOOKAHEAD = 3; // how many of my own turns to roll forward (sweet spot per sim)
+  const MY_TURN_LOOKAHEAD = 3; // how many of my own turns to roll forward
+  const MC_SAMPLES = 10; // Monte Carlo samples per candidate
   candidates.sort((a, b) => b.heur - a.heur);
   const top = candidates.slice(0, K);
 
@@ -639,17 +645,37 @@ function aiChooseAction(state: GameState): GameState {
   lookaheadInProgress = true;
   try {
     for (const cand of top) {
-      let next = cand.apply();
-      if (next === state) continue;
-      // State that we actually return to engine — after my action+pending.
-      const immediate = resolvePendingChoicesForLookahead(next, p.id);
-      // Continue simulating extra of MY OWN turns to estimate state value.
-      let simState = immediate;
-      for (let turn = 1; turn < MY_TURN_LOOKAHEAD && simState.phase !== 'game_over'; turn++) {
-        simState = skipOpponentToMyTurn(simState, myIdx);
-        simState = simulateOneMyTurn(simState, myIdx);
+      // The deterministic "immediate" state we'd return if we pick this
+      // candidate. Computed once; randomness only kicks in during the
+      // subsequent simulation of my own turns.
+      const firstApply = cand.apply();
+      if (firstApply === state) continue;
+      const immediate = resolvePendingChoicesForLookahead(firstApply, p.id);
+
+      let totalSimValue = 0;
+      let validSamples = 0;
+
+      for (let sample = 0; sample < MC_SAMPLES; sample++) {
+        // Re-apply for each sample so any in-place mutations inside the
+        // simulation don't bleed across samples. (cloneState in engine
+        // calls already ensures functional purity, but this is a belt-
+        // and-suspenders guard against subtle bugs.)
+        const reapplied = cand.apply();
+        if (reapplied === state) continue;
+        const sampleImmediate = resolvePendingChoicesForLookahead(reapplied, p.id);
+
+        let simState = sampleImmediate;
+        for (let turn = 1; turn < MY_TURN_LOOKAHEAD && simState.phase !== 'game_over'; turn++) {
+          simState = skipOpponentToMyTurn(simState, myIdx);
+          simState = simulateOneMyTurn(simState, myIdx);
+        }
+        totalSimValue += stateValue(simState, p.id);
+        validSamples++;
       }
-      const v = cand.heur * 1.5 + stateValue(simState, p.id);
+
+      if (validSamples === 0) continue;
+      const avgSimValue = totalSimValue / validSamples;
+      const v = cand.heur * 1.5 + avgSimValue;
       if (v > bestVal) {
         bestVal = v;
         bestState = immediate;
