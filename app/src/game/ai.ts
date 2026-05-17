@@ -17,6 +17,7 @@
 import type { BoardCell, GameState, Hex, DiceLevel, PlayerState, SkillId, WoundType } from './types';
 import { hexKey, WOUND_TYPES } from './types';
 import { hexNeighbors, cubeDistance } from './hex';
+import { pSumInRange, pSumLessThan } from './probabilities';
 import {
   currentPlayer,
   rollDice,
@@ -227,51 +228,244 @@ function aiStartTurn(state: GameState): GameState {
   return rollDice(state);
 }
 
-// Pick a single pre-roll swap if we have Třídění and Hand shape is suboptimal.
-// Strategy:
-//   - If Hand avg > 5 (bloated) and Reserve has a small die → swap small in,
-//     big out. Improves chance of hitting Hlína (2-4) / Záhon (4-6).
-//   - If Hand has only small dice (<5 avg) and we need range, swap a big
-//     die from Reserve in.
-//   - Devil-ready: prefer big dice in Hand. If a die in Reserve is bigger
-//     than any in Hand AND we're close to Devil, swap up.
-// Returns null when no useful swap is found.
-function pickPreRollSwap(state: GameState, p: PlayerState): import('./engine').SwapOp | null {
-  if (p.hand.length === 0) return null;
-  const handAvg = p.hand.reduce((s, d) => s + d, 0) / p.hand.length;
-  // Are we devil-ready / close? Then we want big dice in Hand.
-  const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
-  const goingForDevil = adjDevil && p.hand.length >= 3;
+// =============================================================================
+// PROBABILITY-DRIVEN PRE-ROLL SWAP
+// =============================================================================
+// Given the player's Hand, Reserve, and adjacent map situation, find the swap
+// that maximizes expected payoff from this turn's roll.
+//
+// Algorithm:
+//   1. Build a list of weighted activation TARGETS from cells the player could
+//      reach this turn (stand-on + adjacent), each with [min, max] sum range
+//      and a weight reflecting "how much I want to hit this".
+//   2. Score a candidate Hand by SUM over targets of P(sum ∈ range) × weight,
+//      minus a cat-attack risk penalty.
+//   3. Enumerate single-swap candidates (no-op, every hand→reserve, every
+//      reserve→hand), pick the swap with the highest score gain over baseline.
+//
+// The math itself lives in probabilities.ts; this function is the strategy
+// layer that turns board state into a search problem.
 
-  if (goingForDevil) {
-    // Pull biggest die from Reserve into Hand
-    if (p.reserve.length === 0) return null;
-    const bigReserveIdx = p.reserve.reduce(
-      (best, d, i) => (d > p.reserve[best] ? i : best),
-      0,
-    );
-    const lvl = p.reserve[bigReserveIdx];
-    const handMax = Math.max(...p.hand);
-    if (lvl <= handMax) return null; // already have ≥ this
-    // Check it fits in Hand without Kapacita
-    if (!p.skills.has('kapacita') && p.hand.filter((d) => d === lvl).length >= 2) return null;
-    return { op: 'reserve_to_hand', index: bigReserveIdx };
+interface SwapTarget {
+  min: number;
+  max: number;
+  weight: number;
+  /** debug-only label */
+  label: string;
+}
+
+// Build the list of activation targets the player could meaningfully act on
+// this turn. We include both movement targets (sum lands in cell's move range)
+// and use-field targets (cell adjacent to a vombat, not yet used by us).
+function computeSwapTargets(state: GameState, p: PlayerState): SwapTarget[] {
+  const targets: SwapTarget[] = [];
+  const seen = new Set<string>(); // dedupe per-hex
+
+  function add(hex: Hex, range: { min: number; max: number }, weight: number, label: string) {
+    const k = `${hex.q},${hex.r}|${range.min}-${range.max}|${label}`;
+    if (seen.has(k)) return;
+    seen.add(k);
+    targets.push({ ...range, weight, label });
   }
 
-  // Bloat reduction: hand avg too high → stash one big die
-  if (handAvg > 5 && p.hand.length > 2) {
-    const bigHandIdx = p.hand.reduce(
-      (best, d, i) => (d > p.hand[best] ? i : best),
-      0,
-    );
-    if (p.hand[bigHandIdx] >= 6) {
-      // Stash it (Kapacita removes reserve cap; otherwise must fit)
-      if (!p.skills.has('kapacita') && p.reserve.length >= 3) return null;
-      return { op: 'hand_to_reserve', index: bigHandIdx };
+  const adjDevilReady = readyToFightDevil(state, p);
+
+  for (const v of p.vombats) {
+    // Standing cell — use-field possibilities
+    const standCell = state.board.get(hexKey(v.hex));
+    if (standCell) addCellTargets(state, p, standCell, add, adjDevilReady);
+
+    // Adjacent cells — movement + use-field
+    for (const nbHex of hexNeighbors(v.hex)) {
+      const cell = state.board.get(hexKey(nbHex));
+      if (!cell) continue;
+      addCellTargets(state, p, cell, add, adjDevilReady);
     }
   }
 
-  return null;
+  return targets;
+}
+
+// Add per-cell targets (one for "useful as move target" and/or "useful as use target")
+function addCellTargets(
+  state: GameState,
+  p: PlayerState,
+  cell: BoardCell,
+  add: (hex: Hex, range: { min: number; max: number }, weight: number, label: string) => void,
+  adjDevilReady: boolean,
+) {
+  // Movement target (cell type's activation range, if accessible)
+  const moveRange = movementRangeFor(cell, p);
+  if (moveRange) {
+    const moveW = movementWeight(cell, p, state, adjDevilReady);
+    if (moveW > 0) add(cell.hex, moveRange, moveW, `move-${cell.type}`);
+  }
+
+  // Use-field target (only if we can use it — not marked by us, etc.)
+  // We approximate canUseField without re-checking the actual roll; just
+  // check ownership and basic eligibility.
+  if (canPlayerUseFieldType(state, p, cell)) {
+    const useRange = useFieldRangeFor(cell, p);
+    if (useRange) {
+      const useW = useFieldWeight(cell, p, state);
+      if (useW > 0) add(cell.hex, useRange, useW, `use-${cell.type}`);
+    }
+  }
+}
+
+// Movement activation range for moving ONTO this cell. Null if not a valid
+// move target (e.g. occupied by our vombat, blocked thorn, etc.).
+function movementRangeFor(cell: BoardCell, p: PlayerState): { min: number; max: number } | null {
+  // Can't move onto our own vombat
+  if (p.vombats.some((v) => v.hex.q === cell.hex.q && v.hex.r === cell.hex.r)) return null;
+  // Blocked thorn (still has a die)
+  if (cell.type === 'thorn' && cell.thornDieLevel != null && !cell.marker) return null;
+  switch (cell.type) {
+    case 'dirt':   return { min: 2, max: 4 };
+    case 'bed':    return { min: 4, max: 6 };
+    case 'desert': return { min: 7, max: 99 };
+    case 'tree':   return { min: 7, max: 8 };
+    case 'thorn':  return { min: 5, max: 9 };
+    case 'cat':    return cell.catAlive ? { min: 11, max: 14 } : { min: 0, max: 99 };
+    case 'devil':  return { min: 12, max: 99 };
+  }
+}
+
+// Use-field activation range. Null if we can't use this cell type as an action.
+function useFieldRangeFor(cell: BoardCell, p: PlayerState): { min: number; max: number } | null {
+  switch (cell.type) {
+    case 'dirt':   return { min: 2, max: 4 };
+    case 'bed':    return { min: 4, max: 6 };
+    case 'desert': return p.skills.has('koupel') ? { min: 7, max: 99 } : null;
+    case 'tree':   return { min: 7, max: 8 };
+    case 'thorn': {
+      if (!cell.thornDieLevel) return null;
+      const need = cell.thornDieLevel === 4 ? 5 : cell.thornDieLevel === 6 ? 7 : 9;
+      return { min: need, max: 99 };
+    }
+    case 'cat':
+    case 'devil':
+      return null;
+  }
+}
+
+// Whether the player COULD use this field (ignoring roll). Used to filter out
+// fields already marked by us.
+function canPlayerUseFieldType(_state: GameState, p: PlayerState, cell: BoardCell): boolean {
+  if (cell.marker && cell.marker.playerId === p.id) return false;
+  if (cell.marker && cell.type !== 'bed' && cell.type !== 'tree' && cell.type !== 'dirt') return false;
+  if (cell.type === 'cat' || cell.type === 'devil') return false;
+  if (cell.type === 'desert' && !p.skills.has('koupel')) return false;
+  if (cell.type === 'thorn' && cell.thornDieLevel == null) return false;
+  return true;
+}
+
+// Weight for "I want to move onto this cell this turn".
+function movementWeight(cell: BoardCell, p: PlayerState, _state: GameState, devilReady: boolean): number {
+  if (cell.type === 'cat' && cell.catAlive) {
+    // Cat smash: 1k8 + tunnel + milestone Lázně (if first)
+    const milestoneBonus = !p.skills.has('koupel') ? 10 : 0;
+    return 18 + milestoneBonus;
+  }
+  if (cell.type === 'devil') return devilReady ? 30 : 2;
+  if (cell.marker) return 1; // already used by someone — low value to walk onto
+  if (cell.type === 'tree') return 8;
+  if (cell.type === 'dirt') return 6;
+  if (cell.type === 'bed') return 6;
+  if (cell.type === 'thorn' && cell.thornDieLevel == null) return 3; // open thorn — pass-through
+  return 2;
+}
+
+// Weight for "I want to USE this field this turn".
+function useFieldWeight(cell: BoardCell, p: PlayerState, state: GameState): number {
+  if (cell.type === 'thorn' && cell.thornDieLevel) {
+    // Free die — high value
+    if (!canAddDieAnywhere(p, cell.thornDieLevel as DiceLevel)) return 8;
+    return 14 + cell.thornDieLevel; // k4=18, k6=20, k8=22
+  }
+  if (cell.type === 'tree') return 12 - p.bobekTrack; // first trees most valuable
+  if (cell.type === 'dirt' || cell.type === 'desert') {
+    // Vyformuj kostku score depends on carrots + opponent-adjacent markers
+    const adjOpp = hexNeighbors(cell.hex).filter((h) => {
+      const nb = state.board.get(hexKey(h));
+      return nb && nb.marker && nb.marker.playerId !== p.id;
+    }).length;
+    const score = p.carrotTrack + adjOpp;
+    if (score >= 6) return 16; // k12+
+    if (score >= 4) return 12; // k8/k10
+    if (score >= 2) return 8;  // k4/k6
+    if (bestAffordableSkill(p) != null) return 14; // could learn skill instead
+    return 4; // plant for ramp
+  }
+  if (cell.type === 'bed') return p.carrotTrack < 5 ? 10 : 3;
+  return 0;
+}
+
+// Score a hand against weighted targets.
+//   score = Σ over targets: P(sum ∈ [min,max]) × weight
+//        − cat-attack risk penalty if adjacent to live cat
+function scoreHandForTurn(
+  hand: DiceLevel[],
+  targets: SwapTarget[],
+  catThreatNearby: boolean,
+): number {
+  if (hand.length === 0) return 0; // empty hand rolls 0 — can't do anything
+  let s = 0;
+  for (const t of targets) {
+    s += pSumInRange(hand, t.min, t.max) * t.weight;
+  }
+  // Penalty for rolling < 5 next to a live cat (forced potato/die surrender)
+  if (catThreatNearby) {
+    s -= pSumLessThan(hand, 5) * 15;
+  }
+  return s;
+}
+
+// Pick the best single pre-roll swap (or null if no swap improves the hand).
+// Considers: no-op, every hand→reserve, every reserve→hand.
+function pickPreRollSwap(state: GameState, p: PlayerState): import('./engine').SwapOp | null {
+  if (p.hand.length === 0 && p.reserve.length === 0) return null;
+
+  const targets = computeSwapTargets(state, p);
+  if (targets.length === 0) return null;
+
+  const catThreatNearby = p.vombats.some((v) =>
+    hexNeighbors(v.hex).some((h) => {
+      const c = state.board.get(hexKey(h));
+      return !!c && c.type === 'cat' && c.catAlive;
+    }),
+  );
+
+  const baseline = scoreHandForTurn(p.hand, targets, catThreatNearby);
+  let bestOp: import('./engine').SwapOp | null = null;
+  let bestScore = baseline;
+  // Require a minimum improvement to avoid infinite swap loops on ties.
+  const EPSILON = 0.05;
+
+  // Candidate: hand → reserve (stash one)
+  for (let i = 0; i < p.hand.length; i++) {
+    if (!p.skills.has('kapacita') && p.reserve.length >= 3) break;
+    const candidate = p.hand.filter((_, idx) => idx !== i);
+    const score = scoreHandForTurn(candidate, targets, catThreatNearby);
+    if (score > bestScore + EPSILON) {
+      bestScore = score;
+      bestOp = { op: 'hand_to_reserve', index: i };
+    }
+  }
+
+  // Candidate: reserve → hand (draw one)
+  for (let i = 0; i < p.reserve.length; i++) {
+    const lvl = p.reserve[i];
+    if (!p.skills.has('kapacita') && p.hand.filter((d) => d === lvl).length >= 2) continue;
+    const candidate = [...p.hand, lvl];
+    const score = scoreHandForTurn(candidate, targets, catThreatNearby);
+    if (score > bestScore + EPSILON) {
+      bestScore = score;
+      bestOp = { op: 'reserve_to_hand', index: i };
+    }
+  }
+
+  return bestOp;
 }
 
 function readyToFightDevil(state: GameState, p: PlayerState): boolean {
