@@ -788,6 +788,10 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
       },
       { sortByCount: true, limit: 15 },
     ),
+    byFirstSkill: groupBy(
+      (r) => r.p.firstSkill ? SKILL_REQUIREMENTS[r.p.firstSkill].label : '— žádná —',
+      { sortByCount: false, sortByLabel: true },
+    ),
   };
 
   return {

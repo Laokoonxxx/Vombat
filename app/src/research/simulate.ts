@@ -18,8 +18,15 @@ import { fileURLToPath } from 'url';
 import { createGame, finishSetup, sleep } from '../game/engine';
 import type { GameState, BoardCell, FormationKind, DiceLevel, SkillId } from '../game/types';
 import { hexKey } from '../game/types';
-import { aiSetupStep, aiStep } from '../game/ai';
+import { aiSetupStep, aiStep, setSkillPriority } from '../game/ai';
 import { makeRNG } from '../game/rng';
+
+// All 6 skills, used for per-game shuffle of AI's skill priority.
+// Randomization per game lets us measure win-rate when skill X is learned
+// first/early without confounding from a fixed default ordering.
+const ALL_SKILLS_FOR_SHUFFLE: SkillId[] = [
+  'kapacita', 'klystyr', 'koupel', 'sprint', 'masaz_strev', 'ajurveda',
+];
 
 import type {
   ActionCategory, PlayerResearchRecord, ResearchGameRecord, ResearchRunMeta,
@@ -167,6 +174,17 @@ function newRunningPlayer(id: 'p0' | 'p1'): RunningPlayerState {
 
 function runOneGame(seed: number, maxTurns: number): ResearchGameRecord {
   const tStart = Date.now();
+
+  // Per-game RANDOM SKILL PRIORITY: shuffle the 6 skills using a separate
+  // seeded RNG (so the experiment is reproducible per seed). This is the
+  // key methodological fix: without it, AI always learns Kapacita/Klystýr/
+  // Lázně first (default priority), and we can never observe "what if AI
+  // learned Sprint first?". With random priority, after 5000 games each
+  // skill gets ~830 chances to be 1st-priority → fair A/B comparison.
+  const priorityRng = makeRNG(seed ^ 0xa1b2c3);
+  const shuffledPriority = priorityRng.shuffle(ALL_SKILLS_FOR_SHUFFLE);
+  setSkillPriority(shuffledPriority);
+
   let state = createGame(
     [
       { name: 'AI-A', kind: 'ai' },

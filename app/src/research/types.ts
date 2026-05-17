@@ -226,5 +226,10 @@ export interface ResearchPublished {
     byStartDie: BucketStat[];
     // Top combinations of (hex type + starting die), sorted by sample size
     byCombo: BucketStat[];
+    // By 1st-learned skill (chronologically). With randomized skill priority
+    // in research sim, this measures clean win-rate when skill X was the
+    // player's first active skill choice (free of confounding from default
+    // priority ordering).
+    byFirstSkill: BucketStat[];
   };
 }

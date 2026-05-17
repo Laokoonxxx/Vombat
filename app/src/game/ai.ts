@@ -795,7 +795,7 @@ function aiSleep(state: GameState): GameState {
   const p = currentPlayer(state);
 
   // Priority 1: buy a skill if affordable
-  for (const sid of SKILL_PRIORITY) {
+  for (const sid of activeSkillPriority) {
     if (p.skills.has(sid)) continue;
     const cost = skillBuyCost(sid);
     if (p.potatoes >= cost) {
@@ -1012,7 +1012,8 @@ function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
 
 // ----- Skill picking --------------------------------------------------------
 
-const SKILL_PRIORITY: SkillId[] = [
+// Default priority order for AI skill choices (1st affordable wins).
+const SKILL_PRIORITY_DEFAULT: SkillId[] = [
   'kapacita',      // 1 tree, removes both Hand+Reserve limits — auto-pick
   'klystyr',       // 1 tree, 3× pre-roll swap = active deck-building per turn
   'koupel',        // 1 tree, opens Poušť — wide map access
@@ -1021,11 +1022,31 @@ const SKILL_PRIORITY: SkillId[] = [
   'ajurveda',      // 3 trees, big upgrade
 ];
 
+// Active priority — mutable so research sims can shuffle it per game to
+// test "does skill X help when prioritized?" without confounding from the
+// default ordering. Reset via resetSkillPriority(); set via setSkillPriority().
+let activeSkillPriority: SkillId[] = [...SKILL_PRIORITY_DEFAULT];
+
+/** For research: override priority. Pass a shuffled array. */
+export function setSkillPriority(order: SkillId[]): void {
+  activeSkillPriority = [...order];
+}
+
+/** For research: restore default priority. */
+export function resetSkillPriority(): void {
+  activeSkillPriority = [...SKILL_PRIORITY_DEFAULT];
+}
+
+/** Read-only view of current priority — useful for record-keeping. */
+export function getSkillPriority(): SkillId[] {
+  return [...activeSkillPriority];
+}
+
 // bonusTrees = phantom trees to add to bobekTrack for the check. Used when
 // the AI is deciding whether to take the "Obsaď + Uč se" path on a tree
 // that hasn't been physically placed yet.
 function bestAffordableSkill(p: PlayerState, bonusTrees: number = 0): SkillId | null {
-  for (const sid of SKILL_PRIORITY) {
+  for (const sid of activeSkillPriority) {
     if (p.skills.has(sid)) continue;
     const req = SKILL_REQUIREMENTS[sid].trees;
     const treesAvail = p.bobekTrack + bonusTrees;

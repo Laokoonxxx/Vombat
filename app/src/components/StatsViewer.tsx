@@ -198,6 +198,7 @@ interface ResearchData {
     byTileCenter: ResearchBucket[];
     byStartDie: ResearchBucket[];
     byCombo: ResearchBucket[];
+    byFirstSkill?: ResearchBucket[];
   };
 }
 
@@ -1247,6 +1248,18 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
                   maximální win rate × rychlost.
                 </p>
               </Section>
+
+              {research.startStats.byFirstSkill && (
+                <Section title="🧠 1. naučená dovednost → win rate (clean A/B test)">
+                  <BucketBars buckets={research.startStats.byFirstSkill} unitLabel="" />
+                  <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                    💡 V research simu se priorita dovedností AI <strong>shuffluje per
+                    hru</strong> — každá dovednost dostane spravedlivou šanci být první.
+                    Tahle tabulka říká: „Pokud byla X tvoje 1. dovednost, jaký byl win
+                    rate a Ø tahů?" Eliminuje confounding z default pořadí.
+                  </p>
+                </Section>
+              )}
             </>
           )}
 
