@@ -71,7 +71,25 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           </ol>
           <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--muted)' }}>
             💡 Volba „🥔🥔 Neházej" je strategická — brambory jsou cennější, než to vypadá:
-            za 5 🥔 koupíš dovednost, 1 🥔 = obrana vs Kočka/Čert, 3 🥔 = chybějící strom při učení.
+            za 5 🥔 koupíš dovednost, 1 🥔 = obrana vs Kočka/Čert, 3 🥔 = chybějící strom při učení,
+            <strong> 1 🥔 = ±1 k hodu</strong> (max 2× za tah, neplatí v souboji s Čertem).
+          </p>
+        </Section>
+
+        <Section title="🥔 Doladění hodu brambory">
+          <p style={{ margin: 0 }}>
+            <strong>Po hodu</strong> můžeš za každou utracenou bramboru posunout součet hodu o
+            <strong> ±1</strong>, maximálně <strong>2× za tah</strong>. Užitečné když ti hod o trochu
+            uniká:
+          </p>
+          <ul style={{ margin: '4px 0 0', paddingLeft: 20, fontSize: 12 }}>
+            <li>Roll 5 vedle Hlíny (2–4)? 1 🥔 → 4, trefíš Hlínu.</li>
+            <li>Roll 6 vedle Eukalyptu (7–8)? 1 🥔 → 7, obsadíš strom.</li>
+            <li>Roll 9 vedle Kočky (11–14)? 2 🥔 → 11, rozdrtíš.</li>
+          </ul>
+          <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+            ⚠️ <strong>Nefunguje v souboji s Čertem</strong> — tam jdou jednotlivé hodnoty kostek (1/2/7+/10+),
+            ne součet.
           </p>
         </Section>
 

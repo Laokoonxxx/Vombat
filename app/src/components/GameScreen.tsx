@@ -15,6 +15,7 @@ import {
   cancelPendingChoice, resolveDieAcquisition,
   preRollSwap, preRollSwapsRemaining, PRE_ROLL_SWAP_LIMIT,
   skipRollForPotatoes, SKIP_ROLL_POTATOES,
+  adjustRoll, rollAdjustmentsRemaining, ROLL_ADJUSTMENT_LIMIT,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
 import { aiStep } from '../game/ai';
@@ -269,6 +270,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
         <div className="panel">
           <h3>Hod</h3>
           <DiceTray player={p} />
+          {state.phase === 'rolled' && !state.pendingChoice && <RollAdjustPanel state={state} setState={setState} />}
         </div>
         <div className="panel">
           <h3>Akce</h3>
@@ -845,6 +847,66 @@ function DieAcquisitionModal({ state, setState }: { state: GameState; setState: 
           💡 Tip: malé kostky se hodí pro pohyb na Hlínu (2-4) a Záhon (4-6). Velké kostky na fight s Čertem
           drž v Zásobě, abys mohl navigovat.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// RollAdjustPanel — utratit brambor pro ±1 k hodu
+// =============================================================================
+// Rendered in 'rolled' phase. Each ±1 costs 1 🥔, max 2 adjustments per turn
+// (= ±2 max). NOT available in Devil combat (per-die mechanic there).
+function RollAdjustPanel({
+  state, setState,
+}: { state: GameState; setState: (s: GameState) => void }) {
+  const p = currentPlayer(state);
+  if (!p.lastRoll || p.lastRoll.length === 0) return null;
+  const rawSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
+  const adj = p.rollAdjustment ?? 0;
+  const effective = rawSum + adj;
+  const remaining = rollAdjustmentsRemaining(state);
+  const canMinus = remaining > 0 && p.potatoes > 0 && effective > 0;
+  const canPlus = remaining > 0 && p.potatoes > 0;
+  return (
+    <div
+      style={{
+        marginTop: 8,
+        padding: 8,
+        background: '#fff5e0',
+        border: '1px solid #e8c997',
+        borderRadius: 6,
+        fontSize: 12,
+      }}
+    >
+      <div style={{ marginBottom: 6 }}>
+        <strong>Účinný součet:</strong> {rawSum}
+        {adj !== 0 && (
+          <> {adj > 0 ? '+' : ''}{adj} = <strong style={{ color: 'var(--accent)' }}>{effective}</strong></>
+        )}
+        {' · '}
+        <span style={{ color: 'var(--muted)' }}>
+          úprav zbývá {remaining}/{ROLL_ADJUSTMENT_LIMIT} · 🥔 {p.potatoes}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          disabled={!canMinus}
+          onClick={() => setState(adjustRoll(state, -1))}
+          title="Utratíš 1 🥔 a součet hodu se sníží o 1 (efektivní rozsah polí se posune)."
+        >
+          🥔 −1
+        </button>
+        <button
+          disabled={!canPlus}
+          onClick={() => setState(adjustRoll(state, +1))}
+          title="Utratíš 1 🥔 a součet hodu se zvýší o 1 (efektivní rozsah polí se posune)."
+        >
+          🥔 +1
+        </button>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+        💡 1 🥔 = ±1 k součtu, max 2 úpravy/tah. Neplatí pro souboj s Čertem.
       </div>
     </div>
   );

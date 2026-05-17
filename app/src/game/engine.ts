@@ -70,6 +70,7 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
       vombats: [], // placed during setup
       skills: new Set<SkillId>(),
       treeLearnUsedHexes: new Set<string>(),
+      rollAdjustment: 0,
       lastRoll: null,
       fighting: false,
     };
@@ -594,6 +595,62 @@ function sumRoll(roll: number[] | null): number {
   return (roll || []).reduce((a, b) => a + b, 0);
 }
 
+// Effective sum for action checks (move/use-field/cat threat) = raw dice
+// sum + accumulated rollAdjustment from brambor spending this turn. NOT
+// used for Devil combat (per-die values matter there).
+function effectiveSum(state: GameState): number {
+  const p = currentPlayer(state);
+  return sumRoll(p.lastRoll) + (p.rollAdjustment ?? 0);
+}
+
+// =============================================================================
+// ROLL ADJUSTMENT (spend brambor for ±1 to roll sum)
+// =============================================================================
+// After rolling, the player can spend brambor to nudge the sum: 1 🥔 = ±1.
+// Max 2 adjustments per turn (so ±2 total). Each adjustment costs 1 brambor.
+// Restricted to phase 'rolled' — does NOT apply during Devil combat where
+// per-die values are what matters.
+//
+// Use cases:
+//   - Rolled 5 next to Hlína (2-4): spend 1 🥔 → 4, hit Hlína
+//   - Rolled 6 next to Tree (7-8): spend 1 🥔 → 7, hit Tree
+//   - Rolled 3 next to cat (cat-threat): spend 2 🥔 → 5, avoid cat attack
+//     (NOTE: cat threat is already resolved before adjustment is available)
+//
+// We mutate p.rollAdjustment so subsequent canUseField/legalMoveTargets/etc.
+// pick up the new effective sum.
+
+export const ROLL_ADJUSTMENT_LIMIT = 2;
+
+export function rollAdjustmentsRemaining(state: GameState): number {
+  return Math.max(0, ROLL_ADJUSTMENT_LIMIT - (state.rollAdjustmentsUsed ?? 0));
+}
+
+export function adjustRoll(state: GameState, delta: 1 | -1): GameState {
+  if (state.phase !== 'rolled') return state;
+  if (rollAdjustmentsRemaining(state) <= 0) return state;
+  const p0 = currentPlayer(state);
+  if (p0.potatoes <= 0) return state;
+  // Prevent the sum from going below 0 — that has no game meaning
+  const currentEff = effectiveSum(state);
+  if (delta < 0 && currentEff <= 0) return state;
+  const s = cloneState(state);
+  const p = currentPlayer(s);
+  p.potatoes -= 1;
+  p.rollAdjustment = (p.rollAdjustment ?? 0) + delta;
+  s.rollAdjustmentsUsed = (s.rollAdjustmentsUsed ?? 0) + 1;
+  logEntry(
+    s,
+    `${p.name} utratil 1 🥔 a posunul hod o ${delta > 0 ? '+' : ''}${delta} ` +
+      `(účinný součet ${effectiveSum(s)}).`,
+  );
+  // If after the adjustment we end up triggering a NEW cat threat (sum < 5
+  // adjacent to live cat that wasn't triggered before), recheck. Conversely,
+  // if the adjustment OUT of cat-threat range happens, we don't retroactively
+  // un-trigger an existing pending choice.
+  return s;
+}
+
 function isAdjacentToLiveCat(state: GameState, vombatHex: Hex): boolean {
   return hexNeighbors(vombatHex)
     .map((h) => state.board.get(hexKey(h)))
@@ -680,7 +737,8 @@ function upgradeDie(lvl: DiceLevel): DiceLevel {
 export function legalMoveTargets(state: GameState, vombatHex: Hex): Hex[] {
   const p = currentPlayer(state);
   if (!p.lastRoll) return [];
-  const sum = sumRoll(p.lastRoll);
+  // effectiveSum includes brambor roll-adjustments for this turn
+  const sum = effectiveSum(state);
   const targets: Hex[] = [];
   // Direct neighbors satisfying value
   hexNeighbors(vombatHex).forEach((h) => {
@@ -779,6 +837,7 @@ export function endTurn(state: GameState): void {
   const p = currentPlayer(state);
   p.lastRoll = null;
   p.fighting = false;
+  p.rollAdjustment = 0;
   state.currentPlayerIdx = (state.currentPlayerIdx + 1) % state.players.length;
   state.turnNumber = (state.turnNumber ?? 1) + 1;
   state.phase = 'idle';
@@ -786,6 +845,7 @@ export function endTurn(state: GameState): void {
   state.movedThisTurn = false;
   state.usedFieldThisTurn = false;
   state.preRollSwapsUsed = 0;
+  state.rollAdjustmentsUsed = 0;
   const next = currentPlayer(state);
   logEntry(state, `--- Tah ${state.turnNumber} · hráč ${next.name} ---`);
 }
@@ -821,7 +881,8 @@ export function canUseField(state: GameState, hex: Hex): boolean {
   const cell = state.board.get(hexKey(hex));
   if (!cell) return false;
   if (!isAccessibleByPlayer(p, hex)) return false;
-  const sum = sumRoll(p.lastRoll);
+  // effectiveSum includes brambor roll-adjustments for this turn
+  const sum = effectiveSum(state);
   // Check value range
   switch (cell.type) {
     case 'dirt':   if (sum < 2 || sum > 4) return false; break;
@@ -966,7 +1027,8 @@ function useThorn(state: GameState, hex: Hex): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   const cell = s.board.get(hexKey(hex))!;
-  const sum = sumRoll(p.lastRoll);
+  // effectiveSum includes brambor roll-adjustments for this turn
+  const sum = effectiveSum(s);
   if (!cell.thornDieLevel) return state;
   const required = thornThreshold(cell.thornDieLevel);
   if (sum < required) {

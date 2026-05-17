@@ -85,6 +85,11 @@ export interface PlayerState {
   lastRoll: number[] | null; // null = not yet rolled this turn
   // For devil combat tracking (only when fighting this turn)
   fighting: boolean;
+  // Cumulative roll adjustment for this turn (from brambor spending).
+  // Applied to sum-based checks (Hlína/Záhon/Houští/Eukalyptus move + use,
+  // Poušť, Kočka 11-14, Čert 12+ movement). NOT applied in Devil combat
+  // (per-die check). Reset to 0 on endTurn.
+  rollAdjustment: number;
   // Discard pile of dice spent at devil (per wound type)
 }
 
@@ -172,6 +177,9 @@ export interface GameState {
   // Pre-roll swap counter (Třídění skill): up to 3× per turn before rolling.
   // Reset to 0 on endTurn. 0/missing = no swaps used yet this turn.
   preRollSwapsUsed?: number;
+  // Roll-adjustment counter for this turn (max 2 per turn — capped by limit).
+  // Each ±1 costs 1 brambor. Reset on endTurn.
+  rollAdjustmentsUsed?: number;
 }
 
 // Detailed line in a die-acquisition modal explaining how the offered die

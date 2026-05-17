@@ -119,7 +119,8 @@ Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** 
    - **Spánek** (§ 8)
 
 ### Alternativy
-- **🥔🥔 Neházej** — strategická volba **místo hodu**. Tah skončí a získáš **2 brambory**. Vhodné, když vidíš že tvá Ruka špatně sedí na sousední pole (např. máš k20 a kolem jen Hlína 2-4 = malá šance trefit). Brambory pak využiješ na Skill shop, defense nebo (v budoucnu) jiné mechaniky.
+- **🥔🥔 Neházej** — strategická volba **místo hodu**. Tah skončí a získáš **2 brambory**. Vhodné, když vidíš že tvá Ruka špatně sedí na sousední pole (např. máš k20 a kolem jen Hlína 2-4 = malá šance trefit). Brambory pak využiješ na Skill shop, defense nebo úpravy hodu (viz dále).
+- **🥔 ±1 k hodu** — **po hodu** můžeš za každou utracenou bramboru posunout součet o ±1, **maximálně 2× za tah** (= max ±2). Použiješ to když ti hod jen tak-tak nesedl: rolled 5 vedle Hlíny → 🥔 → 4 ⇒ trefíš Hlínu. Neplatí v souboji s Čertem (tam jsou per-kostkové hodnoty, ne součet).
 - **💤 Spánek** — komplexnější alternativa s menu: 1 brambor, výměna kostek, teleport, Skill shop, upgrade kostek (s dovednostmi).
 - **Sprint** (§ 6.7) — můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
 
@@ -492,6 +493,7 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |
 | Odměna za Kočku | **změna** — 1k20 → **1k8**. K20 byla příliš dominantní strategie (84-96 % win rate při 2+ rozdrcených kočkách). 1k8 je solidní bonus, ale ne instant-win. Milestone Lázně zdarma za 1. kočku zachováno. |
 | Neházej (skip roll) | **přidáno** — strategická volba místo hodu: vezmeš 2 🥔, tah skončí. Buduje brambor-economy a snižuje frustraci ze špatných hodů, aniž by se musela komplikovat Spánek menu. |
+| ±1 k hodu za 🥔 | **přidáno** — po hodu můžeš utratit brambor pro ±1 ke skóre hodu, max 2× za tah. Propojí deck-building s economy: stačí být blízko trefení rozsahu, brambory ho dolaďujou. Neplatí v souboji s Čertem (per-die mechanika). |
 
 ---
 
