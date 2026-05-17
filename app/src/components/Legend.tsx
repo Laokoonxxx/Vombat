@@ -70,7 +70,7 @@ const LEGEND: LegendRow[] = [
     name: 'Tunel',
     color: 'var(--hex-tunnel)',
     activation: '—',
-    description: 'Všechna černá pole + zabité kočky. Místo sousedního pole můžeš jít na jakýkoli jiný tunel.',
+    description: 'Všechna černá pole + zabité kočky. Když STOJÍŠ na tunelu, můžeš místo sousedního pole jít na jakýkoli jiný tunel (sousedství s tunelem nestačí).',
   },
 ];
 

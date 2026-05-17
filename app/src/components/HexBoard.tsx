@@ -81,7 +81,7 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
       break;
   }
   if (c.isTunnel) {
-    parts.push('🕳️ Tunel: lze sem vstoupit z libovolného jiného tunelu.');
+    parts.push('🕳️ Tunel: pokud STOJÍŠ na tunelu, můžeš teleportovat na libovolný jiný tunel. Sousedství nestačí.');
   }
   if (c.marker) {
     parts.push(`Obsazeno ${c.marker.kind === 'bobek' ? 'bobkem 💩' : 'mrkví 🥕'}.`);

@@ -15,6 +15,41 @@ Není to TODO — jsou to **uvažované** směry pro budoucí iterace.
 
 ---
 
+## 🧠 Priorita 0.5: Všechny dovednosti za 1 strom
+
+**Současný stav:** Cena dovedností je 1, 1, 1, 2, 2, 3 stromu (Kapacita,
+Lázně, Třídění = 1; Sprint, Žvýkání = 2; Bylinkový elixír = 3).
+
+**Návrh:** sjednotit cenu na **1 strom pro všechny**.
+
+### Proč
+- **Aktuální data ukazují že 2+stromové dovednosti jsou anti-korelované s výhrou**:
+  Sprint -20 %, Žvýkání -14 %, Bylinkový elixír -20 %. Hráči je učí jen
+  v zoufalých situacích a tahy na ně vynaložené už hru nezachrání.
+- Sjednocení by udělalo všech 6 dovedností **rovnocenných** — hráč volí podle
+  stylu hry, ne podle ceny.
+- Pro hráče čitelnější ekonomika: 1 strom = 1 dovednost. Jednoduché.
+- Skill shop ve Spánku by byl jednotně 5 🥔 za libovolnou dovednost (místo 5/10/15).
+
+### Proti
+- Devalvuje strom-economy obecně — sbírat stromy je méně náročné na rozhodování
+- Bylinkový elixír (k12→k20 upgrade!) je objektivně silnější než Lázně —
+  rovnocenná cena by ji mohla udělat auto-pick
+- Možná by Ajurvéda potřebovala oslabit (např. upgrade jen o 1 lvl místo 2)
+
+### Implementační scope
+- engine.ts SKILL_REQUIREMENTS: změnit `trees: 1` pro všechny
+- PRAVIDLA.md §6.7: aktualizovat tabulku
+- print/vombat-tisk.html: aktualizovat ceny
+- Sim regrese: spustit 5000-game sim, zkontrolovat efekt
+
+### Otevřená otázka
+Jestli zachovat Bylinkový elixír v plné síle, nebo zároveň oslabit jeho efekt
+(upgrade o 1 místo o 2). Druhá varianta = "vše rovnocenné", první =
+"levný OP shortcut".
+
+---
+
 ## 🎲 Priorita 0: Deck-building musí být centrální mechanika
 
 **Problém:** Hra cílí být unikátní tím, že hráč staví balíček kostek a tím

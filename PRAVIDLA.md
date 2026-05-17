@@ -153,7 +153,9 @@ Posuň jednoho svého Vombata na **sousední neobsazené pole**, jehož **aktiva
 - **Lze** vstupovat na černé, šedé nebo oranžové pole, na kterém leží žeton kostky soupeře (Obrana).
 
 ### Tunel
-Pokud Vombat **stojí na poli s tunelem** nebo **sousedí s polem s tunelem**, může si **místo vstupu na sousední pole** zvolit pohyb na libovolné jiné pole s tunelem na mapě. (Hodnota hodu pro tento "teleport" se neuplatňuje.)
+Pokud Vombat **stojí na poli s tunelem**, může si **místo vstupu na sousední pole** zvolit pohyb na libovolné jiné pole s tunelem na mapě. (Hodnota hodu pro tento "teleport" se neuplatňuje.)
+
+> ⚠️ Musíš na tunelu **stát** — sousedství nestačí. Nejdřív musíš tunel obsadit běžným pohybem, pak na dalším tahu z něj můžeš teleportovat.
 
 Tunely jsou: **všechna černá pole** + **pole bývalé Kočky** (po rozmačkání).
 
