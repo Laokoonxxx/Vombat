@@ -15,38 +15,69 @@ Není to TODO — jsou to **uvažované** směry pro budoucí iterace.
 
 ---
 
-## 🧠 Priorita 0.5: Všechny dovednosti za 1 strom
+## 🔥 Priorita 0: VELKÝ REFAKTOR DOVEDNOSTÍ (probíhá)
 
-**Současný stav:** Cena dovedností je 1, 1, 1, 2, 2, 3 stromu (Kapacita,
-Lázně, Třídění = 1; Sprint, Žvýkání = 2; Bylinkový elixír = 3).
+**Cíl:** zjednodušit a vyvážit systém dovedností na základě dat ze sim
+experimentu (5000 her): Sprint/Žvýkání/Ajurvéda byly cost-confounded,
+ale tato změna celý systém přepisuje od základu, ne jen ladí ceny.
 
-**Návrh:** sjednotit cenu na **1 strom pro všechny**.
+### Hlavní změny
 
-### Proč
-- **Aktuální data ukazují že 2+stromové dovednosti jsou anti-korelované s výhrou**:
-  Sprint -20 %, Žvýkání -14 %, Bylinkový elixír -20 %. Hráči je učí jen
-  v zoufalých situacích a tahy na ně vynaložené už hru nezachrání.
-- Sjednocení by udělalo všech 6 dovedností **rovnocenných** — hráč volí podle
-  stylu hry, ne podle ceny.
-- Pro hráče čitelnější ekonomika: 1 strom = 1 dovednost. Jednoduché.
-- Skill shop ve Spánku by byl jednotně 5 🥔 za libovolnou dovednost (místo 5/10/15).
+1. **Dovednosti se NEUČÍ na Hlíně** — odstraňuje se akce „Uč se" na Hlíně/Poušti
+2. **Dovednost = obsazený strom** — když obsadíš Eukalypt, hned si vybereš
+   libovolnou dovednost. Jeden strom = jedna dovednost.
+3. **Sleep Skill Shop ZRUŠEN** — nákup dovednosti za 🥔 odstraněn
+4. **Ajurvéda ÚPLNĚ ODSTRANĚNA** — zůstává **5 dovedností**:
+   Kapacita, Lázně, Třídění, Sprint, Žvýkání
+5. **Žvýkání +2 lvl** (převzato z bývalé Ajurvédy):
+   - Upgrade kostky o 2 levely: k2→k6, k4→k8, k6→k10, k8→k12
+   - k10 → k12 (cap, nelze přeskočit do k20)
+   - k12 → k20 (jediná cesta na k20 přes upgrade)
+6. **Dovednosti za úkoly (questy)** — alternativní cesta k získání:
+   Před hrou se náhodně přiřadí dovednost ke každému z **5 questů**:
+   - 🐱 1. rozdrcená Kočka
+   - 👹 1. zranění Čerta
+   - 🏅 Formace Přímka 5 (1. místo)
+   - 🏅 Formace Obklíčení (1. místo)
+   - 🏅 Formace Průzkumník (1. místo)
 
-### Proti
-- Devalvuje strom-economy obecně — sbírat stromy je méně náročné na rozhodování
-- Bylinkový elixír (k12→k20 upgrade!) je objektivně silnější než Lázně —
-  rovnocenná cena by ji mohla udělat auto-pick
-- Možná by Ajurvéda potřebovala oslabit (např. upgrade jen o 1 lvl místo 2)
+   Každý quest dává předem určenou dovednost (random per hra). Jen
+   1. hráč co quest splní dostane dovednost; ostatní nic.
 
-### Implementační scope
-- engine.ts SKILL_REQUIREMENTS: změnit `trees: 1` pro všechny
-- PRAVIDLA.md §6.7: aktualizovat tabulku
-- print/vombat-tisk.html: aktualizovat ceny
-- Sim regrese: spustit 5000-game sim, zkontrolovat efekt
+### Důsledky pro game design
 
-### Otevřená otázka
-Jestli zachovat Bylinkový elixír v plné síle, nebo zároveň oslabit jeho efekt
-(upgrade o 1 místo o 2). Druhá varianta = "vše rovnocenné", první =
-"levný OP shortcut".
+- Strom je jediná „aktivní" cesta k dovednosti (5 stromů = 5 dovedností maxi)
+- Quest cesta je „bonus" — pokud někdo splní quest a má skill přiřazený,
+  získá dovednost zdarma
+- Pokud hráč už má dovednost z stromu A je mu přiřazena z questu, quest
+  nedá nic (žádný „náhradní" reward)
+- Hra je víc strategicky orientovaná — výběr stromu = výběr dovednosti
+- Brambor-economy se zjednodušuje (Sleep shop pryč)
+- Formace dávají dovednosti místo kostek — silnější incentivace
+
+### Implementační fáze
+
+1. Remove Ajurvéda + Žvýkání +2 lvl
+2. Hlína: odstranit „Uč se" akce
+3. Tree obsadit = skill picker
+4. Sleep: odstranit buy_skill
+5. Random quest-skill assignment v setupu
+6. Formation reward: skill místo dice
+7. UI/PRAVIDLA/print update
+
+---
+
+## ⚠️ Zastaralé návrhy (před refaktorem)
+
+### Sjednotit ceny dovedností na 1 strom
+
+**Ano, byla to dobrá hypotéza.** Experiment 5000 her potvrdil:
+Sprint/Žvýkání/Ajurvéda jako 1st skill se zvedly z 43/36/30% win rate
+na 50/50/51% — tedy intrinsicky rovnocenné, jen cost-confounded.
+
+Tento návrh je teď zahrnut do velkého refaktoru výše (všechny dovednosti
+"stojí 1 strom" tím, že 1 strom = 1 libovolná dovednost). Místo
+sjednocování cen jdeme rovnou na jednoduší model.
 
 ---
 
