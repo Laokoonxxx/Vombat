@@ -5,19 +5,24 @@ import { fieldProbabilities, expectedSum, FIELD_RANGES } from '../game/probabili
 // =============================================================================
 // DiceProbabilityViewer — full-screen reference table
 // =============================================================================
-// Shows P(sum ∈ rozsah pole) for every valid Hand composition (1-6 dice with
-// max 2 of each level). Same math the AI uses for pre-roll swap decisions.
+// Shows P(sum ∈ rozsah pole) for every valid Hand composition (1-6 dice).
+// Same math the AI uses for pre-roll swap decisions.
 //
 // Hands are canonical multisets in non-decreasing level order. With 7 levels
-// (k2/k4/k6/k8/k10/k12/k20) and max-2 constraint, totals are:
-//   size 1 → 7    size 4 → 161
-//   size 2 → 28   size 5 → 266
-//   size 3 → 77   size 6 → 357
-// Total 896 rows. Precomputed once via useMemo.
+// (k2/k4/k6/k8/k10/k12/k20), no per-level cap (up to 6× of the same die),
+// totals are:
+//   size 1 → 7     size 4 → 210
+//   size 2 → 28    size 5 → 462
+//   size 3 → 84    size 6 → 924
+// Total 1715 rows. Precomputed once via useMemo.
+//
+// Note: in the actual game, Hand has a 2-per-level limit unless the player
+// learns Kapacita. With Kapacita the limit is gone — these "3+ same" rows
+// describe Kapacita-unlocked hands.
 // =============================================================================
 
 const ALL_DICE: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
-const MAX_OF_SAME = 2;
+const MAX_OF_SAME = 6; // hand size cap is 6, so 6× same is the practical max
 
 type FieldKey = keyof typeof FIELD_RANGES;
 const FIELD_KEYS: FieldKey[] = ['dirt', 'bed', 'tree', 'thorn', 'desert', 'cat', 'devil'];
@@ -121,9 +126,10 @@ export function DiceProbabilityViewer({ onClose }: { onClose: () => void }) {
         <div>
           <h1 style={{ margin: 0 }}>🎲 Pravděpodobnosti kostek</h1>
           <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 13 }}>
-            Pro každou kombinaci kostek v Ruce (až 6, max 2 stejné velikosti):
-            pravděpodobnost, že součet trefí aktivační rozsah daného pole.
-            Stejný výpočet používá AI při pre-roll swapu.
+            Pro každou kombinaci kostek v Ruce (1–6 kostek, bez limitu na stejnou velikost):
+            pravděpodobnost, že součet trefí aktivační rozsah daného pole. Stejný výpočet
+            používá AI při pre-roll swapu. 💡 V základním pravidle je limit 2 stejné v Ruce —
+            víc stejných je možné pouze s dovedností <strong>Kapacita</strong>.
           </p>
         </div>
         <button onClick={onClose}>↩ Zpět</button>
