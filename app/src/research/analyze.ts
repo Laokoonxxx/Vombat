@@ -727,6 +727,67 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
     }),
   );
 
+  // ---- Start stats (setup-time decisions → win correlation) ----
+  // Helper: group rows by a string label, compute BucketStat for each group.
+  function groupBy(
+    labelFn: (r: Row) => string | null,
+    opts?: { sortByCount?: boolean; limit?: number; sortByLabel?: boolean },
+  ): BucketStat[] {
+    const groups = new Map<string, { players: number; wins: number; winningTurnsSum: number }>();
+    for (const r of rows) {
+      const label = labelFn(r);
+      if (label == null) continue;
+      const g = groups.get(label) ?? { players: 0, wins: 0, winningTurnsSum: 0 };
+      g.players++;
+      if (r.p.won) {
+        g.wins++;
+        g.winningTurnsSum += r.turns;
+      }
+      groups.set(label, g);
+    }
+    let arr: BucketStat[] = [...groups.entries()].map(([bucket, g]) => ({
+      bucket,
+      players: g.players,
+      wins: g.wins,
+      winRate: g.players ? g.wins / g.players : 0,
+      avgWinningTurns: g.wins ? g.winningTurnsSum / g.wins : null,
+    }));
+    if (opts?.sortByCount ?? true) arr.sort((a, b) => b.players - a.players);
+    else if (opts?.sortByLabel) arr.sort((a, b) => a.bucket.localeCompare(b.bucket));
+    if (opts?.limit) arr = arr.slice(0, opts.limit);
+    return arr;
+  }
+
+  const HEX_LABEL_LOCAL: Record<string, string> = {
+    dirt: '🟫 Hlína',
+    bed: '🌱 Záhon',
+    tree: '🌳 Eukalyptus',
+    thorn: '🌵 Houští',
+    desert: '🏜️ Poušť',
+    cat: '🐱 Kočka',
+    devil: '👹 Čert',
+  };
+
+  const startStats = {
+    byHexType: groupBy((r) => HEX_LABEL_LOCAL[r.p.startHexType] ?? r.p.startHexType),
+    byTileCenter: groupBy((r) =>
+      r.p.startTileCenterType === 'tree' ? '🌳 Modrý (Eukalyptus)' :
+      r.p.startTileCenterType === 'devil' ? '👹 Černý (Čert)' : null,
+    ),
+    byStartDie: groupBy(
+      (r) => (r.p.startDieLevel != null ? `1k${r.p.startDieLevel}` : null),
+      { sortByCount: false, sortByLabel: true },
+    ),
+    byCombo: groupBy(
+      (r) => {
+        if (r.p.startDieLevel == null) return null;
+        const hex = HEX_LABEL_LOCAL[r.p.startHexType] ?? r.p.startHexType;
+        return `${hex} + 1k${r.p.startDieLevel}`;
+      },
+      { sortByCount: true, limit: 15 },
+    ),
+  };
+
   return {
     generatedAt: new Date().toISOString(),
     numGames: games.length,
@@ -743,6 +804,7 @@ function buildPublished(games: ResearchGameRecord[]): ResearchPublished {
       potatoes: potatoBuckets,
     },
     actionStats,
+    startStats,
   };
 }
 

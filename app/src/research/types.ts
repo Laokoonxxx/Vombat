@@ -214,4 +214,16 @@ export interface ResearchPublished {
   };
   // Action count → win rate (for actions where this correlation is interesting)
   actionStats: ActionWinCorrelation[];
+  // Setup/start correlation — does the choice of starting hex / first die
+  // affect win rate or game length?
+  startStats: {
+    // By starting hex type (dirt / bed / tree / thorn / desert)
+    byHexType: BucketStat[];
+    // By starting tile center (tree / devil — black/blue tile bias)
+    byTileCenter: BucketStat[];
+    // By first die bought in setup ("1k4", "1k6", etc.)
+    byStartDie: BucketStat[];
+    // Top combinations of (hex type + starting die), sorted by sample size
+    byCombo: BucketStat[];
+  };
 }

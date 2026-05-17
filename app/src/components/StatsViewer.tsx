@@ -192,6 +192,12 @@ interface ResearchData {
     potatoes: ResearchBucket[];
   };
   actionStats: ResearchActionCorrelation[];
+  startStats?: {
+    byHexType: ResearchBucket[];
+    byTileCenter: ResearchBucket[];
+    byStartDie: ResearchBucket[];
+    byCombo: ResearchBucket[];
+  };
 }
 
 export function StatsViewer({ onClose }: { onClose: () => void }) {
@@ -1205,6 +1211,43 @@ function AnalyticsPanel({ research }: { research: ResearchData }) {
             <TurnStatCard label="Min" value={String(research.turnsToWin.min)} />
             <TurnStatCard label="Max" value={String(research.turnsToWin.max)} />
           </div>
+
+          {/* ===== Startovní pozice ===== */}
+          {research.startStats && (
+            <>
+              <Section title="🏁 Startovní pozice — typ hexu × win rate">
+                <BucketBars buckets={research.startStats.byHexType} unitLabel="" />
+                <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                  💡 Kde AI rozhodla začít s prvním Vombatem. Hlína dominuje, protože AI
+                  heuristika ji silně preferuje.
+                </p>
+              </Section>
+
+              <Section title="🌳/👹 Startovní dílek — modrý vs. černý">
+                <BucketBars buckets={research.startStats.byTileCenter} unitLabel="" />
+                <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                  💡 Střed dílku, kde Vombat začal. Černé (Čert) dílky AI nestartuje skoro
+                  nikdy — heuristika je penalizuje.
+                </p>
+              </Section>
+
+              <Section title="🎲 Startovní kostka — co AI v setupu koupila">
+                <BucketBars buckets={research.startStats.byStartDie} unitLabel="" />
+                <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                  💡 První kostka v Ruce po setupu. Vyšší levely = silnější start, ale méně
+                  brambor zbylých na nákupy během hry.
+                </p>
+              </Section>
+
+              <Section title="🏁 Top 15 startovních kombinací (hex + kostka)">
+                <BucketBars buckets={research.startStats.byCombo} unitLabel="" />
+                <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                  💡 Seřazeno podle četnosti. Hledáš zlatý poměr „kde začít s čím" pro
+                  maximální win rate × rychlost.
+                </p>
+              </Section>
+            </>
+          )}
 
           {/* ===== Winner vs Loser averages ===== */}
           <Section title="🆚 Výherci vs poražení (průměrné finální hodnoty)">
