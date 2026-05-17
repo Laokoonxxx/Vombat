@@ -456,6 +456,29 @@ function scoreHandForTurn(
 function pickPreRollSwap(state: GameState, p: PlayerState): import('./engine').SwapOp | null {
   if (p.hand.length === 0 && p.reserve.length === 0) return null;
 
+  // PRIORITY 1: if adjacent to a Devil and we are NOT currently fight-ready,
+  // check whether a reserve→hand swap would make us ready. The probability
+  // scoring (PRIORITY 2 below) tends to undervalue this — devil weight is
+  // capped low when not ready, so the heuristic prefers tuning small dice
+  // for nearby Hlína/Záhon instead of pulling a k10+ for the kill.
+  //
+  // This was observed in real gameplay: AI sat next to Devil with k12 in
+  // Reserve and small dice in Hand — readyToFightDevil(false), heuristic
+  // didn't pull k12 → AI rolled, used field, never attacked.
+  const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
+  if (adjDevil && !readyToFightDevil(state, p)) {
+    for (let i = 0; i < p.reserve.length; i++) {
+      const lvl = p.reserve[i];
+      // Must fit in Hand under capacity rules
+      if (!p.skills.has('kapacita') && p.hand.filter((d) => d === lvl).length >= 2) continue;
+      const newHand: DiceLevel[] = [...p.hand, lvl];
+      const newP: PlayerState = { ...p, hand: newHand };
+      if (readyToFightDevil(state, newP)) {
+        return { op: 'reserve_to_hand', index: i };
+      }
+    }
+  }
+
   const targets = computeSwapTargets(state, p);
   if (targets.length === 0) return null;
 
@@ -517,7 +540,9 @@ function readyToFightDevil(state: GameState, p: PlayerState): boolean {
     const oHandMax = opp.hand.length ? Math.max(...opp.hand) : 0;
     return oWoundsTaken >= 2 || (oWoundsTaken >= 1 && oHandMax >= 10);
   });
-  const patienceBoost = opponentClose ? 0 : 8; // require +8 sumPotential when opponent isn't close
+  // Reduced from 8 to 4: AI was too conservative — sat next to Devil with
+  // 10 dice but didn't attack because sumPotential was ~57 (need 25+24+8=57+).
+  const patienceBoost = opponentClose ? 0 : 4;
 
   // Final blow — all 4 wounds done; we just need to ROLL 25+ in one shot.
   // sumPotential is the MAX possible sum; avg roll is sumPotential/2.
