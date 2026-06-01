@@ -1,6 +1,6 @@
 # Vombat
 
-Webová digitalní verze tahové deskové hry **Vombat**. 2 hráči lokálně (hot-seat), React + TypeScript + Vite.
+Webová digitální verze tahové deskové hry **Vombat**. 2–4 hráči, hot-seat / proti AI / online přes sdílený PHP backend. React + TypeScript + Vite.
 
 ## Spuštění
 
@@ -20,11 +20,22 @@ npm run build
 npm run preview
 ```
 
+## Nasazení
+
+Nasazení na hosting **probíhá automaticky přes GitHub Actions** při každém pushi do větve `main`. Workflow `.github/workflows/deploy.yml` provede:
+
+1. `npm ci` + `npm run build` (Vite produkční bundle)
+2. Sestaví deploy balík (frontend dist + PHP backend)
+3. FTP upload na Web4U hosting (`/html/vombat/`)
+
+Pro lokální deploy balík existuje složka `deploy/` (gitignored) — viz [deploy/README-DEPLOY.md](deploy/README-DEPLOY.md).
+
 ## Dokumentace
 
 - **[PRAVIDLA.md](PRAVIDLA.md)** — kompletní pravidla hry (12 sekcí + 2 přílohy)
 - **[Pravidla hry.docx](Pravidla%20hry.docx)** — původní pravidla v Word formátu
 - **[app/README.md](app/README.md)** — technická dokumentace aplikace
+- **[BACKLOG.md](BACKLOG.md)** — co je hotovo / na čem se pracuje
 
 ## Struktura
 
@@ -32,20 +43,26 @@ npm run preview
 vombat/
 ├── PRAVIDLA.md           # kanonická pravidla (Markdown)
 ├── Pravidla hry.docx     # originální pravidla
+├── api/, includes/, sql/ # PHP backend pro online multiplayer (Web4U)
+├── bootstrap.php, config.example.php
+├── .github/workflows/    # auto-deploy na push do main
 └── app/                  # webová aplikace
     ├── src/
     │   ├── game/         # herní engine (čisté funkce)
-    │   └── components/   # React UI
+    │   ├── components/   # React UI
+    │   └── net/          # online layer (fetch + polling)
     └── ...
 ```
 
-## MVP rozsah
+## Funkce
 
-- ✅ 2 hráči, hot-seat
-- ✅ Cíl: Rozmačkej Tasmánského Čerta
-- ✅ Plný engine: pohyb, tunely, využití pole, dovednosti, spánek, boj s Čertem
-- 🚧 Cíle 2 a 3 (eukalypty, mrkve) — *zatím neimplementováno*
-- 🚧 Úkoly (formace přímka/obklíčení/průzkumník) — *zatím neimplementováno*
-- 🚧 3–4 hráči — *zatím neimplementováno*
+- ✅ 2–4 hráči (hot-seat, proti AI, online)
+- ✅ Cíl: **Rozmačkej Tasmánského Čerta** (samostatný hod ≥ 25)
+- ✅ Plný engine: pohyb, tunely, využití polí, 5 dovedností, spánek, boj s Čertem
+- ✅ **3 úkoly** (Přímka 5, Obklíčení, Průzkumník) — odměny v kostkách dle pořadí
+- ✅ **Náhodné přiřazení dovedností úkolům** — strategická variabilita per hra
+- ✅ AI heuristika s Monte Carlo lookahead
+- ✅ Online multiplayer přes PHP/MySQL (sdílený Web4U hosting)
+- 🚧 Cíle "získej eukalypty/mrkve" (alternativní vítězné podmínky) — *zatím neimplementováno*
 
-Viz [PRAVIDLA.md Příloha B](PRAVIDLA.md#příloha-b--mvp-zjednodušení-k-doladění) pro úplný seznam MVP zjednodušení.
+Viz [PRAVIDLA.md Příloha B](PRAVIDLA.md#příloha-b--mvp-zjednodušení-k-doladění) pro detaily.
