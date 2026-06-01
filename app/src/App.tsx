@@ -28,7 +28,22 @@ export function App() {
   const [p3Name, setP3Name] = useState('Hráč 3');
   const [p4Name, setP4Name] = useState('Hráč 4');
   const [hotseatPlayers, setHotseatPlayers] = useState<2 | 3 | 4>(2);
-  const [aiName, setAiName] = useState('AI');
+  // Proti AI: počet hráčů + per-slot Human/AI volba.
+  // Default: slot 0 = human, ostatní AI.
+  const [aiPlayers, setAiPlayers] = useState<2 | 3 | 4>(2);
+  const [aiSlotKinds, setAiSlotKinds] = useState<('human' | 'ai')[]>(['human', 'ai', 'ai', 'ai']);
+  const [aiSlotNames, setAiSlotNames] = useState<string[]>(['Hráč 1', 'AI 2', 'AI 3', 'AI 4']);
+
+  function setAiSlotKind(idx: number, kind: 'human' | 'ai') {
+    const next = [...aiSlotKinds];
+    next[idx] = kind;
+    setAiSlotKinds(next);
+  }
+  function setAiSlotName(idx: number, name: string) {
+    const next = [...aiSlotNames];
+    next[idx] = name;
+    setAiSlotNames(next);
+  }
   const [showStats, setShowStats] = useState(false);
   const [showProbabilities, setShowProbabilities] = useState(false);
   const [showRules, setShowRules] = useState<boolean>(() => shouldAutoShowQuickRules());
@@ -296,13 +311,50 @@ export function App() {
           </>
         ) : (
           <>
-            <label>Tvoje jméno</label>
-            <input type="text" value={p1Name} onChange={(e) => setP1Name(e.target.value)} />
-            <label>Jméno AI soupeře</label>
-            <input type="text" value={aiName} onChange={(e) => setAiName(e.target.value)} />
+            <label>Počet hráčů</label>
+            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              {([2, 3, 4] as const).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setAiPlayers(n)}
+                  className={aiPlayers === n ? 'primary' : ''}
+                  style={{ flex: 1 }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {Array.from({ length: aiPlayers }, (_, i) => (
+              <div key={i} style={{ marginTop: 8, padding: 8, background: '#fafafa', border: '1px solid var(--border)', borderRadius: 6 }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                  <strong style={{ minWidth: 56 }}>Slot {i + 1}</strong>
+                  <button
+                    onClick={() => setAiSlotKind(i, 'human')}
+                    className={aiSlotKinds[i] === 'human' ? 'primary' : ''}
+                    style={{ flex: 1 }}
+                  >
+                    👤 Hráč
+                  </button>
+                  <button
+                    onClick={() => setAiSlotKind(i, 'ai')}
+                    className={aiSlotKinds[i] === 'ai' ? 'primary' : ''}
+                    style={{ flex: 1 }}
+                  >
+                    🤖 AI
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={aiSlotNames[i]}
+                  onChange={(e) => setAiSlotName(i, e.target.value)}
+                  placeholder={aiSlotKinds[i] === 'ai' ? `AI ${i + 1}` : `Hráč ${i + 1}`}
+                />
+              </div>
+            ))}
             <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
-              AI je jednoduchá heuristika: snaží se získávat kostky z Houští,
-              blížit se k Čertovi a bojovat když má dost kostek.
+              AI hraje sama heuristikou — nákup kostek, pohyb, využití polí, boj s Čertem.
+              Můžeš nastavit i 0 humans (sleduješ jen AI proti sobě) nebo všechny humans
+              (= ekvivalent hot-seatu).
             </p>
           </>
         )}
@@ -329,10 +381,10 @@ export function App() {
                       { name: p3Name, kind: 'human' as const },
                       { name: p4Name, kind: 'human' as const },
                     ];
-            const aiSetup = [
-              { name: p1Name, kind: 'human' as const },
-              { name: aiName, kind: 'ai' as const },
-            ];
+            const aiSetup = Array.from({ length: aiPlayers }, (_, i) => ({
+              name: aiSlotNames[i] || (aiSlotKinds[i] === 'ai' ? `AI ${i + 1}` : `Hráč ${i + 1}`),
+              kind: aiSlotKinds[i],
+            }));
             setState(createGame(mode === 'hotseat' ? hotseatSetup : aiSetup));
           }}
         >
