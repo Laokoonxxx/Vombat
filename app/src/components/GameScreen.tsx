@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
-import type { GameState, Hex, DiceLevel, SkillId, WoundType, FormationKind } from '../game/types';
+import type { GameState, Hex, DiceLevel, SkillId, WoundType, FormationKind, TaskKey } from '../game/types';
 import {
   hexKey, WOUND_TYPES, FORMATION_LABEL, FORMATION_DESC, FORMATION_REWARDS,
+  ALL_TASK_KEYS, TASK_LABEL,
 } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { PlayerBoard } from './PlayerBoard';
@@ -347,6 +348,27 @@ export function GameScreen({
               {state.phase === 'devil_combat' && p.fighting && (
                 <DevilCombatPanel state={state} dispatch={dispatch} />
               )}
+              {state.phase === 'using_field' && p.skills.has('sprint') && (
+                <div
+                  style={{
+                    padding: 10,
+                    background: '#e8f4ff',
+                    border: '1px solid #b8d4f0',
+                    borderRadius: 6,
+                    fontSize: 13,
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                    🏃 Sprint — klikni na pole svého Vombata pro využití,
+                  </div>
+                  <div style={{ color: 'var(--muted)', marginBottom: 8 }}>
+                    nebo vynechat a ukončit tah:
+                  </div>
+                  <button onClick={() => dispatch({ type: 'endTurnNow' })}>
+                    ⏭️ Vynechat Sprint a ukončit tah
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {state.pendingChoice?.kind === 'attack_surrender' && (
@@ -376,6 +398,7 @@ export function GameScreen({
             />
           )}
         </div>
+        <TaskRewardsPanel state={state} />
         <FormationsPanel state={state} />
         <div className="panel">
           <h3>Čertova zranění (každý bojuje vlastního)</h3>
@@ -745,7 +768,7 @@ function DieAcquisitionModal({ state, dispatch }: { state: GameState; dispatch: 
   if (pc?.kind !== 'pick_die_acquisition') return null;
   const p = currentPlayer(state);
   const offered = pc.offered;
-  const allLevels: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
+  const allLevels: DiceLevel[] = [2, 4, 6, 8, 12, 20];
   const offeredIdx = allLevels.indexOf(offered);
   const sizeOptions = allLevels.slice(0, offeredIdx + 1).reverse(); // biggest first
 
@@ -799,7 +822,7 @@ function DieAcquisitionModal({ state, dispatch }: { state: GameState; dispatch: 
               </div>
             )}
             <div style={{ marginTop: 4, color: 'var(--muted)', fontStyle: 'italic' }}>
-              Stupnice: 1→k2 · 2→k4 · 3→k6 · 4→k8 · 5→k10 · 6–7→k12 · 8+→k20
+              Stupnice: 1→k2 · 2→k4 · 3→k6 · 4→k8 · 5–7→k12 · 8+→k20
             </div>
           </div>
         )}
@@ -1133,7 +1156,8 @@ function SleepModal({
           {p.skills.has('masaz_strev') && p.hand.map((d, i) => (
             <button
               key={`up${i}`}
-              disabled={otherActionsDisabled}
+              disabled={otherActionsDisabled || d === 20}
+              title={d === 20 ? 'k20 je max, nelze dál upgradnout' : `Upgrade 1k${d} o 2 lvly (Žvýkání)`}
               onClick={() =>
                 dispatch({
                   type: 'sleep',
@@ -1141,21 +1165,7 @@ function SleepModal({
                 })
               }
             >
-              ⬆️ Upgrade 1k{d}
-            </button>
-          ))}
-          {p.skills.has('ajurveda') && p.hand.map((d, i) => (
-            <button
-              key={`up2${i}`}
-              disabled={otherActionsDisabled}
-              onClick={() =>
-                dispatch({
-                  type: 'sleep',
-                  sleepAction: { kind: 'upgrade_die_2x', location: 'hand', index: i },
-                })
-              }
-            >
-              ⬆️⬆️ Upgrade 1k{d} 2x
+              ⬆️⬆️ Upgrade 1k{d} (+2 lvly)
             </button>
           ))}
           <button
@@ -1203,21 +1213,14 @@ function DevilCombatPanel({ state, dispatch }: { state: GameState; dispatch: (a:
   const p = currentPlayer(state);
   const taken = state.devilWounds.woundsByPlayer[p.id];
   const allTaken = allWoundsTaken(state, p.id);
-  const currentSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
-  const readyToKill = allTaken && currentSum >= 25;
   return (
     <div>
       <DiceTray player={p} />
       <p style={{ fontSize: 13, marginTop: 8 }}>
         {allTaken
-          ? 'Všechna zranění zasazena. Potřebuješ součet ≥25 pro smrtelnou ránu.'
+          ? 'Všechna zranění zasazena. Pro smrtelnou ránu musíš hodit ≥25 na SAMOSTATNÝ hod (klikni "Hoď znovu"). Zbylé kostky z hodu po zraněních se nepočítají.'
           : 'Pro každou kostku zvol, na které zranění ji použít (1, 2, 7+, 10+).'}
       </p>
-      {readyToKill && (
-        <p style={{ background: '#d4f0c4', padding: 8, borderRadius: 6, fontSize: 13 }}>
-          ✨ <strong>Zbylé kostky dávají {currentSum}</strong> (≥25). Klikni "Zasaď smrtelnou ránu" pro vítězství.
-        </p>
-      )}
       {(p.lastRoll || []).map((val, i) => (
         <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
           <span style={{ minWidth: 60 }}>Kostka 1k{p.hand[i]} = <strong>{val}</strong></span>
@@ -1245,9 +1248,7 @@ function DevilCombatPanel({ state, dispatch }: { state: GameState; dispatch: (a:
           className="primary"
           onClick={() => dispatch({ type: 'devilContinueRoll', rolls: rollForCurrentPlayer(state) })}
         >
-          {readyToKill
-            ? '⚔️ Zasaď smrtelnou ránu'
-            : `🎲 Hoď znovu${allTaken ? ' (potřebuješ 25+)' : ''}`}
+          🎲 Hoď znovu{allTaken ? ' (smrtelná rána = 25+)' : ''}
         </button>
         <button onClick={() => dispatch({ type: 'devilStop' })}>Ukončit boj</button>
       </div>
@@ -1339,6 +1340,70 @@ function FormationsPanel({ state }: { state: GameState }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// =============================================================================
+// TaskRewardsPanel — náhodné přiřazení schopností k úkolům (per hra)
+// =============================================================================
+// Před startem hry se každá z 5 schopností náhodně přiřadí jednomu z 5 úkolů
+// (3 formace + 1. kočka + 1. zranění Čerta). Panel ukazuje které schopnosti
+// jsou v této hře k dispozici za který úkol a u kterých hráčů už byla
+// rozdána (= odškrtnuto).
+function TaskRewardsPanel({ state }: { state: GameState }) {
+  const TASK_ICONS: Record<TaskKey, string> = {
+    primka5: '📏',
+    obkliceni: '🛡️',
+    pruzkumnik: '🧭',
+    devilWound: '⚔️',
+    catSmash: '🐱',
+  };
+  return (
+    <div className="panel">
+      <h3>🎁 Odměny za úkoly (náhodné)</h3>
+      <p style={{ fontSize: 11, color: 'var(--muted)', margin: '0 0 8px' }}>
+        Každý úkol uděluje schopnost <strong>poprvé per hráč</strong>.
+        Formace navíc dávají kostku (k20/k12/k6) podle pořadí.
+      </p>
+      {ALL_TASK_KEYS.map((tk) => {
+        const skill = state.taskRewards?.[tk];
+        const skillLabel = skill ? SKILL_REQUIREMENTS[skill]?.label ?? skill : '—';
+        return (
+          <div
+            key={tk}
+            style={{
+              padding: '4px 6px',
+              borderTop: '1px solid #eee',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              fontSize: 12,
+            }}
+          >
+            <span>
+              {TASK_ICONS[tk]} {TASK_LABEL[tk]}
+            </span>
+            <span style={{ fontWeight: 600 }}>{skillLabel}</span>
+          </div>
+        );
+      })}
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+        Splnili:
+        <div style={{ marginTop: 2 }}>
+          {state.players.map((pl) => {
+            const granted = state.taskRewardsGranted?.[pl.id] ?? [];
+            return (
+              <div key={pl.id} style={{ color: pl.color }}>
+                {pl.name}:{' '}
+                {granted.length === 0
+                  ? <em style={{ color: 'var(--muted)' }}>—</em>
+                  : granted.map((tk) => TASK_ICONS[tk]).join(' ')}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

@@ -5,29 +5,27 @@ import { fieldProbabilities, expectedSum, FIELD_RANGES } from '../game/probabili
 // =============================================================================
 // DiceProbabilityViewer — full-screen reference table
 // =============================================================================
-// Shows P(sum ∈ rozsah pole) for every valid Hand composition (1-6 dice).
+// Shows P(sum ∈ rozsah pole) for every valid Hand composition (1-7 dice).
 // Same math the AI uses for pre-roll swap decisions.
 //
-// Hands are canonical multisets in non-decreasing level order. With 7 levels
-// (k2/k4/k6/k8/k10/k12/k20), no per-level cap (up to 6× of the same die),
-// totals are:
-//   size 1 → 7     size 4 → 210
-//   size 2 → 28    size 5 → 462
-//   size 3 → 84    size 6 → 924
-// Total 1715 rows. Precomputed once via useMemo.
+// Hands are canonical multisets in non-decreasing level order. S 6 lvly
+// (k2/k4/k6/k8/k12/k20), bez per-level cap (až do velikosti Ruky stejné kostky).
+// (k10 byla vyřazena ze hry 2026-06-01.)
 //
 // Note: in the actual game, Hand has a 2-per-level limit unless the player
 // learns Kapacita. With Kapacita the limit is gone — these "3+ same" rows
 // describe Kapacita-unlocked hands.
 // =============================================================================
 
-const ALL_DICE: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
-const MAX_OF_SAME = 6; // hand size cap is 6, so 6× same is the practical max
+const ALL_DICE: DiceLevel[] = [2, 4, 6, 8, 12, 20];
+const MAX_HAND_SIZE = 7;
 
 type FieldKey = keyof typeof FIELD_RANGES;
 const FIELD_KEYS: FieldKey[] = ['dirt', 'bed', 'tree', 'thorn', 'desert', 'cat', 'devil'];
 
-// Enumerate all canonical multisets of given size with max 2 of each level.
+// Enumerate all canonical multisets of given size, allowing up to `size` of
+// each level (= no practical cap, since Kapacita ruší limit a hra počítá
+// s libovolnou kombinací kostek až do velikosti Ruky).
 // Returns sorted-by-level arrays (e.g. [2,4,4,8]).
 function* enumerateHands(size: number, startIdx = 0, current: DiceLevel[] = []): Generator<DiceLevel[]> {
   if (current.length === size) {
@@ -38,7 +36,7 @@ function* enumerateHands(size: number, startIdx = 0, current: DiceLevel[] = []):
     const lvl = ALL_DICE[i];
     let count = 0;
     for (const d of current) if (d === lvl) count++;
-    if (count >= MAX_OF_SAME) continue;
+    if (count >= size) continue;
     current.push(lvl);
     yield* enumerateHands(size, i, current);
     current.pop();
@@ -78,7 +76,7 @@ export function DiceProbabilityViewer({ onClose }: { onClose: () => void }) {
   // Precompute rows for each hand size once and cache.
   const allSizeRows = useMemo(() => {
     const out: Record<number, Row[]> = {};
-    for (let n = 1; n <= 6; n++) out[n] = buildRows(n);
+    for (let n = 1; n <= MAX_HAND_SIZE; n++) out[n] = buildRows(n);
     return out;
   }, []);
 
@@ -126,10 +124,10 @@ export function DiceProbabilityViewer({ onClose }: { onClose: () => void }) {
         <div>
           <h1 style={{ margin: 0 }}>🎲 Pravděpodobnosti kostek</h1>
           <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 13 }}>
-            Pro každou kombinaci kostek v Ruce (1–6 kostek, bez limitu na stejnou velikost):
+            Pro každou kombinaci kostek v Ruce (1–7 kostek, bez limitu na stejnou velikost):
             pravděpodobnost, že součet trefí aktivační rozsah daného pole. Stejný výpočet
-            používá AI při pre-roll swapu. 💡 V základním pravidle je limit 2 stejné v Ruce —
-            víc stejných je možné pouze s dovedností <strong>Kapacita</strong>.
+            používá AI při pre-roll swapu. 💡 V základním pravidle je limit 2 stejné v Ruce
+            a max 6 kostek; větší ruka (7+) i víc stejných kostek vyžaduje dovednost <strong>Kapacita</strong>.
           </p>
         </div>
         <button onClick={onClose}>↩ Zpět</button>
@@ -137,7 +135,7 @@ export function DiceProbabilityViewer({ onClose }: { onClose: () => void }) {
 
       {/* Hand size tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-        {[1, 2, 3, 4, 5, 6].map((n) => (
+        {Array.from({ length: MAX_HAND_SIZE }, (_, i) => i + 1).map((n) => (
           <button
             key={n}
             onClick={() => setSize(n)}
