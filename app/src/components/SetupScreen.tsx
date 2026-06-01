@@ -3,7 +3,8 @@ import type { GameState, DiceLevel, Hex } from '../game/types';
 import { ALL_DICE_LEVELS, DICE_PRICES } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { Legend } from './Legend';
-import { buyDie, finishSetup, placeStartingVombat } from '../game/engine';
+import type { Action } from '../game/actions';
+import { applyAction } from '../game/actions';
 import { aiSetupStep } from '../game/ai';
 
 export interface SetupScreenProps {
@@ -16,6 +17,8 @@ export interface SetupScreenProps {
 }
 
 export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: SetupScreenProps) {
+  const dispatch = (action: Action) => setState(applyAction(state, action));
+
   // Phase 1: each player picks a starting hex in order.
   // Phase 2: each player buys at least 1 die and optionally a 2nd vombat.
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
@@ -48,7 +51,7 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
 
   function onHexClick(hex: Hex) {
     if (placingPlayer) {
-      setState(placeStartingVombat(state, placingPlayer.id, hex));
+      dispatch({ type: 'placeStartingVombat', playerId: placingPlayer.id, hex });
     }
   }
 
@@ -152,7 +155,7 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
             <button
               className="primary"
               disabled={!allBought}
-              onClick={() => setState(finishSetup(state))}
+              onClick={() => dispatch({ type: 'finishSetup' })}
               style={{ marginTop: 12, width: '100%' }}
             >
               🎲 Začít hru
@@ -182,7 +185,10 @@ function Row({
     <>
       <span>1k{level}</span>
       <span>{price} 🥔</span>
-      <button disabled={!canAfford} onClick={() => setState(buyDie(state, playerId, level))}>
+      <button
+        disabled={!canAfford}
+        onClick={() => setState(applyAction(state, { type: 'buyDie', playerId, level }))}
+      >
         Koupit
       </button>
     </>
