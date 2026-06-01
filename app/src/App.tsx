@@ -25,6 +25,9 @@ export function App() {
   const [mode, setMode] = useState<Mode>(() => (loadSession() ? 'online' : 'hotseat'));
   const [p1Name, setP1Name] = useState('Hráč 1');
   const [p2Name, setP2Name] = useState('Hráč 2');
+  const [p3Name, setP3Name] = useState('Hráč 3');
+  const [p4Name, setP4Name] = useState('Hráč 4');
+  const [hotseatPlayers, setHotseatPlayers] = useState<2 | 3 | 4>(2);
   const [aiName, setAiName] = useState('AI');
   const [showStats, setShowStats] = useState(false);
   const [showProbabilities, setShowProbabilities] = useState(false);
@@ -261,10 +264,35 @@ export function App() {
 
         {mode === 'hotseat' ? (
           <>
+            <label>Počet hráčů</label>
+            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              {([2, 3, 4] as const).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setHotseatPlayers(n)}
+                  className={hotseatPlayers === n ? 'primary' : ''}
+                  style={{ flex: 1 }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
             <label>Jméno hráče 1</label>
             <input type="text" value={p1Name} onChange={(e) => setP1Name(e.target.value)} />
             <label>Jméno hráče 2</label>
             <input type="text" value={p2Name} onChange={(e) => setP2Name(e.target.value)} />
+            {hotseatPlayers >= 3 && (
+              <>
+                <label>Jméno hráče 3</label>
+                <input type="text" value={p3Name} onChange={(e) => setP3Name(e.target.value)} />
+              </>
+            )}
+            {hotseatPlayers >= 4 && (
+              <>
+                <label>Jméno hráče 4</label>
+                <input type="text" value={p4Name} onChange={(e) => setP4Name(e.target.value)} />
+              </>
+            )}
           </>
         ) : (
           <>
@@ -282,21 +310,31 @@ export function App() {
         <button
           className="primary"
           style={{ marginTop: 20, width: '100%' }}
-          onClick={() =>
-            setState(
-              createGame(
-                mode === 'hotseat'
+          onClick={() => {
+            const hotseatSetup =
+              hotseatPlayers === 2
+                ? [
+                    { name: p1Name, kind: 'human' as const },
+                    { name: p2Name, kind: 'human' as const },
+                  ]
+                : hotseatPlayers === 3
                   ? [
-                      { name: p1Name, kind: 'human' },
-                      { name: p2Name, kind: 'human' },
+                      { name: p1Name, kind: 'human' as const },
+                      { name: p2Name, kind: 'human' as const },
+                      { name: p3Name, kind: 'human' as const },
                     ]
                   : [
-                      { name: p1Name, kind: 'human' },
-                      { name: aiName, kind: 'ai' },
-                    ]
-              )
-            )
-          }
+                      { name: p1Name, kind: 'human' as const },
+                      { name: p2Name, kind: 'human' as const },
+                      { name: p3Name, kind: 'human' as const },
+                      { name: p4Name, kind: 'human' as const },
+                    ];
+            const aiSetup = [
+              { name: p1Name, kind: 'human' as const },
+              { name: aiName, kind: 'ai' as const },
+            ];
+            setState(createGame(mode === 'hotseat' ? hotseatSetup : aiSetup));
+          }}
         >
           Vytvořit hru
         </button>

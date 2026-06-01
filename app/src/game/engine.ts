@@ -24,16 +24,18 @@ export interface SetupPlayer {
 export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameState {
   const rng = makeRNG(seed);
   const numPlayers = setupPlayers.length;
-  if (numPlayers < 2 || numPlayers > 2) {
-    // MVP supports exactly 2; can later extend (3,10), (4,13)
-    if (numPlayers !== 2) throw new Error('MVP supports only 2 players');
+  if (numPlayers < 2 || numPlayers > 4) {
+    throw new Error(`Vombat podporuje 2-4 hráče, dostali jsme ${numPlayers}`);
   }
-  const config: GameConfig = {
-    numPlayers,
-    numTiles: 7,
-    blueTiles: 5,
-    blackTiles: 2,
-  };
+  // Počet dílků / split modré-černé dle pravidel (§ 1):
+  //   2 hráči: 7 dílků = 5 modrých + 2 černé
+  //   3 hráči: 10 dílků = 6 modrých + 4 černé
+  //   4 hráči: 13 dílků = 7 modrých + 6 černých
+  const tileCfg =
+    numPlayers === 2 ? { numTiles: 7, blueTiles: 5, blackTiles: 2 }
+    : numPlayers === 3 ? { numTiles: 10, blueTiles: 6, blackTiles: 4 }
+    : { numTiles: 13, blueTiles: 7, blackTiles: 6 };
+  const config: GameConfig = { numPlayers, ...tileCfg };
   const board = generateMap(config, rng);
 
   // Determine random starting player order

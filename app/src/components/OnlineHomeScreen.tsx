@@ -127,9 +127,6 @@ export function OnlineHomeScreen({ onSessionCreated, onBack, onShowRules }: Onli
               </button>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
-            (3-4 hráče zatím nepodporujeme v enginu — vznikne až ve Fázi 3.)
-          </p>
           {err && <p style={{ color: '#c33', fontSize: 13 }}>{err}</p>}
           <button
             className="primary"

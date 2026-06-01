@@ -47,6 +47,26 @@ export const TILE_CENTERS_FOR_7: Hex[] = [
   { q: 1, r: 2 },
 ];
 
+// 10 dílků (3 hráči): 7 vnitřních + 3 vnější rohy v trojúhelníkové symetrii.
+// Druhý prstenec má 12 možných pozic; pro 3 hráče vybíráme 3 každý druhý roh.
+export const TILE_CENTERS_FOR_10: Hex[] = [
+  ...TILE_CENTERS_FOR_7,
+  { q: 6, r: -2 },   // 2× E
+  { q: -2, r: -4 },  // 2× NW
+  { q: -4, r: 6 },   // 2× SW
+];
+
+// 13 dílků (4 hráči): 7 vnitřních + všech 6 vnějších rohů (snowflake tvar).
+export const TILE_CENTERS_FOR_13: Hex[] = [
+  ...TILE_CENTERS_FOR_7,
+  { q: 6, r: -2 },   // 2× E
+  { q: 4, r: -6 },   // 2× NE
+  { q: -2, r: -4 },  // 2× NW
+  { q: -6, r: 2 },   // 2× W
+  { q: -4, r: 6 },   // 2× SW
+  { q: 2, r: 4 },    // 2× SE
+];
+
 // Build the 7 hexes of a flower-tile centered at `c`, rotated by `rotation` steps.
 export function buildTileHexes(c: Hex, ringTypes: TileRingType[], rotation: number): {
   center: Hex;
