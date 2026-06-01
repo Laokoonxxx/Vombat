@@ -1,9 +1,10 @@
 import type {
-  BoardCell, DiceLevel, FormationKind, GameConfig, GameState, Hex, PlayerState, SkillId, WoundType,
+  BoardCell, DiceLevel, FormationKind, GameConfig, GameState, Hex, PlayerState, SkillId, TaskKey, WoundType,
 } from './types';
 import {
   hexKey, hexEq, ALL_DICE_LEVELS, WOUND_TYPES,
   FORMATION_LABEL, FORMATION_REWARDS,
+  ALL_TASK_KEYS, TASK_LABEL,
 } from './types';
 import { hexNeighbors } from './hex';
 import { generateMap } from './map';
@@ -24,16 +25,20 @@ export interface SetupPlayer {
 export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameState {
   const rng = makeRNG(seed);
   const numPlayers = setupPlayers.length;
-  if (numPlayers < 2 || numPlayers > 2) {
-    // MVP supports exactly 2; can later extend (3,10), (4,13)
-    if (numPlayers !== 2) throw new Error('MVP supports only 2 players');
+  if (numPlayers < 2 || numPlayers > 4) {
+    throw new Error(`Vombat podporuje 2-4 hráče, dostali jsme ${numPlayers}`);
   }
-  const config: GameConfig = {
-    numPlayers,
-    numTiles: 7,
-    blueTiles: 5,
-    blackTiles: 2,
-  };
+  // Počet dílků / split modré-černé dle pravidel (§ 1):
+  //   Každý hráč přidá 1 dílek nad základ. Modré zůstává 5, černé = počet hráčů
+  //   (každý hráč má svého Čerta).
+  //   2 hráči: 7 dílků = 5 modrých + 2 černé
+  //   3 hráči: 8 dílků = 5 modrých + 3 černé
+  //   4 hráči: 9 dílků = 5 modrých + 4 černé
+  const tileCfg =
+    numPlayers === 2 ? { numTiles: 7, blueTiles: 5, blackTiles: 2 }
+    : numPlayers === 3 ? { numTiles: 8, blueTiles: 5, blackTiles: 3 }
+    : { numTiles: 9, blueTiles: 5, blackTiles: 4 };
+  const config: GameConfig = { numPlayers, ...tileCfg };
   const board = generateMap(config, rng);
 
   // Determine random starting player order
@@ -82,6 +87,22 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
     ),
   };
 
+  // Náhodné přiřazení 5 schopností na 5 úkolů (1:1 mapping). Seedem řízeno
+  // → replay deterministický pro online sync.
+  const allSkills: SkillId[] = ['kapacita', 'koupel', 'klystyr', 'masaz_strev', 'sprint'];
+  const shuffledSkills = rng.shuffle(allSkills);
+  const taskRewards = Object.fromEntries(
+    ALL_TASK_KEYS.map((tk, i) => [tk, shuffledSkills[i]])
+  ) as Record<TaskKey, SkillId>;
+  const taskRewardsGranted: Record<string, TaskKey[]> = Object.fromEntries(
+    players.map((p) => [p.id, []])
+  );
+
+  const initialLog = [
+    'Hra připravena. Každý hráč nyní zvolí startovní pole.',
+    `🧠 Přiřazení schopností: ${ALL_TASK_KEYS.map((tk) => `${TASK_LABEL[tk]} → ${taskRewards[tk]}`).join(' · ')}`,
+  ];
+
   return {
     config,
     board,
@@ -89,10 +110,12 @@ export function createGame(setupPlayers: SetupPlayer[], seed?: number): GameStat
     currentPlayerIdx: 0,
     turnNumber: 1,
     phase: 'setup',
-    log: ['Hra připravena. Každý hráč nyní zvolí startovní pole.'],
+    log: initialLog,
     winnerId: null,
     devilWounds,
     completedFormations: [],
+    taskRewards,
+    taskRewardsGranted,
     pendingChoice: null,
   };
 }
@@ -128,6 +151,9 @@ function cloneState(state: GameState): GameState {
       Object.entries(state.devilWounds.woundsByPlayer).map(([pid, w]) => [pid, { ...w }])
     ),
   };
+  const newTaskRewardsGranted = Object.fromEntries(
+    Object.entries(state.taskRewardsGranted ?? {}).map(([pid, keys]) => [pid, [...keys]])
+  );
   return {
     ...state,
     board: newBoard,
@@ -135,6 +161,8 @@ function cloneState(state: GameState): GameState {
     log: [...state.log],
     devilWounds: newDevil,
     completedFormations: [...(state.completedFormations ?? [])],
+    taskRewards: { ...state.taskRewards },
+    taskRewardsGranted: newTaskRewardsGranted,
   };
 }
 
@@ -200,7 +228,7 @@ export function placeStartingVombat(state: GameState, playerId: string, hex: Hex
 export function buyDie(state: GameState, playerId: string, level: DiceLevel): GameState {
   const s = cloneState(state);
   const p = s.players.find((p) => p.id === playerId)!;
-  const prices: Record<DiceLevel, number> = { 2: 5, 4: 7, 6: 9, 8: 10, 10: 10, 12: 12, 20: 99 };
+  const prices: Record<DiceLevel, number> = { 2: 5, 4: 6, 6: 8, 8: 10, 12: 10, 20: 99 };
   const cost = prices[level];
   if (level === 20) return state;
   if (p.potatoes < cost) return state;
@@ -444,6 +472,9 @@ function processPendingFormations(s: GameState, playerId: string): boolean {
     const reward = FORMATION_REWARDS[Math.min(rank, FORMATION_REWARDS.length - 1)];
     s.completedFormations.push({ formation: f, playerId, turn: s.turnNumber });
     const rankLabel = ['1.', '2.', '3.', '4.+'][Math.min(rank, 3)];
+    // Aditivní odměna: přiřazená schopnost (jednou per hráč) PLUS dice odměna
+    // za pořadí. Skill granted first — tak ho hráč vidí dřív v logu.
+    grantTaskReward(s, p, f);
     if (reward != null) {
       logEntry(
         s,
@@ -454,7 +485,7 @@ function processPendingFormations(s: GameState, playerId: string): boolean {
     } else {
       logEntry(
         s,
-        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) — bez odměny (pozdě).`
+        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) — bez kostkové odměny (pozdě).`
       );
     }
   }
@@ -491,6 +522,24 @@ function grantSkill(s: GameState, p: PlayerState, skill: SkillId): void {
   if (p.skills.has(skill)) return;
   p.skills.add(skill);
   if (skill === 'kapacita') releasePendingDice(s, p);
+}
+
+// Udělí hráči schopnost přiřazenou k danému úkolu — ale jen jednou per hráč,
+// a jen pokud schopnost už nemá. Loguje s důvodem (label úkolu).
+function grantTaskReward(s: GameState, p: PlayerState, task: TaskKey): void {
+  const granted = s.taskRewardsGranted[p.id] ?? [];
+  if (granted.includes(task)) return;
+  granted.push(task);
+  s.taskRewardsGranted[p.id] = granted;
+  const skill = s.taskRewards[task];
+  if (!skill) return;
+  if (p.skills.has(skill)) {
+    // Hráč už schopnost má (např. naučil se jinak) — task se počítá za vyplněný
+    // (granted), ale nelogujeme nadbytečnou hlášku.
+    return;
+  }
+  grantSkill(s, p, skill);
+  logEntry(s, `✨ ${p.name} získává dovednost "${skill}" zdarma (úkol: ${TASK_LABEL[task]}).`);
 }
 
 // =============================================================================
@@ -716,14 +765,14 @@ export function resolveAttackWithDie(state: GameState, location: 'hand' | 'reser
 }
 
 function downgradeDie(lvl: DiceLevel): DiceLevel {
-  const order: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
+  const order: DiceLevel[] = [2, 4, 6, 8, 12, 20];
   const i = order.indexOf(lvl);
   if (i <= 0) return 2;
   return order[i - 1];
 }
 
 function upgradeDie(lvl: DiceLevel): DiceLevel {
-  const order: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
+  const order: DiceLevel[] = [2, 4, 6, 8, 12, 20];
   const i = order.indexOf(lvl);
   if (i === order.length - 1) return 20;
   return order[i + 1];
@@ -802,26 +851,29 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
     targetCell.isTunnel = true;
     dieAcquisitionPaused = addDieOrPending(s, p, 8, 'rozmačkaná Kočka');
     logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k8 a vzniká tunel.`);
-    // Milestone: first cat smash → grant Koupel
-    if (!p.skills.has('koupel')) {
-      grantSkill(s, p, 'koupel');
-      logEntry(s, `✨ ${p.name} získává dovednost Lázně zdarma (1. rozdrcená Kočka)!`);
-    }
+    // Úkol: 1. rozmačkaná Kočka → schopnost přiřazená v taskRewards.catSmash
+    grantTaskReward(s, p, 'catSmash');
   } else {
     logEntry(s, `${p.name} přesunul Vombata na ${targetCell.type} (${targetHex.q},${targetHex.r}).`);
   }
   v.hex = { ...targetHex };
   s.movedThisTurn = true;
   // After moving, by default the turn ends. Sprint lets the player ALSO use
-  // the destination field — but skip Sprint if we just smashed a cat (the
-  // hex is now a tunnel, no field-action available there).
-  if (p.skills.has('sprint') && !smashedCat) {
+  // the destination field — ale jen pokud je tam co dělat:
+  //   - smashedCat → tunnel, žádná field-action
+  //   - canUseField(targetHex) === false → např. Poušť bez Lázní, Houští kde
+  //     hod nestačí na threshold, vlastní označená pole atd. → tah končí, ne stuck.
+  if (p.skills.has('sprint') && !smashedCat && canUseField(s, targetHex)) {
     s.phase = 'using_field';
     logEntry(s, `${p.name} přesunul Vombata. Díky Sprintu může okamžitě využít toto pole.`);
   } else if (dieAcquisitionPaused) {
     // Cat smash: 1k20 needs human placement first; defer endTurn.
     s.pendingPostAcquisition = 'end_turn';
   } else {
+    if (p.skills.has('sprint') && !smashedCat) {
+      // Sprint nelze využít na tomto poli → krátká zpráva, ať hráč ví proč.
+      logEntry(s, `${p.name} přesunul Vombata. Sprint nelze využít (cílové pole nevyhovuje).`);
+    }
     endTurn(s);
   }
   return s;
@@ -1107,7 +1159,7 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   // Per rules: score = carrotTrack (your ukazatel mrkve)
   //                  + potatoes invested (UI not yet wired — skipped)
   //                  + adjacent hexes occupied by SOUPEŘOVY značky
-  // Score 0=nothing, 1=k2, 2=k4, 3=k6, 4=k8, 5=k10, 6-7=k12, 8+=k20
+  // Score 0=nothing, 1=k2, 2=k4, 3=k6, 4=k8, 5-7=k12, 8+=k20  (k10 vyřazena)
   //
   // Design intent: opponent-only adjacency rewards aggressive play
   // (be near your opponent) and prevents the player from clustering
@@ -1151,8 +1203,7 @@ function poopResult(score: number): DiceLevel | null {
   if (score === 2) return 4;
   if (score === 3) return 6;
   if (score === 4) return 8;
-  if (score === 5) return 10;
-  if (score <= 7) return 12;
+  if (score <= 7) return 12;   // 5,6,7 → k12 (k10 vyřazena)
   return 20;
 }
 
@@ -1161,9 +1212,8 @@ export const SKILL_REQUIREMENTS: Record<SkillId, { trees: number; label: string;
   kapacita:     { trees: 1, label: 'Kapacita',           desc: 'Vombat má roztaženou kapsičku. Žádné limity na kostky (Ruka i Zásoba neomezené).' },
   koupel:       { trees: 1, label: 'Lázně',              desc: 'Vombat se ochladí v poušti, zvládne písek. Můžeš využívat Poušť jako Hlínu (hod 7+).' },
   klystyr:      { trees: 1, label: 'Třídění',            desc: 'Vombat pečlivě rovná kostky. PŘED hodem: až 3× zadarmo přesun Ruka ↔ Zásoba. (Tvar tvé Ruky můžeš ladit každý tah.)' },
-  masaz_strev:  { trees: 2, label: 'Žvýkání',            desc: 'Vombat žvýká důkladněji = větší výstup. Při Spánku: Upgrade 1 kostky o 1 lvl.' },
-  ajurveda:     { trees: 3, label: 'Bylinkový elixír',   desc: 'Eukalyptus + bylinky = mocná medicína. Při Spánku: Upgrade 1 kostky o 2 lvly (nebo 2 kostky o 1).' },
-  sprint:       { trees: 2, label: 'Sprint',             desc: 'Vombat běží jak vítr. Po Pohybu rovnou Využij pole, na které jsi se přesunul.' },
+  masaz_strev:  { trees: 1, label: 'Žvýkání',            desc: 'Vombat žvýká důkladněji = větší výstup. Při Spánku: Upgrade 1 kostky o 2 lvly (k12 → k20 povoleno).' },
+  sprint:       { trees: 1, label: 'Sprint',             desc: 'Vombat běží jak vítr. Po Pohybu rovnou Využij pole, na které jsi se přesunul (pokud lze).' },
 };
 
 export function learnSkill(state: GameState, skill: SkillId, treesUsed: number, potatoesUsed: number, diceUsed: DiceLevel[]): GameState {
@@ -1219,7 +1269,6 @@ export type SleepAction =
   | { kind: 'downgrade_dice'; targets: { location: 'hand' | 'reserve'; index: number }[] }
   | { kind: 'swap'; ops: SwapOp[] }
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
-  | { kind: 'upgrade_die_2x'; location: 'hand' | 'reserve'; index: number }
   | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
@@ -1279,32 +1328,22 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       break;
     }
     case 'upgrade_die': {
-      if (!p.skills.has('masaz_strev') && !p.skills.has('ajurveda')) return state;
+      // Žvýkání (masaz_strev) — explicitní mapping (k10 ze hry vyřazena, fiktivně
+      // se počítá jako mezistupeň, takže k6/k8 obojí míří na k12):
+      //   k2 → k6, k4 → k8, k6 → k12, k8 → k12, k12 → k20
+      if (!p.skills.has('masaz_strev')) return state;
       const arr = action.location === 'hand' ? p.hand : p.reserve;
       if (action.index < 0 || action.index >= arr.length) return state;
       const old = arr[action.index];
-      const nu = upgradeDie(old);
-      if (old === 12 && nu === 20) {
-        // Cannot single-upgrade k12 → k20
-        return state;
-      }
+      let nu: DiceLevel;
+      if (old === 2) nu = 6;
+      else if (old === 4) nu = 8;
+      else if (old === 6) nu = 12;
+      else if (old === 8) nu = 12;
+      else if (old === 12) nu = 20;
+      else return state; // k20 je max
       arr[action.index] = nu;
-      logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu}.`);
-      break;
-    }
-    case 'upgrade_die_2x': {
-      if (!p.skills.has('ajurveda')) return state;
-      const arr = action.location === 'hand' ? p.hand : p.reserve;
-      if (action.index < 0 || action.index >= arr.length) return state;
-      const old = arr[action.index];
-      let nu = upgradeDie(old);
-      if (old === 12) {
-        nu = 20;
-      } else {
-        nu = upgradeDie(nu);
-      }
-      arr[action.index] = nu;
-      logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Ajurvéda).`);
+      logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Žvýkání).`);
       break;
     }
     case 'buy_skill': {
@@ -1389,23 +1428,11 @@ export function applyDevilWound(state: GameState, diceIndex: number, wound: Woun
   p.lastRoll.splice(diceIndex, 1);
   s.devilWounds.woundsByPlayer[p.id][wound] = dieLvl;
   logEntry(s, `${p.name} zranil Čerta na ${wound} (kostka 1k${dieLvl}, hod ${val}).`);
-  // Milestone: first wound applied → grant Kapacita
-  if (!p.skills.has('kapacita')) {
-    grantSkill(s, p, 'kapacita');
-    logEntry(s, `✨ ${p.name} získává dovednost Kapacita zdarma (1. zranění Čerta)!`);
-  }
-  // Killing-blow check: if all 4 wounds are now taken AND the dice that
-  // remain in THIS roll already sum to >=25, the player has effectively
-  // delivered the final blow in one go — no need to re-roll.
-  if (allWoundsTaken(s, p.id)) {
-    const sum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
-    if (sum >= 25) {
-      s.winnerId = p.id;
-      s.phase = 'game_over';
-      p.fighting = false;
-      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Zbylé kostky dávají ${sum} (≥25). Vítězí!`);
-    }
-  }
+  // Úkol: 1. zranění Čerta → schopnost přiřazená v taskRewards.devilWound
+  grantTaskReward(s, p, 'devilWound');
+  // POZN: Smrtelná rána (sum ≥25) vyžaduje SAMOSTATNÝ hod — leftover po
+  // odevzdání kostky na zranění se nepočítá. Hráč musí kliknout "Hoď znovu"
+  // a teprve nový hod (devilContinueRoll) může zabít.
   return s;
 }
 
@@ -1414,24 +1441,13 @@ export function allWoundsTaken(state: GameState, playerId: string): boolean {
   return WOUND_TYPES.every((wt) => w[wt] != null);
 }
 
-// Continue combat: roll remaining hand again
+// Continue combat: roll remaining hand again.
+// Killing blow (sum ≥25) se počítá JEN z nového hodu — leftover po odevzdání
+// kostky na zranění už ne. Hráč MUSÍ kliknout "Hoď znovu" pro pokus o zabití.
 export function devilContinueRoll(state: GameState, rng?: RNG): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   if (!p.fighting) return state;
-  // Pre-check: if all wounds are already taken AND the current roll's
-  // remaining dice already sum to >=25, the killing blow is in — no need
-  // to roll again.
-  if (allWoundsTaken(s, p.id) && p.lastRoll) {
-    const sum = p.lastRoll.reduce((a, b) => a + b, 0);
-    if (sum >= 25) {
-      s.winnerId = p.id;
-      s.phase = 'game_over';
-      p.fighting = false;
-      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Zbylé kostky dávají ${sum} (≥25).`);
-      return s;
-    }
-  }
   if (p.hand.length === 0) {
     // Cannot continue — counts as failed attack
     devilFailAttack(s);
@@ -1440,13 +1456,13 @@ export function devilContinueRoll(state: GameState, rng?: RNG): GameState {
   const r = rng ?? makeRNG();
   p.lastRoll = p.hand.map((lvl) => 1 + r.int(lvl));
   logEntry(s, `${p.name} hází znovu v boji s Čertem: [${p.lastRoll.join(', ')}]`);
-  // If all wounds taken and any die shows 25+ — impossible from single die, only sum.
+  // Killing-blow check: nový hod musí součtem ≥ 25 (samostatný hod, ne leftover).
   if (allWoundsTaken(s, p.id)) {
     const sum = p.lastRoll.reduce((a, b) => a + b, 0);
     if (sum >= 25) {
       s.winnerId = p.id;
       s.phase = 'game_over';
-      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Vítězí!`);
+      logEntry(s, `🏆 ${p.name} ZABIL TASMÁNSKÉHO ČERTA! Hod ${sum} (≥25) je smrtelná rána. Vítězí!`);
       return s;
     } else {
       // Failed final blow

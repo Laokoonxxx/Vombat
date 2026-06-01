@@ -47,6 +47,20 @@ export const TILE_CENTERS_FOR_7: Hex[] = [
   { q: 1, r: 2 },
 ];
 
+// 8 dílků (3 hráči): 7 vnitřních + 1 vnější roh (East).
+export const TILE_CENTERS_FOR_8: Hex[] = [
+  ...TILE_CENTERS_FOR_7,
+  { q: 6, r: -2 },   // 2× E
+];
+
+// 9 dílků (4 hráči): 7 vnitřních + 2 vnější rohy na protilehlých stranách
+// (East + West) pro symetrii.
+export const TILE_CENTERS_FOR_9: Hex[] = [
+  ...TILE_CENTERS_FOR_7,
+  { q: 6, r: -2 },   // 2× E
+  { q: -6, r: 2 },   // 2× W
+];
+
 // Build the 7 hexes of a flower-tile centered at `c`, rotated by `rotation` steps.
 export function buildTileHexes(c: Hex, ringTypes: TileRingType[], rotation: number): {
   center: Hex;

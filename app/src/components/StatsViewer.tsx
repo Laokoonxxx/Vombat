@@ -950,8 +950,8 @@ function AIRules() {
 
           <h4 style={{ margin: '12px 0 4px' }}>🛒 Setup nákup</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
-            <li>1k6 (9 🥔) — flexibilní rozsah 1-6 (Hlína 2-4, Záhon 4-6, Houští-k4 use 5+)</li>
-            <li>Jinak 1k4 (7 🥔)</li>
+            <li>1k6 (8 🥔) — flexibilní rozsah 1-6 (Hlína 2-4, Záhon 4-6, Houští-k4 use 5+)</li>
+            <li>Jinak 1k4 (6 🥔)</li>
             <li>Jinak 1k2 (5 🥔)</li>
           </ol>
 
@@ -1018,11 +1018,10 @@ function AIRules() {
           <h4 style={{ margin: '12px 0 4px' }}>🧠 Pořadí dovedností pro učení</h4>
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Kapacita (1 🌳)</li>
-            <li>Sprint (2 🌳)</li>
-            <li>Masáž Střev (2 🌳)</li>
-            <li>Ajurvédská Medicína (3 🌳)</li>
-            <li>Koupel (2 🌳)</li>
-            <li>Klystýr (2 🌳)</li>
+            <li>Sprint (1 🌳)</li>
+            <li>Žvýkání / Masáž Střev (1 🌳, +2 lvly v Sleep)</li>
+            <li>Koupel (1 🌳)</li>
+            <li>Klystýr (1 🌳)</li>
           </ol>
           <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>
             AI bere první "affordable" v pořadí. Koupel je nízko, protože ji typicky dostane zdarma za rozmačkání Kočky.

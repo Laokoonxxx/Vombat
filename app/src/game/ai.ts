@@ -1013,13 +1013,14 @@ function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
 // ----- Skill picking --------------------------------------------------------
 
 // Default priority order for AI skill choices (1st affordable wins).
+// Po balanc změně 2026-06-01 stojí všechny 1 strom; pořadí je preferenční,
+// ne nákladové.
 const SKILL_PRIORITY_DEFAULT: SkillId[] = [
-  'kapacita',      // 1 tree, removes both Hand+Reserve limits — auto-pick
-  'klystyr',       // 1 tree, 3× pre-roll swap = active deck-building per turn
-  'koupel',        // 1 tree, opens Poušť — wide map access
-  'sprint',        // 2 trees, movement+use combo
-  'masaz_strev',   // 2 trees, dice upgrade in Sleep
-  'ajurveda',      // 3 trees, big upgrade
+  'kapacita',      // removes both Hand+Reserve limits — auto-pick
+  'klystyr',       // 3× pre-roll swap = active deck-building per turn
+  'koupel',        // opens Poušť — wide map access
+  'sprint',        // movement+use combo
+  'masaz_strev',   // dice upgrade +2 lvly in Sleep (bývalá Ajurvéda)
 ];
 
 // Active priority — mutable so research sims can shuffle it per game to

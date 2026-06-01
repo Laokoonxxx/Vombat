@@ -4,14 +4,17 @@ import {
   BLUE_TEMPLATES,
   BLACK_TEMPLATES,
   TILE_CENTERS_FOR_7,
+  TILE_CENTERS_FOR_8,
+  TILE_CENTERS_FOR_9,
   buildTileHexes,
 } from './tiles';
 import type { RNG } from './rng';
 
 function tileCentersForCount(count: number): Hex[] {
   if (count === 7) return TILE_CENTERS_FOR_7;
-  // For MVP we only support 7 (2 players). 10 / 13 will be added later.
-  throw new Error(`Tile count ${count} not yet supported`);
+  if (count === 8) return TILE_CENTERS_FOR_8;
+  if (count === 9) return TILE_CENTERS_FOR_9;
+  throw new Error(`Tile count ${count} not supported (allowed: 7, 8, 9)`);
 }
 
 export function generateMap(cfg: GameConfig, rng: RNG): Map<string, BoardCell> {

@@ -12,7 +12,7 @@
 import type { GameState, BoardCell, SkillId } from './types';
 
 const STORAGE_KEY = 'vombat:gameState';
-const SAVE_VERSION = 14; // bump when GameState shape changes or map balance shifts
+const SAVE_VERSION = 18; // v18 = menší mapy pro 3-4p (3p=8, 4p=9 dílků)
 
 interface SerializedState {
   version: number;

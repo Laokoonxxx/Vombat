@@ -33,11 +33,13 @@ Středové hexy se aktivují takto:
 | 👹 | Tasmánský Čert | černá | 12+ (pohyb) |
 
 ### Počet dílků dle počtu hráčů
+Každý hráč přidá 1 dílek nad základ 6. Modrých zůstává 5, černých = počet hráčů (každý hráč má svého Čerta).
+
 | Hráči | Dílků celkem | Modrých 🌳 | Černých 👹 |
 |---|---|---|---|
 | 2 | 7 | 5 | 2 |
-| 3 | 10 | 6 | 4 |
-| 4 | 13 | 7 | 6 |
+| 3 | 8 | 5 | 3 |
+| 4 | 9 | 5 | 4 |
 
 ### Skládání mapy
 Dílky se skládají do "květiny" — pro 7 dílků je 1 střední dílek a 6 dílků kolem něj. Dílky se dotýkají hranami; mezi sousedními dílky není žádná mezera.
@@ -78,14 +80,15 @@ Pohyb skrz tunel viz § 5.
 | Předmět | Cena |
 |---|---|
 | 1k2 | 5 🥔 |
-| 1k4 | 7 🥔 |
-| 1k6 | 9 🥔 |
+| 1k4 | 6 🥔 |
+| 1k6 | 8 🥔 |
 | 1k8 | 10 🥔 |
-| 1k10 | 10 🥔 |
-| 1k12 | 12 🥔 |
+| 1k12 | 10 🥔 |
 | 2. Vombat (na stejné pole jako 1.) | 5 🥔 |
 
-> 1k20 nelze koupit. Lze ji pouze získat (Vyformovat s vysokým skóre, Bylinkový elixír, 1. místo ve formaci).
+> k10 v Vombatu **neexistuje** — kostky jdou v posloupnosti k2 → k4 → k6 → k8 → k12 → k20.
+
+> 1k20 nelze koupit. Lze ji pouze získat (Vyformovat s vysokým skóre, Žvýkání upgrade z 1k12, 1. místo ve formaci, rozdrcení Kočky — zde 1k8, 1k20 jen ve výjimečných případech).
 
 ---
 
@@ -204,8 +207,7 @@ score = počet polí Mrkve (tvůj ukazatel)
 | 2 | 1k4 |
 | 3 | 1k6 |
 | 4 | 1k8 |
-| 5 | 1k10 |
-| 6–7 | 1k12 |
+| 5–7 | 1k12 |
 | 8+ | 1k20 |
 
 #### Uč se 🧠
@@ -289,14 +291,15 @@ Kočka není "pole k využití". Existují pouze dvě interakce:
 ### 6.7. Dovednosti (Uč se)
 Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušti s Koupelí).
 
+Všechny dovednosti stojí stejně: **1 strom** (= 5 🥔 v Sleep shopu, nebo 3 🥔 jako náhrada za chybějící strom).
+
 | Dovednost | 🌳 | Účinek |
 |---|---|---|
 | **Kapacita** | 1 | Ruší oba limity: max 2 kostky stejného lvl v Ruce **i** max 3 kostky v Zásobě. |
 | **Lázně** (Koupel) | 1 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
 | **Třídění** (Klystýr) | 1 | **Před každým hodem** až 3× zadarmo přesun Ruka ↔ Zásoba. Umožňuje aktivní deck-building. |
-| **Žvýkání** (Masáž Střev) | 2 | Při Spánku: Upgrade 1 kostky o 1 lvl. |
-| **Bylinkový elixír** (Ajurvédská Medicína) | 3 | Při Spánku: Upgrade 1 kostky o 2 lvly, nebo 2 kostky o 1 lvl, nebo 1k12 → 1k20. |
-| **Sprint** | 2 | Po Pohybu můžeš v témže tahu **Využít** pole, na které jsi se přesunul. |
+| **Žvýkání** (Masáž Střev) | 1 | Při Spánku: Upgrade 1 kostky o **2 lvly** (k12 → k20 povoleno). |
+| **Sprint** | 1 | Po Pohybu můžeš v témže tahu **Využít** pole, na které jsi se přesunul (pokud lze; jinak tah končí). |
 
 ---
 
@@ -333,16 +336,12 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Přesuň kostku z Ruky do Zásoby.
   - Přesuň kostku ze Zásoby do Ruky.
   - Vyměň kostku v Ruce s kostkou v Zásobě.
-- **Skill shop** — kup libovolnou dovednost za **5 🥔 × počet požadovaných stromů**:
-  - 1-strom dovednost (Kapacita, Lázně, Třídění) = **5 🥔**
-  - 2-strom dovednost (Žvýkání, Sprint) = **10 🥔**
-  - 3-strom dovednost (Bylinkový elixír) = **15 🥔**
+- **Skill shop** — kup libovolnou dovednost za **5 🥔** (každá dovednost vyžaduje 1 strom = 5 🥔).
   - Skill shop je alternativa k tradičnímu "Uč se" na Hlíně — nepotřebuje Eukalypty ani vybavení Hlíny.
 
 ### Možnosti s dovednostmi
 - **Třídění (Klystýr)** → Před každým hodem (mimo Spánek) až 3× zdarma přesun Ruka ↔ Zásoba.
-- **Masáž Střev** → Upgrade 1 kostky o 1 lvl.
-- **Ajurvédská Medicína** → Upgrade 1 kostky o 2 lvly, nebo 2 kostek o 1 lvl, nebo 1k12 → 1k20.
+- **Žvýkání (Masáž Střev)** → Upgrade 1 kostky o **2 lvly** (k2→k6, k4→k8, …, k10→k20, k12→k20).
 
 ### Brambora jako prostředek
 Bramboru lze použít na:
@@ -373,7 +372,7 @@ Kostka může způsobit zranění pokud její hodnota přesně odpovídá:
 
 Kostky použité na zranění **propadají natrvalo** (znázorňují, že Čert je zraněn).
 
-🎁 **Milestone bonus:** Při tvém **prvním zaneseném zranění** Čerta (jakémkoli ze 4 typů) automaticky získáš dovednost **Kapacita** zdarma. Tedy: poškoď Čerta jednou → odměna v podobě neomezené kapacity Ruky i Zásoby.
+🎁 **Úkol „Zranění Čerta":** Při tvém **prvním zaneseném zranění** Čerta (jakémkoli ze 4 typů) získáš schopnost přiřazenou tomuto úkolu (viz § 10 — mapping je náhodný per hra).
 
 Každý hráč má **vlastní 4 sloty zranění** (každý hráč bojuje se "svým" Čertem). Jeden hráč může mít v každém slotu maximálně 1 kostku.
 
@@ -385,38 +384,43 @@ Hod 1:
 4. Pokud **žádná kostka** nesplnila žádné zbývající zranění, **boj končí neúspěšně** → **útok Čerta** (viz § 7).
 
 Hody pokračují, dokud:
-- Hráč nezasadí **všechna 4 zranění** → pak musí v dalším hodu se zbylými kostkami dosáhnout **součtu 25+**. Pokud ano → **VÍTĚZSTVÍ**. Pokud ne → útok Čerta.
+- Hráč nezasadí **všechna 4 zranění** → pak musí v **samostatném dalším hodu** se zbylými kostkami dosáhnout **součtu 25+**. **Pozor:** leftover kostek z hodu, ve kterém už něco odevzdal na zranění, se NEPOČÍTÁ — vždy je nutný **nový hod**. Pokud nový hod ≥ 25 → **VÍTĚZSTVÍ**. Pokud ne → útok Čerta.
 - Hráč v některém hodu nedokáže způsobit žádné další zranění → útok Čerta.
+
+> **Výjimka pro úvodní hod:** Pokud hráč přichází do souboje s **už zasazenými 4 zraněními** z předchozích tahů a otvírací hod sám o sobě dá 25+, je to platná smrtelná rána (žádné kostky nebyly v tomto hodu odevzdány). To je jediný případ, kdy úvodní hod může zabít.
 
 > **Poznámka:** Pravidlo obrany u Čerta není v základní hře aplikováno (pro 2–4 hráče by nedávalo smysl).
 
 ---
 
-## 10. Úkoly (formace)
+## 10. Úkoly (5 dohromady)
 
-Vedle hlavního cíle (rozmačkat Čerta) hráči mohou splnit jeden ze 3 **prostorových úkolů**. Splnění se vyhodnocuje **automaticky** po každém umístění tvé značky (Bobek 💩 nebo Mrkev 🥕).
+Vedle hlavního cíle (rozmačkat Čerta) hráči plní **5 úkolů** — 3 prostorové formace + 2 milestones (rozmačkání 1. kočky, zranění 1. Čerta). **Před začátkem hry se každá z 5 schopností náhodně přiřadí jednomu z úkolů.** Mapping je viditelný od začátku (sidebar „🎁 Odměny za úkoly") — hráči tak vědí co hrát.
 
-Bobky a Mrkve jsou pro vyhodnocení formace ekvivalentní. Postava Vombata se do formace nezapočítává. **Odměnu za stejnou formaci může každý hráč získat maximálně 1×.**
+**Trigger:** Hráč dostane přiřazenou schopnost při svém **prvním splnění** daného úkolu (per hráč, ne globálně — i druhý hráč co rozmačká kočku dostane schopnost).
 
-### Odměny podle pořadí splnění (pro každý druh formace zvlášť)
+### Aditivní odměny u formací
+Formace navíc dál dávají **kostku podle pořadí**:
 
-| Pořadí | Odměna |
+| Pořadí | Kostka |
 |---|---|
 | 1. hráč | 1k20 |
 | 2. hráč | 1k12 |
 | 3. hráč | 1k6 |
-| 4.+ | žádná (formaci přesto získáš započítanou) |
+| 4.+ | žádná (formaci přesto získáš započítanou + schopnost za úkol) |
 
-> Odměna je kostka – přidá se jako jakákoli jiná získaná kostka (volíš velikost ≤ nabídka a kam ji umístit: Ruka/Zásoba/Čekající).
+> Odměna je kostka – přidá se jako jakákoli jiná získaná kostka (volíš velikost ≤ nabídka a kam ji umístit: Ruka/Zásoba/Čekající). Schopnost za úkol se uděluje **navíc** — dostaneš obě.
 
-### Formace
+### 5 úkolů a jejich triggery
 
 - **Přímka 5** — 5+ tvých značek v libovolně orientované **hex-přímce po sobě jdoucích polí**. S žádným z těchto 5 hexů nesmí sousedit značka soupeře.
 - **Obklíčení** — 4+ tvých značek kolem jedné značky soupeře (kolem libovolného z jeho hexů s 🥕/💩 leží minimálně 4 tvé sousední značky).
 - **Průzkumník** — tvé značky leží na minimálně **6 různých dílcích** mapy (dílek = sada 7 hexů s černým/modrým středem).
+- **Rozmačkání Kočky** (1.) — tvůj první cat smash. K standardní odměně 1k8 + tunel dostaneš přiřazenou schopnost.
+- **Zranění Čerta** (1.) — tvé první úspěšné zasažení libovolného slotu Čerta v souboji. Dostaneš přiřazenou schopnost.
 
 ### Detekce v digitální verzi
-Detekce probíhá ihned po každém umístění značky. Pokud jednou akcí splníš více formací najednou (např. „Vyformuj kostku" zároveň dokončí Přímku 5 i Obklíčení), získáš odměny postupně – jednu po druhé.
+Detekce formací probíhá ihned po každém umístění značky. Pokud jednou akcí splníš více formací najednou (např. „Vyformuj kostku" zároveň dokončí Přímku 5 i Obklíčení), získáš odměny postupně – jednu po druhé. Pokud máš přiřazenou schopnost už z jiného úkolu (např. ji ses naučil přes Hlínu), úkol se stejně počítá za splněný, ale schopnost se neuděluje znovu.
 
 ---
 
@@ -443,10 +447,14 @@ Kdykoliv hráč získá kostku, může se **rozhodnout pro menší** (např. 1k6
 Kdykoliv hráč získá kostku, může si **vybrat Ruku nebo Zásobu** (s ohledem na limity).
 
 ### Upgrade kostek
-Upgrade = zvýšení počtu stran na **nejbližší sudé číslo**:
-- 1k2 → 1k4 → 1k6 → 1k8 → 1k10 → 1k12
+Stupnice kostek: **1k2 → 1k4 → 1k6 → 1k8 → 1k12 → 1k20** (k10 neexistuje).
 
-Výjimka: **1k12 → 1k20** vyžaduje **současně 2 upgrade akce** (např. Ajurvéda, nebo upgrade + 3 brambory).
+Žvýkání (Masáž Střev) je jediná cesta k upgradu o **2 lvly**:
+- 1k2 → 1k6
+- 1k4 → 1k8
+- 1k6 → 1k12 (skok přes k8 — k10 jako fiktivní mezistupeň)
+- 1k8 → 1k12
+- 1k12 → 1k20
 
 ### Downgrade
 Při povinném downgrade (jediná kostka při útoku, Spánek) jdeš po stejné stupnici opačně.
@@ -486,9 +494,8 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
 | Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
 | Teleport (Spánek) | **odstraněno** — bývalo 5 🥔 → přemístění Vombata kamkoli. Příliš silné (instant Čert přístup), navíc redundantní s tunely. Tunely teď slouží jako jediný "fast travel". |
-| Skill shop (Spánek) | **přidáno** — 5 🥔 × počet stromů → koupíš libovolnou dovednost. Alternativa k tradičnímu Uč se. |
-| Milestone "1. Kočka" | **přidáno** — první rozmačkaná Kočka odemkne **Koupel** zdarma |
-| Milestone "1. Zranění Čerta" | **přidáno** — první zranění Čerta odemkne **Kapacitu** zdarma |
+| Skill shop (Spánek) | **přidáno** — 5 🥔 → koupíš libovolnou dovednost (všechny stojí 1 strom). Alternativa k tradičnímu Uč se. |
+| Náhodné odměny za úkoly | **přidáno (2026-06-01)** — 5 schopností se na začátku hry **náhodně přiřadí 5 úkolům** (3 formace + 1. rozmačkaná Kočka + 1. zranění Čerta). Hráč dostane přiřazenou schopnost při svém PRVNÍM splnění daného úkolu. Mapping je viditelný od začátku, takže hráči plánují strategii. **Nahrazuje** dřívější fixní milestones (Koupel za 1. kočku, Kapacita za 1. zranění Čerta). U formací je odměna aditivní s kostkou (k20/k12/k6 za pořadí). |
 | Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
 | Eukalyptus: Obsaď + Uč se | **přidáno** — lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti. **1× per strom per hráč** (ne 1× za hru celkově) — když navštívíš 3 různé stromy, můžeš ho použít 3×. |
 | Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |

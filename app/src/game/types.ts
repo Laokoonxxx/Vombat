@@ -2,17 +2,18 @@
 // Vombat game — core domain types
 // =============================================================================
 
-export type DiceLevel = 2 | 4 | 6 | 8 | 10 | 12 | 20;
+// k10 byla odstraněna 2026-06-01 — v původních pravidlech Vombatu neexistuje.
+// Posloupnost kostek je teď k2 → k4 → k6 → k8 → k12 → k20.
+export type DiceLevel = 2 | 4 | 6 | 8 | 12 | 20;
 
-export const ALL_DICE_LEVELS: DiceLevel[] = [2, 4, 6, 8, 10, 12, 20];
+export const ALL_DICE_LEVELS: DiceLevel[] = [2, 4, 6, 8, 12, 20];
 
 export const DICE_PRICES: Record<DiceLevel, number> = {
   2: 5,
-  4: 7,
-  6: 9,
+  4: 6,
+  6: 8,
   8: 10,
-  10: 10,
-  12: 12, // pravidla neuvádějí — používám rozumný default vyšší než k10
+  12: 10,
   20: 99  // k20 nelze koupit přímo, jen získat
 };
 
@@ -57,9 +58,9 @@ export type SkillId =
   | 'kapacita'    // merged Žonglování + Zácpa — removes both hand & reserve limits
   | 'koupel'
   | 'klystyr'
-  | 'masaz_strev'
-  | 'ajurveda'
+  | 'masaz_strev' // upgrade die by +2 lvls in Sleep (former Ajurveda effect merged in)
   | 'sprint';
+// Note: 'ajurveda' removed 2026-06-01 — its +2 lvl effect was merged into masaz_strev (Žvýkání)
 
 export interface PlayerState {
   id: string;
@@ -152,6 +153,31 @@ export interface FormationCompletion {
   turn: number; // turnNumber when claimed
 }
 
+// =============================================================================
+// ÚKOLY (TASKS) — náhodné přiřazení schopností
+// =============================================================================
+// Před začátkem hry se každá ze 5 schopností náhodně přiřadí jednomu z 5 úkolů
+// (3 formace + rozmačkání 1. Kočky + zranění 1. Čerta). Každý hráč dostane
+// přiřazenou schopnost při svém PRVNÍM splnění daného úkolu.
+//
+// Při formacích je odměna aditivní s původní kostkou (1k20/k12/k6 podle pořadí).
+// Při kočce zůstává původní 1k8. Žádné fixní milestone schopnosti (dřív Koupel
+// za 1. kočku, Kapacita za 1. čerta) — vše náhodné dle taskRewards.
+
+export type TaskKey = FormationKind | 'devilWound' | 'catSmash';
+
+export const ALL_TASK_KEYS: TaskKey[] = [
+  'primka5', 'obkliceni', 'pruzkumnik', 'devilWound', 'catSmash',
+];
+
+export const TASK_LABEL: Record<TaskKey, string> = {
+  primka5:    'Přímka 5',
+  obkliceni:  'Obklíčení',
+  pruzkumnik: 'Průzkumník',
+  devilWound: 'Zranění Čerta (1.)',
+  catSmash:   'Rozmačkání Kočky (1.)',
+};
+
 export interface GameState {
   config: GameConfig;
   board: Map<string, BoardCell>; // key = hexKey
@@ -165,6 +191,12 @@ export interface GameState {
   // Formation tracking. Order of entries = order of completion. Used both to
   // determine reward rank and to render the sidebar progress panel.
   completedFormations: FormationCompletion[];
+  // Náhodně přiřazené schopnosti k úkolům (3 formace + cat + devil wound).
+  // Vygenerováno v createGame ze seedu, viditelné hráčům od začátku hry.
+  taskRewards: Record<TaskKey, SkillId>;
+  // Per-player tracker: které task-skill rewards už hráč obdržel.
+  // Klíč = playerId, hodnota = sada task keys.
+  taskRewardsGranted: Record<string, TaskKey[]>;
   // Transient UI/turn state
   pendingAttack?: { playerId: string; from: 'cat' | 'devil' }; // need to surrender potato/die
   pendingChoice?: PendingChoice | null;

@@ -27,3 +27,6 @@ app/sim_results/research/
 # Local env
 .env
 .env.local
+
+# Vombat PHP backend — DB credentials (jen config.example.php je v gitu)
+/config.php

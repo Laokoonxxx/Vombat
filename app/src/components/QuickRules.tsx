@@ -185,7 +185,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
               <tr><td style={{ padding: '2px 6px' }}>2</td><td>1k4</td></tr>
               <tr><td style={{ padding: '2px 6px' }}>3</td><td>1k6</td></tr>
               <tr><td style={{ padding: '2px 6px' }}>4</td><td>1k8</td></tr>
-              <tr><td style={{ padding: '2px 6px' }}>5</td><td>1k10</td></tr>
+              <tr><td style={{ padding: '2px 6px' }}>5</td><td>1k12</td></tr>
               <tr><td style={{ padding: '2px 6px' }}>6–7</td><td>1k12</td></tr>
               <tr><td style={{ padding: '2px 6px' }}><strong>8+</strong></td><td><strong>1k20 🎉</strong></td></tr>
             </tbody>
@@ -206,7 +206,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
             pole, která chceš aktivovat.
           </p>
           <p style={{ margin: 0, fontSize: 11, color: 'var(--muted)' }}>
-            💡 Vidíš sousední Hlínu (2-4)? Stáhni si k4 do Ruky, k10 odlož do Zásoby — vyšší
+            💡 Vidíš sousední Hlínu (2-4)? Stáhni si k4 do Ruky, k12 odlož do Zásoby — vyšší
             šance trefit aktivaci. Bez Třídění hodíš vše, co máš v Ruce.
           </p>
         </Section>
@@ -232,12 +232,9 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
             <li>Downgrade kostky (z větší na menší)</li>
             <li>Výměna kostek mezi Rukou a Zásobou</li>
             <li>
-              <strong>🛒 Skill shop</strong>: kup dovednost za <code>5 🥔 × počet stromů</code>:
-              <ul style={{ margin: 0 }}>
-                <li>1-strom (Kapacita) = 5 🥔</li>
-                <li>2-strom (Koupel, Sprint, …) = 10 🥔</li>
-                <li>3-strom (Ajurvéda) = 15 🥔</li>
-              </ul>
+              <strong>🛒 Skill shop</strong>: každá dovednost stojí <code>1 strom</code>
+              (= 5 🥔 v Sleep shopu nebo 3 🥔 jako náhrada za chybějící strom).
+              Všechny dovednosti mají stejnou cenu.
             </li>
           </ul>
         </Section>
@@ -258,7 +255,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
             <li>První tahy: <strong>plant mrkve</strong> na Záhonu/Hlíně (carrot ramp)</li>
             <li>S 3+ mrkvemi: <strong>Vyformuj kostku</strong> na Hlíně s sousedy = velké kostky</li>
             <li>Zabij sousední Kočku (hod 11–14) = <strong>1k8</strong> + Lázně zdarma + tunel</li>
-            <li>S 5+ kostkama včetně k10/k12/k20 → najdi Čerta a útoč</li>
+            <li>S 5+ kostkama včetně k12/k20 → najdi Čerta a útoč</li>
           </ol>
           <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--muted)' }}>
             <strong>Nespěchej k Čertovi.</strong> Bez dobrých kostek to nezvládneš.
