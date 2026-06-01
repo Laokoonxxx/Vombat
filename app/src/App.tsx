@@ -1,19 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createGame } from './game/engine';
 import type { GameState } from './game/types';
+import type { Action } from './game/actions';
+import { applyAction } from './game/actions';
 import { SetupScreen } from './components/SetupScreen';
 import { GameScreen } from './components/GameScreen';
 import { StatsViewer } from './components/StatsViewer';
 import { DiceProbabilityViewer } from './components/DiceProbabilityViewer';
 import { QuickRules, shouldAutoShowQuickRules } from './components/QuickRules';
 import { loadFromStorage, saveToStorage, clearStorage, getSaveMeta } from './game/persistence';
+import { LobbyScreen } from './components/LobbyScreen';
+import { OnlineHomeScreen } from './components/OnlineHomeScreen';
+import type { OnlineSession } from './net/session';
+import { loadSession, saveSession, usePolling } from './net/session';
+import { apiSubmitMove, apiEndGame } from './net/api';
 
-type Mode = 'hotseat' | 'vs_ai';
+type Mode = 'hotseat' | 'vs_ai' | 'online';
 
 export function App() {
-  // Try to restore a saved game on mount.
+  // Hot-seat / AI: GameState žije v lokalStorage.
+  // Online: GameState se zbuduje z (session.seed + log akcí ze serveru).
   const [state, setStateInternal] = useState<GameState | null>(() => loadFromStorage());
-  const [mode, setMode] = useState<Mode>('hotseat');
+  const [onlineSession, setOnlineSessionInternal] = useState<OnlineSession | null>(() => loadSession());
+  const [mode, setMode] = useState<Mode>(() => (loadSession() ? 'online' : 'hotseat'));
   const [p1Name, setP1Name] = useState('Hráč 1');
   const [p2Name, setP2Name] = useState('Hráč 2');
   const [aiName, setAiName] = useState('AI');
@@ -21,33 +30,192 @@ export function App() {
   const [showProbabilities, setShowProbabilities] = useState(false);
   const [showRules, setShowRules] = useState<boolean>(() => shouldAutoShowQuickRules());
 
-  // Wrapper that always persists.
-  const setState = (s: GameState | null) => {
+  function setState(s: GameState | null) {
     setStateInternal(s);
-    saveToStorage(s);
-  };
+    if (!onlineSession) saveToStorage(s); // online stav je deriváten ze serveru, neukládáme
+  }
 
-  // Defensive: if state changes by any path, mirror it to storage.
+  function setOnlineSession(s: OnlineSession | null) {
+    setOnlineSessionInternal(s);
+    saveSession(s);
+  }
+
+  // Hot-seat: defenzivně mirror state → storage
   useEffect(() => {
+    if (onlineSession) return;
     saveToStorage(state);
-  }, [state]);
+  }, [state, onlineSession]);
+
+  // Online: jakmile session přejde do 'active' a my ještě nemáme state,
+  // postav lokální stav ze seedu (server pošle stav přes log akcí postupně,
+  // ale prvotní GameState s mapou musí mít obě strany identicky vygenerovaný).
+  useEffect(() => {
+    if (!onlineSession) return;
+    if (onlineSession.status !== 'active') return;
+    if (state) return;
+    // Vyrob setupPlayers podle session.players (slot pořadí = pořadí hráčů)
+    const setupPlayers = onlineSession.players
+      .slice()
+      .sort((a, b) => a.slot - b.slot)
+      .map((p) => ({ name: p.name || `Hráč ${p.slot + 1}`, kind: 'human' as const }));
+    // createGame přijme seed → deterministická mapa + pořadí hráčů
+    const initial = createGame(setupPlayers, onlineSession.seed);
+    setStateInternal(initial);
+  }, [onlineSession, state]);
+
+  // Dispatch — jeden kontrakt pro hot-seat i online. Hot-seat: apply + setState.
+  // Online (active): apply lokálně optimisticky + odešli na server (fire-and-forget).
+  const dispatch = useMemo(() => {
+    return (action: Action) => {
+      if (!state) return;
+      const next = applyAction(state, action);
+      setStateInternal(next);
+      if (onlineSession && onlineSession.status === 'active') {
+        const newSeq = onlineSession.currentSeq + 1;
+        setOnlineSession({ ...onlineSession, currentSeq: newSeq });
+        apiSubmitMove(onlineSession.gameId, onlineSession.playerToken, newSeq, action).then((resp) => {
+          if ('ok' in resp && resp.ok) return;
+          // Konflikt = klient zaostal/předběhl. Polling stáhne aktuální stav.
+          // Pro jiné chyby zatím jen log.
+          console.warn('submit_move failed', resp);
+        });
+      } else {
+        // Hot-seat: persist hned do storage
+        saveToStorage(next);
+      }
+    };
+  }, [state, onlineSession]);
+
+  // Polling — pauzuje když jsme na tahu v active hře.
+  const isMyTurn =
+    !!state && !!onlineSession && onlineSession.status === 'active'
+      ? state.currentPlayerIdx === onlineSession.slot
+      : false;
+
+  usePolling(onlineSession, isMyTurn, {
+    onAction: (action, _slot, _seq) => {
+      // Soupeřovy (i naše) akce ze serveru: apply via applyAction.
+      // Naše vlastní akce už jsou aplikované optimisticky — server je vrací
+      // jen pokud seq > našeho currentSeq, takže duplikace nehrozí (po našem
+      // dispatchu jsme zvýšili currentSeq → poll už je nestáhne).
+      setStateInternal((cur) => (cur ? applyAction(cur, action) : cur));
+    },
+    onMetaUpdate: (update) => {
+      setOnlineSessionInternal((prev) => (prev ? { ...prev, ...update } : prev));
+    },
+    onError: (e) => {
+      console.warn('poll error', e);
+    },
+  });
 
   function startNewGame() {
     clearStorage();
     setStateInternal(null);
   }
 
+  function leaveOnlineGame() {
+    if (onlineSession) {
+      apiEndGame(onlineSession.gameId, onlineSession.playerToken, null, 'left').catch(() => {});
+    }
+    setOnlineSession(null);
+    setStateInternal(null);
+    saveToStorage(null);
+    setMode('hotseat');
+  }
+
   if (showStats) {
     return <StatsViewer onClose={() => setShowStats(false)} />;
   }
-
   if (showProbabilities) {
     return <DiceProbabilityViewer onClose={() => setShowProbabilities(false)} />;
   }
-
-  // QuickRules can render on top of any screen
   const rulesOverlay = showRules ? <QuickRules onClose={() => setShowRules(false)} /> : null;
 
+  // ---------------------------------------------------------------------------
+  // Online flow
+  // ---------------------------------------------------------------------------
+  if (mode === 'online') {
+    if (!onlineSession) {
+      return (
+        <>
+          <OnlineHomeScreen
+            onSessionCreated={(s) => {
+              setOnlineSession(s);
+            }}
+            onBack={() => setMode('hotseat')}
+            onShowRules={() => setShowRules(true)}
+          />
+          {rulesOverlay}
+        </>
+      );
+    }
+    if (onlineSession.status === 'lobby') {
+      return (
+        <>
+          <LobbyScreen
+            session={onlineSession}
+            onLeave={leaveOnlineGame}
+            onShowRules={() => setShowRules(true)}
+          />
+          {rulesOverlay}
+        </>
+      );
+    }
+    if (onlineSession.status === 'ended') {
+      const winner = onlineSession.winnerSlot != null
+        ? onlineSession.players.find((p) => p.slot === onlineSession.winnerSlot)
+        : null;
+      return (
+        <div className="setup-screen">
+          <h1>🏁 Hra skončila</h1>
+          {winner ? (
+            <p>Vítěz: <strong style={{ color: winner.color || undefined }}>{winner.name}</strong></p>
+          ) : (
+            <p>Hra ukončena ({onlineSession.endedReason || 'bez vítěze'}).</p>
+          )}
+          <button className="primary" onClick={leaveOnlineGame} style={{ width: '100%' }}>
+            ↺ Zpět do menu
+          </button>
+        </div>
+      );
+    }
+    // active: hraje se
+    if (!state) {
+      return <div className="setup-screen"><p>Načítám hru…</p></div>;
+    }
+    if (state.phase === 'setup') {
+      return (
+        <>
+          <SetupScreen
+            state={state}
+            dispatch={dispatch}
+            onNewGame={leaveOnlineGame}
+            onShowStats={() => setShowStats(true)}
+            onShowRules={() => setShowRules(true)}
+            onShowProbabilities={() => setShowProbabilities(true)}
+          />
+          {rulesOverlay}
+        </>
+      );
+    }
+    return (
+      <>
+        <GameScreen
+          state={state}
+          dispatch={dispatch}
+          onNewGame={leaveOnlineGame}
+          onShowStats={() => setShowStats(true)}
+          onShowRules={() => setShowRules(true)}
+          onShowProbabilities={() => setShowProbabilities(true)}
+        />
+        {rulesOverlay}
+      </>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Hot-seat / vs AI
+  // ---------------------------------------------------------------------------
   if (!state) {
     const meta = getSaveMeta();
     return (
@@ -57,10 +225,8 @@ export function App() {
           Inženýři krychlí
         </p>
         <p>
-          Tahová desková hra pro 2 hráče. Vombati žvýkají eukalyptus,
-          vyformovávají kostkové bobky (vědecký fakt!) a chrupavčitým
-          zadkem drtí Tasmánského Čerta o stěnu nory. Vyhrává ten, kdo
-          ho dotluče první.
+          Tahová desková hra. Vombati žvýkají eukalyptus, vyformovávají kostkové
+          bobky (vědecký fakt!) a chrupavčitým zadkem drtí Tasmánského Čerta.
         </p>
         {meta && (
           <p style={{ fontSize: 12, color: 'var(--muted)' }}>
@@ -75,7 +241,7 @@ export function App() {
             className={mode === 'hotseat' ? 'primary' : ''}
             style={{ flex: 1 }}
           >
-            👥 Hot-seat (2 hráči)
+            👥 Hot-seat
           </button>
           <button
             onClick={() => setMode('vs_ai')}
@@ -83,6 +249,13 @@ export function App() {
             style={{ flex: 1 }}
           >
             🤖 Proti AI
+          </button>
+          <button
+            onClick={() => setMode('online')}
+            className={(mode as Mode) === 'online' ? 'primary' : ''}
+            style={{ flex: 1 }}
+          >
+            🌐 Online
           </button>
         </div>
 
@@ -100,7 +273,8 @@ export function App() {
             <label>Jméno AI soupeře</label>
             <input type="text" value={aiName} onChange={(e) => setAiName(e.target.value)} />
             <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
-              AI je jednoduchá heuristika: snaží se získávat kostky z Houští, blížit se k Čertovi a bojovat když má dost kostek.
+              AI je jednoduchá heuristika: snaží se získávat kostky z Houští,
+              blížit se k Čertovi a bojovat když má dost kostek.
             </p>
           </>
         )}
@@ -136,16 +310,10 @@ export function App() {
         >
           📖 Jak hrát (rychlý úvod)
         </button>
-        <button
-          onClick={() => setShowProbabilities(true)}
-          style={{ marginTop: 8, width: '100%' }}
-        >
+        <button onClick={() => setShowProbabilities(true)} style={{ marginTop: 8, width: '100%' }}>
           🎲 Pravděpodobnosti kostek (tabulka pro plánování ruky)
         </button>
-        <button
-          onClick={() => setShowStats(true)}
-          style={{ marginTop: 8, width: '100%' }}
-        >
+        <button onClick={() => setShowStats(true)} style={{ marginTop: 8, width: '100%' }}>
           📊 Zobrazit statistiky AI simulací
         </button>
         {rulesOverlay}
@@ -158,7 +326,8 @@ export function App() {
       <>
         <SetupScreen
           state={state}
-          setState={setState}
+          dispatch={dispatch}
+          setStateForAi={setStateInternal}
           onNewGame={startNewGame}
           onShowStats={() => setShowStats(true)}
           onShowRules={() => setShowRules(true)}
@@ -172,7 +341,8 @@ export function App() {
     <>
       <GameScreen
         state={state}
-        setState={setState}
+        dispatch={dispatch}
+        setStateForAi={setStateInternal}
         onNewGame={startNewGame}
         onShowStats={() => setShowStats(true)}
         onShowRules={() => setShowRules(true)}

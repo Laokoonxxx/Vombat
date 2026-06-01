@@ -15,7 +15,8 @@ import {
   rollAdjustmentsRemaining, ROLL_ADJUSTMENT_LIMIT,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
-import { applyAction, rollForCurrentPlayer } from '../game/actions';
+import type { Action } from '../game/actions';
+import { rollForCurrentPlayer } from '../game/actions';
 import { aiStep } from '../game/ai';
 
 // Prefix icons for the log feed — make events scannable at a glance.
@@ -50,7 +51,9 @@ function eventIcon(entry: string): string {
 
 export interface GameScreenProps {
   state: GameState;
-  setState: (s: GameState) => void;
+  dispatch: (a: Action) => void;
+  /** Pro AI loop v hot-seatu — online mód předá undefined (AI online nehraje). */
+  setStateForAi?: (s: GameState) => void;
   onNewGame?: () => void;
   onShowStats?: () => void;
   onShowRules?: () => void;
@@ -59,27 +62,36 @@ export interface GameScreenProps {
 
 type Mode = 'idle' | 'pickMove' | 'pickField' | 'sleepMenu';
 
-export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: GameScreenProps) {
+export function GameScreen({
+  state,
+  dispatch,
+  setStateForAi,
+  onNewGame,
+  onShowStats,
+  onShowRules,
+  onShowProbabilities,
+}: GameScreenProps) {
   const p = state.players[state.currentPlayerIdx];
   const [mode, setMode] = useState<Mode>('idle');
   const [selectedVombatId, setSelectedVombatId] = useState<string | null>(null);
   const [inspectHex, setInspectHex] = useState<Hex | null>(null);
   const [inspectPos, setInspectPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Auto-run AI: when current player is AI, dispatch one step every ~700ms
-  // so the user can see each move land.
+  // Auto-run AI: jen v hot-seatu (setStateForAi != null). V online módu AI nehraje.
   useEffect(() => {
+    if (!setStateForAi) return;
     if (state.phase === 'game_over') return;
     const isAITurn = p.kind === 'ai';
-    // Also handle: AI is in a pending choice from a human-triggered effect
-    const aiHasPending = state.pendingChoice && state.players.some((pl) => pl.kind === 'ai' && pl.id === (state.pendingChoice as any).playerId);
+    const aiHasPending =
+      state.pendingChoice &&
+      state.players.some((pl) => pl.kind === 'ai' && pl.id === (state.pendingChoice as any).playerId);
     if (!isAITurn && !aiHasPending) return;
     const t = setTimeout(() => {
       const next = aiStep(state);
-      if (next && next !== state) setState(next);
+      if (next && next !== state) setStateForAi(next);
     }, 700);
     return () => clearTimeout(t);
-  }, [state, p, setState]);
+  }, [state, p, setStateForAi]);
 
   // Compute clickable hexes per mode
   const clickable = useMemo(() => {
@@ -149,7 +161,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
   function onHexClick(hex: Hex, event?: MouseEvent) {
     if (event) setInspectPos({ x: event.clientX, y: event.clientY });
     if (state.phase === 'using_field' && p.skills.has('sprint')) {
-      setState(applyAction(state, { type: 'useField', hex }));
+      dispatch({ type: 'useField', hex });
       return;
     }
     if (mode === 'pickMove') {
@@ -160,13 +172,13 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
       );
       if (movableVombats.length === 0) return;
       const v = movableVombats[0];
-      setState(applyAction(state, { type: 'moveVombat', vombatId: v.id, targetHex: hex }));
+      dispatch({ type: 'moveVombat', vombatId: v.id, targetHex: hex });
       setMode('idle');
       setSelectedVombatId(null);
       return;
     }
     if (mode === 'pickField') {
-      setState(applyAction(state, { type: 'useField', hex }));
+      dispatch({ type: 'useField', hex });
       setMode('idle');
       return;
     }
@@ -227,12 +239,12 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                   targets.some((t) => t.q === inspectHex.q && t.r === inspectHex.r)
                 );
               if (!moveTargets) return;
-              setState(applyAction(state, { type: 'moveVombat', vombatId: moveTargets.v.id, targetHex: inspectHex }));
+              dispatch({ type: 'moveVombat', vombatId: moveTargets.v.id, targetHex: inspectHex });
               setInspectHex(null);
               setInspectPos(null);
             }}
             onUseField={() => {
-              setState(applyAction(state, { type: 'useField', hex: inspectHex }));
+              dispatch({ type: 'useField', hex: inspectHex });
               setInspectHex(null);
               setInspectPos(null);
             }}
@@ -247,7 +259,7 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
         <div className="panel">
           <h3>Hod</h3>
           <DiceTray player={p} />
-          {state.phase === 'rolled' && !state.pendingChoice && <RollAdjustPanel state={state} setState={setState} />}
+          {state.phase === 'rolled' && !state.pendingChoice && <RollAdjustPanel state={state} dispatch={dispatch} />}
         </div>
         <div className="panel">
           <h3>Akce</h3>
@@ -263,14 +275,12 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                   {/* Pre-roll swap panel — visible only with Třídění (Klystýr).
                       Lets the player tune Hand shape before rolling. */}
                   {p.skills.has('klystyr') && (
-                    <PreRollSwapPanel state={state} setState={setState} />
+                    <PreRollSwapPanel state={state} dispatch={dispatch} />
                   )}
                   <button
                     className="primary"
                     disabled={!adjDevilForMe || p.hand.length === 0}
-                    onClick={() =>
-                      setState(applyAction(state, { type: 'beginDevilCombat', rolls: rollForCurrentPlayer(state) }))
-                    }
+                    onClick={() => dispatch({ type: 'beginDevilCombat', rolls: rollForCurrentPlayer(state) })}
                   >
                     ⚔️ Bojuj s Čertem (vyhlášení před hodem)
                   </button>
@@ -278,14 +288,12 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                     <>
                       <button
                         className="primary"
-                        onClick={() =>
-                          setState(applyAction(state, { type: 'rollDice', rolls: rollForCurrentPlayer(state) }))
-                        }
+                        onClick={() => dispatch({ type: 'rollDice', rolls: rollForCurrentPlayer(state) })}
                       >
                         🎲 Hoď kostkami ({p.hand.length})
                       </button>
                       <button
-                        onClick={() => setState(applyAction(state, { type: 'skipRollForPotatoes' }))}
+                        onClick={() => dispatch({ type: 'skipRollForPotatoes' })}
                         title={`Tah neházíš, místo toho dostaneš ${SKIP_ROLL_POTATOES} brambory. Vhodné když máš na sousední pole špatnou ruku — radši šetři.`}
                       >
                         🥔🥔 Neházej (vezmi {SKIP_ROLL_POTATOES} brambory)
@@ -337,31 +345,31 @@ export function GameScreen({ state, setState, onNewGame, onShowStats, onShowRule
                 );
               })()}
               {state.phase === 'devil_combat' && p.fighting && (
-                <DevilCombatPanel state={state} setState={setState} />
+                <DevilCombatPanel state={state} dispatch={dispatch} />
               )}
             </div>
           )}
           {state.pendingChoice?.kind === 'attack_surrender' && (
-            <AttackModal state={state} setState={setState} />
+            <AttackModal state={state} dispatch={dispatch} />
           )}
           {state.pendingChoice?.kind === 'select_dirt_action' && (
-            <DirtActionModal state={state} setState={setState} />
+            <DirtActionModal state={state} dispatch={dispatch} />
           )}
           {state.pendingChoice?.kind === 'select_tree_action' && (
-            <TreeActionModal state={state} setState={setState} />
+            <TreeActionModal state={state} dispatch={dispatch} />
           )}
           {state.pendingChoice?.kind === 'pick_skill' && (
-            <SkillModal state={state} setState={setState} />
+            <SkillModal state={state} dispatch={dispatch} />
           )}
           {state.pendingChoice?.kind === 'pick_die_acquisition' && (
-            <DieAcquisitionModal state={state} setState={setState} />
+            <DieAcquisitionModal state={state} dispatch={dispatch} />
           )}
           {mode === 'sleepMenu' && (
             <SleepModal
               state={state}
-              setState={(s) => {
+              dispatch={(a) => {
                 // Any Sleep action ends the turn — also close the modal.
-                setState(s);
+                dispatch(a);
                 setMode('idle');
               }}
               close={() => setMode('idle')}
@@ -552,7 +560,7 @@ function HexInspectPanel({
   );
 }
 
-function AttackModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function AttackModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'attack_surrender') return null;
   const p = state.players.find((pp) => pp.id === pc.playerId)!;
@@ -564,16 +572,14 @@ function AttackModal({ state, setState }: { state: GameState; setState: (s: Game
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             disabled={p.potatoes <= 0}
-            onClick={() => setState(applyAction(state, { type: 'resolveAttackWithPotato' }))}
+            onClick={() => dispatch({ type: 'resolveAttackWithPotato' })}
           >
             🥔 Odevzdat bramboru ({p.potatoes})
           </button>
           {p.hand.map((d, i) => (
             <button
               key={`h${i}`}
-              onClick={() =>
-                setState(applyAction(state, { type: 'resolveAttackWithDie', location: 'hand', index: i }))
-              }
+              onClick={() => dispatch({ type: 'resolveAttackWithDie', location: 'hand', index: i })}
             >
               ✋ Odevzdat 1k{d}
             </button>
@@ -581,9 +587,7 @@ function AttackModal({ state, setState }: { state: GameState; setState: (s: Game
           {p.reserve.map((d, i) => (
             <button
               key={`r${i}`}
-              onClick={() =>
-                setState(applyAction(state, { type: 'resolveAttackWithDie', location: 'reserve', index: i }))
-              }
+              onClick={() => dispatch({ type: 'resolveAttackWithDie', location: 'reserve', index: i })}
             >
               📦 Odevzdat 1k{d} (Zásoba)
             </button>
@@ -594,7 +598,7 @@ function AttackModal({ state, setState }: { state: GameState; setState: (s: Game
   );
 }
 
-function DirtActionModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function DirtActionModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'select_dirt_action') return null;
   return (
@@ -602,16 +606,16 @@ function DirtActionModal({ state, setState }: { state: GameState; setState: (s: 
       <div className="modal">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <h2 style={{ margin: 0 }}>Hlína / Poušť — vyber akci</h2>
-          <button onClick={() => setState(applyAction(state, { type: 'cancelPendingChoice' }))}>✕ Storno</button>
+          <button onClick={() => dispatch({ type: 'cancelPendingChoice' })}>✕ Storno</button>
         </div>
         <div className="actions" style={{ marginTop: 8 }}>
-          <button onClick={() => setState(applyAction(state, { type: 'useField', hex: pc.hex, dirtAction: 'plant' }))}>
+          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'plant' })}>
             🥕 Zasaď mrkev
           </button>
-          <button onClick={() => setState(applyAction(state, { type: 'useField', hex: pc.hex, dirtAction: 'poop' }))}>
+          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'poop' })}>
             💩 Vyformuj kostku
           </button>
-          <button onClick={() => setState(applyAction(state, { type: 'useField', hex: pc.hex, dirtAction: 'learn' }))}>
+          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'learn' })}>
             🧠 Uč se dovednost
           </button>
         </div>
@@ -620,7 +624,7 @@ function DirtActionModal({ state, setState }: { state: GameState; setState: (s: 
   );
 }
 
-function SkillModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function SkillModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'pick_skill') return null;
   const p = currentPlayer(state);
@@ -636,7 +640,7 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
       <div className="modal">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <h2 style={{ margin: 0 }}>🧠 Uč se</h2>
-          <button onClick={() => setState(applyAction(state, { type: 'cancelPendingChoice' }))}>✕ Storno</button>
+          <button onClick={() => dispatch({ type: 'cancelPendingChoice' })}>✕ Storno</button>
         </div>
         <p style={{ marginTop: 6 }}>
           Vyber dovednost. Stromy: <strong>{p.bobekTrack}</strong> 🌳 ·
@@ -664,15 +668,13 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
                 <button
                   disabled={owned || !enoughTrees}
                   onClick={() =>
-                    setState(
-                      applyAction(state, {
-                        type: 'learnSkill',
-                        skill: sid,
-                        treesUsed: req.trees,
-                        potatoesUsed: 0,
-                        diceUsed: [],
-                      })
-                    )
+                    dispatch({
+                      type: 'learnSkill',
+                      skill: sid,
+                      treesUsed: req.trees,
+                      potatoesUsed: 0,
+                      diceUsed: [],
+                    })
                   }
                 >
                   {owned ? '✓ Naučeno' : `Naučit (${req.trees}× strom)`}
@@ -682,15 +684,13 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
                   onClick={() => {
                     const treesAvailable = Math.min(p.bobekTrack, req.trees);
                     const missing = req.trees - treesAvailable;
-                    setState(
-                      applyAction(state, {
-                        type: 'learnSkill',
-                        skill: sid,
-                        treesUsed: treesAvailable,
-                        potatoesUsed: missing * 3,
-                        diceUsed: [],
-                      })
-                    );
+                    dispatch({
+                      type: 'learnSkill',
+                      skill: sid,
+                      treesUsed: treesAvailable,
+                      potatoesUsed: missing * 3,
+                      diceUsed: [],
+                    });
                   }}
                 >
                   Nahradit {req.trees - Math.min(p.bobekTrack, req.trees)}× 🥔×3
@@ -705,7 +705,7 @@ function SkillModal({ state, setState }: { state: GameState; setState: (s: GameS
 }
 
 // Modal shown when the player uses an Eukalyptus and tree-learn is available.
-function TreeActionModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function TreeActionModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'select_tree_action') return null;
   return (
@@ -713,7 +713,7 @@ function TreeActionModal({ state, setState }: { state: GameState; setState: (s: 
       <div className="modal">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <h2 style={{ margin: 0 }}>🌳 Eukalyptový strom — vyber akci</h2>
-          <button onClick={() => setState(applyAction(state, { type: 'cancelPendingChoice' }))}>✕ Storno</button>
+          <button onClick={() => dispatch({ type: 'cancelPendingChoice' })}>✕ Storno</button>
         </div>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
           Můžeš si jen <strong>obsadit strom</strong>, nebo zároveň využít k <strong>učení dovednosti</strong>.
@@ -723,16 +723,12 @@ function TreeActionModal({ state, setState }: { state: GameState; setState: (s: 
         <div className="actions" style={{ marginTop: 10 }}>
           <button
             className="primary"
-            onClick={() =>
-              setState(applyAction(state, { type: 'useField', hex: pc.hex, treeAction: 'occupy' }))
-            }
+            onClick={() => dispatch({ type: 'useField', hex: pc.hex, treeAction: 'occupy' })}
           >
             💩 Jen obsadit (+1 strom)
           </button>
           <button
-            onClick={() =>
-              setState(applyAction(state, { type: 'useField', hex: pc.hex, treeAction: 'occupy_and_learn' }))
-            }
+            onClick={() => dispatch({ type: 'useField', hex: pc.hex, treeAction: 'occupy_and_learn' })}
           >
             🌳🧠 Obsadit + Uč se dovednost (1× pro tento strom)
           </button>
@@ -744,7 +740,7 @@ function TreeActionModal({ state, setState }: { state: GameState; setState: (s: 
 
 // Modal shown when a human player gains a die — lets them choose size
 // (any ≤ offered) and placement (Hand / Reserve / Pending).
-function DieAcquisitionModal({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function DieAcquisitionModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'pick_die_acquisition') return null;
   const p = currentPlayer(state);
@@ -836,27 +832,21 @@ function DieAcquisitionModal({ state, setState }: { state: GameState; setState: 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   <button
                     disabled={!handCanFit}
-                    onClick={() =>
-                      setState(applyAction(state, { type: 'resolveDieAcquisition', level: lvl, location: 'hand' }))
-                    }
+                    onClick={() => dispatch({ type: 'resolveDieAcquisition', level: lvl, location: 'hand' })}
                     title={handCanFit ? '' : 'Ruka — limit "max 2 stejného lvl"'}
                   >
                     ✋ Ruka
                   </button>
                   <button
                     disabled={!reserveCanFit}
-                    onClick={() =>
-                      setState(applyAction(state, { type: 'resolveDieAcquisition', level: lvl, location: 'reserve' }))
-                    }
+                    onClick={() => dispatch({ type: 'resolveDieAcquisition', level: lvl, location: 'reserve' })}
                     title={reserveCanFit ? '' : 'Zásoba — limit 3 kostek'}
                   >
                     📦 Zásoba
                   </button>
                   {!handCanFit && !reserveCanFit && (
                     <button
-                      onClick={() =>
-                        setState(applyAction(state, { type: 'resolveDieAcquisition', level: lvl, location: 'pending' }))
-                      }
+                      onClick={() => dispatch({ type: 'resolveDieAcquisition', level: lvl, location: 'pending' })}
                     >
                       📥 Čekající (do uvolnění Kapacitou)
                     </button>
@@ -881,8 +871,8 @@ function DieAcquisitionModal({ state, setState }: { state: GameState; setState: 
 // Rendered in 'rolled' phase. Each ±1 costs 1 🥔, max 2 adjustments per turn
 // (= ±2 max). NOT available in Devil combat (per-die mechanic there).
 function RollAdjustPanel({
-  state, setState,
-}: { state: GameState; setState: (s: GameState) => void }) {
+  state, dispatch,
+}: { state: GameState; dispatch: (a: Action) => void }) {
   const p = currentPlayer(state);
   if (!p.lastRoll || p.lastRoll.length === 0) return null;
   const rawSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
@@ -915,14 +905,14 @@ function RollAdjustPanel({
       <div style={{ display: 'flex', gap: 6 }}>
         <button
           disabled={!canMinus}
-          onClick={() => setState(applyAction(state, { type: 'adjustRoll', delta: -1 }))}
+          onClick={() => dispatch({ type: 'adjustRoll', delta: -1 })}
           title="Utratíš 1 🥔 a součet hodu se sníží o 1 (efektivní rozsah polí se posune)."
         >
           🥔 −1
         </button>
         <button
           disabled={!canPlus}
-          onClick={() => setState(applyAction(state, { type: 'adjustRoll', delta: +1 }))}
+          onClick={() => dispatch({ type: 'adjustRoll', delta: +1 })}
           title="Utratíš 1 🥔 a součet hodu se zvýší o 1 (efektivní rozsah polí se posune)."
         >
           🥔 +1
@@ -942,8 +932,8 @@ function RollAdjustPanel({
 // 3 free swap operations BEFORE rolling — Hand ↔ Reserve. The whole point:
 // deck-building agency every turn. After rolling, swaps go back to Sleep.
 function PreRollSwapPanel({
-  state, setState,
-}: { state: GameState; setState: (s: GameState) => void }) {
+  state, dispatch,
+}: { state: GameState; dispatch: (a: Action) => void }) {
   const p = currentPlayer(state);
   const remaining = preRollSwapsRemaining(state);
   const used = PRE_ROLL_SWAP_LIMIT - remaining;
@@ -981,9 +971,7 @@ function PreRollSwapPanel({
                 <button
                   key={`pr-h2r${i}`}
                   style={{ padding: '2px 8px', fontSize: 11 }}
-                  onClick={() =>
-                    setState(applyAction(state, { type: 'preRollSwap', op: { op: 'hand_to_reserve', index: i } }))
-                  }
+                  onClick={() => dispatch({ type: 'preRollSwap', op: { op: 'hand_to_reserve', index: i } })}
                   title={`Přesun 1k${d} do Zásoby (Třídění zdarma)`}
                 >
                   1k{d}
@@ -1000,9 +988,7 @@ function PreRollSwapPanel({
                 <button
                   key={`pr-r2h${i}`}
                   style={{ padding: '2px 8px', fontSize: 11 }}
-                  onClick={() =>
-                    setState(applyAction(state, { type: 'preRollSwap', op: { op: 'reserve_to_hand', index: i } }))
-                  }
+                  onClick={() => dispatch({ type: 'preRollSwap', op: { op: 'reserve_to_hand', index: i } })}
                   title={`Přesun 1k${d} do Ruky (Třídění zdarma)`}
                 >
                   1k{d}
@@ -1018,11 +1004,11 @@ function PreRollSwapPanel({
 
 function SleepModal({
   state,
-  setState,
+  dispatch,
   close,
 }: {
   state: GameState;
-  setState: (s: GameState) => void;
+  dispatch: (a: Action) => void;
   close: () => void;
 }) {
   const p = currentPlayer(state);
@@ -1061,8 +1047,8 @@ function SleepModal({
   }
   function commitSwaps() {
     if (stagedOps.length === 0) return;
-    setState(applyAction(state, { type: 'sleep', sleepAction: { kind: 'swap', ops: stagedOps } }));
-    // Parent's setState wrapper will switch mode away from sleepMenu.
+    dispatch({ type: 'sleep', sleepAction: { kind: 'swap', ops: stagedOps } });
+    // Parent's dispatch wrapper closes the modal.
   }
 
   return (
@@ -1104,7 +1090,7 @@ function SleepModal({
           <button
             disabled={otherActionsDisabled}
             title={otherActionsDisabled ? 'Nejdřív proveď naplánované výměny (✅) nebo je resetuj.' : ''}
-            onClick={() => setState(applyAction(state, { type: 'sleep', sleepAction: { kind: 'gain_potato' } }))}
+            onClick={() => dispatch({ type: 'sleep', sleepAction: { kind: 'gain_potato' } })}
           >
             🥔 Získej 1 bramboru
           </button>
@@ -1112,7 +1098,7 @@ function SleepModal({
             disabled={otherActionsDisabled}
             onClick={() => {
               const targets = p.hand.map((_, i) => ({ location: 'hand' as const, index: i }));
-              setState(applyAction(state, { type: 'sleep', sleepAction: { kind: 'downgrade_dice', targets } }));
+              dispatch({ type: 'sleep', sleepAction: { kind: 'downgrade_dice', targets } });
             }}
           >
             ⬇️ Downgrade všech kostek v Ruce
@@ -1149,12 +1135,10 @@ function SleepModal({
               key={`up${i}`}
               disabled={otherActionsDisabled}
               onClick={() =>
-                setState(
-                  applyAction(state, {
-                    type: 'sleep',
-                    sleepAction: { kind: 'upgrade_die', location: 'hand', index: i },
-                  })
-                )
+                dispatch({
+                  type: 'sleep',
+                  sleepAction: { kind: 'upgrade_die', location: 'hand', index: i },
+                })
               }
             >
               ⬆️ Upgrade 1k{d}
@@ -1165,12 +1149,10 @@ function SleepModal({
               key={`up2${i}`}
               disabled={otherActionsDisabled}
               onClick={() =>
-                setState(
-                  applyAction(state, {
-                    type: 'sleep',
-                    sleepAction: { kind: 'upgrade_die_2x', location: 'hand', index: i },
-                  })
-                )
+                dispatch({
+                  type: 'sleep',
+                  sleepAction: { kind: 'upgrade_die_2x', location: 'hand', index: i },
+                })
               }
             >
               ⬆️⬆️ Upgrade 1k{d} 2x
@@ -1178,7 +1160,7 @@ function SleepModal({
           ))}
           <button
             disabled={otherActionsDisabled}
-            onClick={() => setState(applyAction(state, { type: 'sleep', sleepAction: { kind: 'skip' } }))}
+            onClick={() => dispatch({ type: 'sleep', sleepAction: { kind: 'skip' } })}
           >
             ✖️ Skip tah
           </button>
@@ -1202,9 +1184,7 @@ function SleepModal({
                   <button
                     key={sid}
                     disabled={p.potatoes < cost}
-                    onClick={() =>
-                      setState(applyAction(state, { type: 'sleep', sleepAction: { kind: 'buy_skill', skill: sid } }))
-                    }
+                    onClick={() => dispatch({ type: 'sleep', sleepAction: { kind: 'buy_skill', skill: sid } })}
                     title={req.desc}
                   >
                     🛒 {req.label} ({cost} 🥔)
@@ -1219,7 +1199,7 @@ function SleepModal({
   );
 }
 
-function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s: GameState) => void }) {
+function DevilCombatPanel({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const p = currentPlayer(state);
   const taken = state.devilWounds.woundsByPlayer[p.id];
   const allTaken = allWoundsTaken(state, p.id);
@@ -1252,7 +1232,7 @@ function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s:
               <button
                 key={w}
                 disabled={!validate || !slotFree}
-                onClick={() => setState(applyAction(state, { type: 'applyDevilWound', diceIndex: i, wound: w }))}
+                onClick={() => dispatch({ type: 'applyDevilWound', diceIndex: i, wound: w })}
               >
                 {w}
               </button>
@@ -1263,15 +1243,13 @@ function DevilCombatPanel({ state, setState }: { state: GameState; setState: (s:
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
         <button
           className="primary"
-          onClick={() =>
-            setState(applyAction(state, { type: 'devilContinueRoll', rolls: rollForCurrentPlayer(state) }))
-          }
+          onClick={() => dispatch({ type: 'devilContinueRoll', rolls: rollForCurrentPlayer(state) })}
         >
           {readyToKill
             ? '⚔️ Zasaď smrtelnou ránu'
             : `🎲 Hoď znovu${allTaken ? ' (potřebuješ 25+)' : ''}`}
         </button>
-        <button onClick={() => setState(applyAction(state, { type: 'devilStop' }))}>Ukončit boj</button>
+        <button onClick={() => dispatch({ type: 'devilStop' })}>Ukončit boj</button>
       </div>
     </div>
   );

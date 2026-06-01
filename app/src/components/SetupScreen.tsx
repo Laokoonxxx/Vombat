@@ -4,28 +4,37 @@ import { ALL_DICE_LEVELS, DICE_PRICES } from '../game/types';
 import { HexBoard } from './HexBoard';
 import { Legend } from './Legend';
 import type { Action } from '../game/actions';
-import { applyAction } from '../game/actions';
 import { aiSetupStep } from '../game/ai';
 
 export interface SetupScreenProps {
   state: GameState;
-  setState: (s: GameState) => void;
+  dispatch: (a: Action) => void;
+  /** Hot-seat režim používá pro AI loop. V online módu vždy null (AI nehraje online). */
+  setStateForAi?: (s: GameState) => void;
   onNewGame?: () => void;
   onShowStats?: () => void;
   onShowRules?: () => void;
   onShowProbabilities?: () => void;
 }
 
-export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRules, onShowProbabilities }: SetupScreenProps) {
-  const dispatch = (action: Action) => setState(applyAction(state, action));
-
+export function SetupScreen({
+  state,
+  dispatch,
+  setStateForAi,
+  onNewGame,
+  onShowStats,
+  onShowRules,
+  onShowProbabilities,
+}: SetupScreenProps) {
   // Phase 1: each player picks a starting hex in order.
   // Phase 2: each player buys at least 1 die and optionally a 2nd vombat.
   const playersWithoutVombat = state.players.filter((p) => p.vombats.length === 0);
   const placingPlayer = playersWithoutVombat[0];
 
-  // Auto-run AI setup actions (placement + buying)
+  // Auto-run AI setup actions (placement + buying). Pouze v hot-seatu — online
+  // mód neposílá AI hráče (setStateForAi je tam null).
   useEffect(() => {
+    if (!setStateForAi) return;
     // The *next* player who needs to place — placement happens in turn order.
     const firstPlacer = state.players.find((p) => p.vombats.length === 0);
     const shouldPlace = !!firstPlacer && firstPlacer.kind === 'ai';
@@ -36,10 +45,10 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
     if (!shouldPlace && !shouldBuy) return;
     const t = setTimeout(() => {
       const next = aiSetupStep(state);
-      if (next) setState(next);
+      if (next) setStateForAi(next);
     }, 500);
     return () => clearTimeout(t);
-  }, [state, setState]);
+  }, [state, setStateForAi]);
 
   // For shop phase we let players take turns: first the one who hasn't bought; once all bought >=1, we let any player continue to add more until "Hotovo".
   const allBought = state.players.every((p) => p.hand.length > 0);
@@ -145,7 +154,7 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
                   <Row
                     key={d}
                     state={state}
-                    setState={setState}
+                    dispatch={dispatch}
                     playerId={activeShopPlayer.id}
                     level={d as DiceLevel}
                   />
@@ -169,12 +178,12 @@ export function SetupScreen({ state, setState, onNewGame, onShowStats, onShowRul
 
 function Row({
   state,
-  setState,
+  dispatch,
   playerId,
   level,
 }: {
   state: GameState;
-  setState: (s: GameState) => void;
+  dispatch: (a: Action) => void;
   playerId: string;
   level: DiceLevel;
 }) {
@@ -185,10 +194,7 @@ function Row({
     <>
       <span>1k{level}</span>
       <span>{price} 🥔</span>
-      <button
-        disabled={!canAfford}
-        onClick={() => setState(applyAction(state, { type: 'buyDie', playerId, level }))}
-      >
+      <button disabled={!canAfford} onClick={() => dispatch({ type: 'buyDie', playerId, level })}>
         Koupit
       </button>
     </>
