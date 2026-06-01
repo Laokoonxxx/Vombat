@@ -21,11 +21,11 @@ import { hexKey } from '../game/types';
 import { aiSetupStep, aiStep, setSkillPriority } from '../game/ai';
 import { makeRNG } from '../game/rng';
 
-// All 6 skills, used for per-game shuffle of AI's skill priority.
+// All 5 skills, used for per-game shuffle of AI's skill priority.
 // Randomization per game lets us measure win-rate when skill X is learned
 // first/early without confounding from a fixed default ordering.
 const ALL_SKILLS_FOR_SHUFFLE: SkillId[] = [
-  'kapacita', 'klystyr', 'koupel', 'sprint', 'masaz_strev', 'ajurveda',
+  'kapacita', 'klystyr', 'koupel', 'sprint', 'masaz_strev',
 ];
 
 import type {
@@ -104,10 +104,9 @@ const LABEL_TO_SKILL_ID: Record<string, SkillId> = {
   'Klystýr': 'klystyr',
   'Žvýkání': 'masaz_strev',
   'Masáž Střev': 'masaz_strev',
-  'Bylinkový elixír': 'ajurveda',
-  'Ajurvéda': 'ajurveda',
-  'Ajurvédská Medicína': 'ajurveda',
   'Sprint': 'sprint',
+  // Bylinkový elixír / Ajurvéda — odstraněno 2026-06-01, mapování necháno
+  // jen pro starší log soubory v sim_results/ (nově se nevyskytne).
 };
 
 function detectFormation(entry: string): { formation: FormationKind; rewardLvl: DiceLevel | null } | null {

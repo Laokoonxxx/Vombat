@@ -79,7 +79,7 @@ const ICON_LEGEND = [
   { icon: '💩', desc: 'Značka — žeton hráče po akci (Vyformuj, Obsaď, Uč se…)' },
   { icon: '🥕', desc: 'Mrkev — žeton hráče po akci Zasaď' },
   { icon: '🥔', desc: 'Brambora — měna a obrana proti útoku' },
-  { icon: 'kX', desc: 'Kostka (k2/k4/k6/k8/k10/k12/k20)' },
+  { icon: 'kX', desc: 'Kostka (k2/k4/k6/k8/k12/k20)' },
 ];
 
 const SKILL_ORDER: SkillId[] = [
@@ -87,7 +87,6 @@ const SKILL_ORDER: SkillId[] = [
   'koupel',
   'klystyr',
   'masaz_strev',
-  'ajurveda',
   'sprint',
 ];
 

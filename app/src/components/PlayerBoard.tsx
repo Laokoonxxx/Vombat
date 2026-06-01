@@ -7,7 +7,6 @@ const ALL_SKILLS: SkillId[] = [
   'sprint',
   'masaz_strev',
   'klystyr',
-  'ajurveda',
 ];
 
 // Optional milestone trigger for skills that have one
