@@ -1,0 +1,70 @@
+name: Build & Deploy to FTP
+
+# Vombat má frontend (React/Vite v app/) a backend (PHP v kořenu).
+# Workflow:
+#   1. Checkout
+#   2. Build frontendu (npm ci + npm run build → app/dist/)
+#   3. Sestavit deploy balík: dist/* + PHP soubory (api, includes, sql, bootstrap.php)
+#   4. Upload přes FTP na hosting
+
+on:
+  push:
+    branches:
+      - main
+  # Manuální spuštění z GitHub UI (Actions → tento workflow → Run workflow)
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build frontend (Vite)
+        working-directory: app
+        run: npm run build
+
+      - name: Assemble deploy package
+        # Sestavíme adresář _deploy/ ve struktuře, jak má vypadat web root:
+        #   _deploy/
+        #     index.html, assets/   ← z app/dist/
+        #     api/, includes/, sql/, bootstrap.php, config.example.php  ← PHP backend
+        run: |
+          mkdir -p _deploy
+          cp -r app/dist/* _deploy/
+          cp bootstrap.php _deploy/
+          cp config.example.php _deploy/
+          cp -r api _deploy/
+          cp -r includes _deploy/
+          cp -r sql _deploy/
+
+      - name: Upload via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./_deploy/
+          server-dir: /html/vombat/
+          # Vylučujeme citlivé / nepotřebné soubory pro jistotu (i když se v
+          # _deploy/ neměly objevit). config.php nikdy nepushovat — uchovává se
+          # JEN ručně na serveru s reálnými DB credentials.
+          exclude: |
+            **/.git/**
+            **/.github/**
+            **/config.php
+            **/.DS_Store
+            **/node_modules/**
