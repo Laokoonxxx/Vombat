@@ -113,6 +113,58 @@ button.ghost:hover:not(:disabled) { background: var(--panel-soft); border-color:
 .topbar h1 { margin: 0; font-size: 20px; letter-spacing: -0.5px; }
 
 /* =============================================================================
+ * LAST ACTIONS STRIP — co každý hráč naposled dělal
+ * ========================================================================== */
+
+.last-actions-strip {
+  grid-column: 1 / -1;
+  display: grid;
+  background: linear-gradient(180deg, var(--panel-soft) 0%, var(--bg-deep) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 4px 6px;
+  gap: 6px;
+}
+.last-actions-strip.players-2 { grid-template-columns: 1fr 1fr; }
+.last-actions-strip.players-3 { grid-template-columns: 1fr 1fr 1fr; }
+.last-actions-strip.players-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+.last-action {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  border-left: 4px solid var(--accent);
+  padding: 4px 8px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.last-action.current {
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-sm);
+}
+.last-action .la-name {
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.last-action .la-msg {
+  color: var(--text-soft);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.last-action .la-msg .la-icon { flex-shrink: 0; }
+.last-action .la-msg .la-text { overflow: hidden; text-overflow: ellipsis; }
+.last-action.empty .la-msg { color: var(--muted); font-style: italic; }
+
+/* =============================================================================
  * TURN BANNER — velký panel s aktuálním hráčem
  * ========================================================================== */
 
@@ -217,6 +269,9 @@ button.ghost:hover:not(:disabled) { background: var(--panel-soft); border-color:
   display: flex;
   justify-content: center;
   align-items: center;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 245, 215, 0.55) 0%, transparent 70%),
+    linear-gradient(135deg, #e9d9b0 0%, #d5c290 50%, #c2ad75 100%);
 }
 .sidebar {
   background: var(--panel-soft);
@@ -498,10 +553,12 @@ details.panel[open] summary { margin-bottom: 8px; }
  * HEX BOARD
  * ========================================================================== */
 
-.hex-cell { cursor: default; transition: filter 120ms; }
+.hex-cell { cursor: default; transition: filter 160ms, transform 160ms; transform-origin: center; transform-box: fill-box; }
 .hex-cell.clickable { cursor: pointer; }
-.hex-cell.clickable:hover { filter: brightness(1.1); }
-.hex-cell.actionable:hover { filter: brightness(1.15) drop-shadow(0 0 4px rgba(240, 168, 48, 0.6)); }
+.hex-cell.clickable:hover { filter: brightness(1.08); }
+.hex-cell.actionable:hover {
+  filter: brightness(1.12) drop-shadow(0 0 6px rgba(240, 168, 48, 0.7));
+}
 .hex-cell.highlighted { stroke: #ffd95e; stroke-width: 3; }
 .hex-label {
   pointer-events: none;

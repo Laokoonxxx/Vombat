@@ -20,6 +20,38 @@ import type { Action } from '../game/actions';
 import { rollForCurrentPlayer } from '../game/actions';
 import { aiStep } from '../game/ai';
 
+// Najde nejnovější (= index 0) log entry, jejíž "subject" je daný hráč.
+// Heuristika: stripni leading emoji/whitespace, pak entry musí začínat
+// jménem hráče následovaným non-alfa charakterem (mezera, čárka, ...).
+// Vrací plné raw entry (s emoji prefixem), nebo null pokud nikdy nehrál.
+function findLastActionFor(log: string[], playerName: string): string | null {
+  for (const entry of log) {
+    const stripped = entry.replace(/^[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]+/u, '');
+    if (stripped.startsWith(playerName)) {
+      const after = stripped[playerName.length];
+      if (!after || /[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]/.test(after)) {
+        return entry;
+      }
+    }
+  }
+  return null;
+}
+
+// Vyhodí leading emoji + jméno hráče z entry, aby strip ukazoval jen
+// akci. Např. "🎉 Aleš chrupavčitým ... rozdrtil Kočku!" → "rozdrtil Kočku!"
+function stripPlayerPrefix(entry: string, playerName: string): string {
+  // 1) Strip leading non-letter chars (emoji, whitespace)
+  const stripped = entry.replace(/^[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]+/u, '');
+  // 2) Strip "PlayerName " prefix if present
+  if (stripped.startsWith(playerName + ' ')) {
+    return stripped.slice(playerName.length + 1);
+  }
+  if (stripped.startsWith(playerName + ',')) {
+    return stripped.slice(playerName.length + 1).trim();
+  }
+  return stripped;
+}
+
 // Prefix icons for the log feed — make events scannable at a glance.
 function eventIcon(entry: string): string {
   if (entry.includes('ZABIL')) return '🏆';
@@ -237,6 +269,34 @@ export function GameScreen({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Last actions strip — co každý hráč naposled udělal */}
+      <div className={`last-actions-strip players-${state.players.length}`}>
+        {state.players.map((pl) => {
+          const last = findLastActionFor(state.log, pl.name);
+          const isCurrent = pl.id === p.id;
+          return (
+            <div
+              key={pl.id}
+              className={`last-action ${isCurrent ? 'current' : ''} ${last ? '' : 'empty'}`}
+              style={{ borderLeftColor: pl.color }}
+              title={last ?? 'Ještě nehrál'}
+            >
+              <div className="la-name" style={{ color: pl.color }}>{pl.name}</div>
+              <div className="la-msg">
+                {last ? (
+                  <>
+                    <span className="la-icon">{eventIcon(last)}</span>
+                    <span className="la-text">{stripPlayerPrefix(last, pl.name)}</span>
+                  </>
+                ) : (
+                  <span className="la-text">— ještě nehrál</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Turn banner — velký prominent indikátor čí je tah + co se zrovna děje */}

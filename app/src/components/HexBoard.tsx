@@ -3,16 +3,17 @@ import type { BoardCell, GameState, Hex } from '../game/types';
 import { hexKey } from '../game/types';
 import { hexCorners, hexToPixel } from '../game/hex';
 
-const HEX_SIZE = 38;
+const HEX_SIZE = 46;
 
-const TYPE_FILL: Record<BoardCell['type'], string> = {
-  dirt:   'var(--hex-dirt)',
-  bed:    'var(--hex-bed)',
-  desert: 'var(--hex-desert)',
-  tree:   'var(--hex-tree)',
-  thorn:  'var(--hex-thorn)',
-  cat:    'var(--hex-cat)',
-  devil:  'var(--hex-devil)',
+// Per-type fill (refer to gradient defs). For solid fallback see TYPE_SOLID.
+const TYPE_GRAD: Record<BoardCell['type'], string> = {
+  dirt:   'url(#grad-dirt)',
+  bed:    'url(#grad-bed)',
+  desert: 'url(#grad-desert)',
+  tree:   'url(#grad-tree)',
+  thorn:  'url(#grad-thorn)',
+  cat:    'url(#grad-cat)',
+  devil:  'url(#grad-devil)',
 };
 
 const TYPE_EMOJI: Record<BoardCell['type'], string> = {
@@ -91,10 +92,7 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
 
 export interface HexBoardProps {
   state: GameState;
-  clickableHexes?: Hex[]; // for current action — clickable
-  // Cells where the player can act with their current roll (move OR use field).
-  // Rendered with a distinct yellow glow so the player sees the affordance
-  // at a glance, independent of which inspect/sub-mode is active.
+  clickableHexes?: Hex[];
   actionableHexes?: Hex[];
   selectedHex?: Hex | null;
   onHexClick?: (hex: Hex, event?: MouseEvent) => void;
@@ -115,7 +113,6 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
     return s;
   }, [actionableHexes]);
 
-  // Compute bounds
   const bounds = useMemo(() => {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     cells.forEach((c) => {
@@ -125,7 +122,7 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
       minY = Math.min(minY, y - HEX_SIZE);
       maxY = Math.max(maxY, y + HEX_SIZE);
     });
-    const pad = 20;
+    const pad = 24;
     return {
       minX: minX - pad,
       minY: minY - pad,
@@ -139,15 +136,75 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
   return (
     <svg
       viewBox={`${bounds.minX} ${bounds.minY} ${bounds.width} ${bounds.height}`}
-      style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }}
+      style={{ maxWidth: '100%', maxHeight: '85vh', display: 'block', filter: 'drop-shadow(0 4px 8px rgba(60, 45, 20, 0.18))' }}
     >
-      {/* SVG pattern for "blocked thorn" diagonal hatching */}
       <defs>
+        {/* Drop shadow filter for individual hexes (light, soft) */}
+        <filter id="hex-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0.5" dy="1.2" stdDeviation="1.2" floodOpacity="0.22" floodColor="#3a2810" />
+        </filter>
+
+        {/* Gradient per hex type — light top to darker bottom for tactile depth */}
+        <linearGradient id="grad-dirt" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#e8a55a" />
+          <stop offset="100%" stopColor="#c47828" />
+        </linearGradient>
+        <linearGradient id="grad-bed" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#c4bdaf" />
+          <stop offset="100%" stopColor="#928a7c" />
+        </linearGradient>
+        <linearGradient id="grad-desert" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f7e7bf" />
+          <stop offset="100%" stopColor="#e3c884" />
+        </linearGradient>
+        <linearGradient id="grad-tree" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#6cb1de" />
+          <stop offset="100%" stopColor="#3a7fb3" />
+        </linearGradient>
+        <linearGradient id="grad-thorn" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#82c25c" />
+          <stop offset="100%" stopColor="#549a32" />
+        </linearGradient>
+        <linearGradient id="grad-cat" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#a4703c" />
+          <stop offset="100%" stopColor="#6e4720" />
+        </linearGradient>
+        <linearGradient id="grad-devil" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#4a4a4a" />
+          <stop offset="100%" stopColor="#1c1c1c" />
+        </linearGradient>
+
+        {/* Tunnel: dark with subtle violet undertone */}
+        <linearGradient id="grad-tunnel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2a1f25" />
+          <stop offset="100%" stopColor="#0a0608" />
+        </linearGradient>
+
+        {/* Actionable golden glow gradient overlay */}
+        <radialGradient id="actionable-glow">
+          <stop offset="0%" stopColor="#ffd95e" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#ffd95e" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Subtle white highlight (top) for tactile feel */}
+        <linearGradient id="hex-shine" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.08" />
+        </linearGradient>
+
+        {/* Blocked thorn diagonal hatching */}
         <pattern id="thorn-block-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
           <rect width="8" height="8" fill="transparent" />
-          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(0,0,0,0.32)" strokeWidth="2" />
         </pattern>
+
+        {/* Activation badge background */}
+        <filter id="badge-blur">
+          <feGaussianBlur stdDeviation="0.4" />
+        </filter>
       </defs>
+
       {cells.map((c) => {
         const { x, y } = hexToPixel(c.hex, HEX_SIZE);
         const points = corners.map((p) => `${x + p.x},${y + p.y}`).join(' ');
@@ -155,26 +212,26 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
         const clickable = clickableSet.has(k);
         const actionable = actionableSet.has(k);
         const isSelected = selectedHex && c.hex.q === selectedHex.q && c.hex.r === selectedHex.r;
-        // Determine display: emoji for entity, otherwise activation label.
+
+        // Tunnel-only (= non-cat/non-devil cell that became tunnel)
         const isTunnelOnly = c.type !== 'devil' && c.type !== 'cat' && c.isTunnel;
+        const isDeadCat = c.type === 'cat' && !c.catAlive;
         let emoji = TYPE_EMOJI[c.type];
-        if (c.type === 'cat' && !c.catAlive) emoji = '🕳️';
-        if (isTunnelOnly) emoji = '🕳️';
+        if (isDeadCat || isTunnelOnly) emoji = '🕳️';
 
-        const fill = TYPE_FILL[c.type];
-        const opacity = (c.type === 'cat' && !c.catAlive) ? 0.5 : 1;
+        // Choose gradient: tunnel cells get tunnel gradient
+        let fillGrad = TYPE_GRAD[c.type];
+        if (isDeadCat || isTunnelOnly) fillGrad = 'url(#grad-tunnel)';
 
-        // Thorn with a die is impassable for movement until cleared
+        // Blocked thorn (die still on it, not yet taken) — diagonal hatch overlay
         const isBlockedThorn = c.type === 'thorn' && c.thornDieLevel != null && !c.marker;
 
-        // Build a tooltip explaining what this cell does
         const tooltip = buildTooltip(c, isBlockedThorn);
 
-        // Stroke priority: selected (orange-yellow, thickest) > actionable
-        // (golden glow) > default (dark brown thin). Selected wins so the
-        // currently-inspected hex stays distinct.
-        const strokeColor = isSelected ? '#ffd95e' : actionable ? '#f0a830' : '#3d2f1a';
-        const strokeWidth = isSelected ? 3 : actionable ? 2.5 : 1;
+        // Stroke priority: selected > actionable > default
+        const strokeColor = isSelected ? '#ffb840' : actionable ? '#e89818' : '#3d2f1a';
+        const strokeWidth = isSelected ? 3.5 : actionable ? 2.4 : 1.5;
+
         return (
           <g
             key={k}
@@ -182,24 +239,34 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
             onClick={(e) => clickable && onHexClick && onHexClick(c.hex, e)}
           >
             <title>{tooltip}</title>
+
+            {/* 1. Background fill (gradient) with shadow */}
             <polygon
               points={points}
-              fill={fill}
-              opacity={opacity}
+              fill={fillGrad}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
+              strokeLinejoin="round"
+              filter="url(#hex-shadow)"
             />
-            {/* Soft golden overlay for actionable hexes — adds glow without
-                hiding the underlying hex color. */}
+
+            {/* 2. Subtle top highlight for tactile feel */}
+            <polygon
+              points={points}
+              fill="url(#hex-shine)"
+              pointerEvents="none"
+            />
+
+            {/* 3. Actionable golden glow */}
             {actionable && !isSelected && (
               <polygon
                 points={points}
-                fill="#ffd95e"
-                opacity={0.18}
+                fill="url(#actionable-glow)"
                 pointerEvents="none"
               />
             )}
-            {/* Diagonal-hatch overlay marking blocked thorn (impassable until die is taken) */}
+
+            {/* 4. Blocked thorn diagonal hatch */}
             {isBlockedThorn && (
               <polygon
                 points={points}
@@ -207,75 +274,134 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
                 pointerEvents="none"
               />
             )}
-            {/* Activation hint */}
-            <text x={x} y={y - HEX_SIZE * 0.55} className="hex-label" fontSize={9} fill="#1c150a">
-              {ACTIVATION_LABEL[c.type]}
-            </text>
-            {/* Main emoji */}
-            <text x={x} y={y - 2} className="hex-label" fontSize={22}>
+
+            {/* 5. Activation badge (small rounded pill top-center) */}
+            {!isTunnelOnly && !isDeadCat && (
+              <g>
+                <rect
+                  x={x - 18}
+                  y={y - HEX_SIZE * 0.78}
+                  width={36}
+                  height={14}
+                  rx={7}
+                  fill="rgba(255, 250, 235, 0.85)"
+                  stroke="rgba(60, 45, 20, 0.35)"
+                  strokeWidth={0.6}
+                />
+                <text
+                  x={x}
+                  y={y - HEX_SIZE * 0.78 + 7}
+                  className="hex-label"
+                  fontSize={9}
+                  fill="#3d2f1a"
+                  fontWeight={700}
+                >
+                  {ACTIVATION_LABEL[c.type]}
+                </text>
+              </g>
+            )}
+
+            {/* 6. Main emoji (bigger, centered) */}
+            <text
+              x={x}
+              y={y + 2}
+              className="hex-label"
+              fontSize={26}
+              style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))' }}
+            >
               {emoji}
             </text>
-            {/* Thorn die */}
+
+            {/* 7. Thorn die (white die-like circle with k-value) */}
             {c.type === 'thorn' && c.thornDieLevel != null && (
               <g>
-                <circle cx={x} cy={y + HEX_SIZE * 0.42} r={9} fill="#fff" stroke="#222" />
-                <text x={x} y={y + HEX_SIZE * 0.42} className="hex-label" fontSize={10} fill="#222">
+                <circle
+                  cx={x}
+                  cy={y + HEX_SIZE * 0.5}
+                  r={11}
+                  fill="#fff"
+                  stroke="#2a2a2a"
+                  strokeWidth={1.4}
+                  filter="url(#hex-shadow)"
+                />
+                <text
+                  x={x}
+                  y={y + HEX_SIZE * 0.5}
+                  className="hex-label"
+                  fontSize={11}
+                  fill="#1c1c1c"
+                  fontWeight={700}
+                >
                   k{c.thornDieLevel}
                 </text>
               </g>
             )}
-            {/* "No entry" badge in upper-left corner of blocked thorn */}
+
+            {/* 8. "No entry" badge for blocked thorn */}
             {isBlockedThorn && (
               <text
-                x={x - HEX_SIZE * 0.45}
+                x={x - HEX_SIZE * 0.55}
                 y={y - HEX_SIZE * 0.4}
                 className="hex-label"
-                fontSize={12}
+                fontSize={13}
               >
                 🚫
               </text>
             )}
-            {/* Marker (bobek/mrkev) */}
-            {c.marker && (
-              <g>
-                <circle
-                  cx={x + HEX_SIZE * 0.45}
-                  cy={y + HEX_SIZE * 0.45}
-                  r={9}
-                  fill={state.players.find((p) => p.id === c.marker!.playerId)?.color || '#000'}
-                  stroke="#222"
-                  strokeWidth={1}
-                />
-                <text
-                  x={x + HEX_SIZE * 0.45}
-                  y={y + HEX_SIZE * 0.45}
-                  className="hex-label"
-                  fontSize={11}
-                  fill="#fff"
-                >
-                  {c.marker.kind === 'bobek' ? '💩' : '🥕'}
-                </text>
-              </g>
-            )}
-            {/* Vombat(s) */}
+
+            {/* 9. Marker (bobek/mrkev) — bigger, with white halo */}
+            {c.marker && (() => {
+              const markerColor = state.players.find((p) => p.id === c.marker!.playerId)?.color || '#000';
+              return (
+                <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
+                  <circle
+                    cx={x + HEX_SIZE * 0.55}
+                    cy={y + HEX_SIZE * 0.5}
+                    r={12}
+                    fill="#fff"
+                    stroke={markerColor}
+                    strokeWidth={2.5}
+                  />
+                  <text
+                    x={x + HEX_SIZE * 0.55}
+                    y={y + HEX_SIZE * 0.5}
+                    className="hex-label"
+                    fontSize={13}
+                  >
+                    {c.marker.kind === 'bobek' ? '💩' : '🥕'}
+                  </text>
+                </g>
+              );
+            })()}
+
+            {/* 10. Vombat(s) — bigger, color halo + paw */}
             {state.players.map((p) =>
               p.vombats
                 .filter((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r)
                 .map((v, i) => (
-                  <g key={v.id}>
+                  <g key={v.id} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }}>
+                    {/* Outer color halo */}
                     <circle
-                      cx={x - HEX_SIZE * 0.4 + i * 14}
-                      cy={y + HEX_SIZE * 0.05}
-                      r={10}
+                      cx={x - HEX_SIZE * 0.5 + i * 16}
+                      cy={y + HEX_SIZE * 0.1}
+                      r={14}
                       fill={p.color}
                       stroke="#000"
                       strokeWidth={1.5}
                     />
+                    {/* Inner white ring for contrast */}
+                    <circle
+                      cx={x - HEX_SIZE * 0.5 + i * 16}
+                      cy={y + HEX_SIZE * 0.1}
+                      r={11}
+                      fill="#fff"
+                      opacity={0.65}
+                    />
                     <text
-                      x={x - HEX_SIZE * 0.4 + i * 14}
-                      y={y + HEX_SIZE * 0.05}
+                      x={x - HEX_SIZE * 0.5 + i * 16}
+                      y={y + HEX_SIZE * 0.1}
                       className="hex-label"
-                      fontSize={12}
+                      fontSize={14}
                     >
                       🐾
                     </text>
