@@ -391,6 +391,127 @@ function renderDevilArt(cx: number, cy: number): JSX.Element {
   );
 }
 
+// Vykreslí kostku na Houští — tvarem i barvou rozlišený podle úrovně.
+//   k4 → trojúhelník (tetrahedron), žlutá — nejlehčí
+//   k6 → krychle, modrá — střední
+//   k8 → kosočtverec (octahedron), červená — největší zisk
+function renderThornDie(cx: number, cy: number, level: 2 | 4 | 6 | 8): JSX.Element {
+  const dx = cx;
+  const dy = cy + HEX_SIZE * 0.5;
+
+  if (level === 4) {
+    const fill = '#f7d758';
+    const stroke = '#7a5810';
+    return (
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.65))' }}>
+        {/* Tetrahedron silhouette */}
+        <path
+          d={`M ${dx} ${dy - 13} L ${dx + 14} ${dy + 10} L ${dx - 14} ${dy + 10} Z`}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        {/* Inner edges suggesting 3D faces */}
+        <path
+          d={`M ${dx} ${dy - 13} L ${dx} ${dy + 10}`}
+          stroke={stroke}
+          strokeWidth="0.7"
+          opacity="0.55"
+        />
+        {/* Top highlight */}
+        <path
+          d={`M ${dx - 5} ${dy + 4} L ${dx} ${dy - 10}`}
+          stroke="#fff8c0"
+          strokeWidth="1.2"
+          opacity="0.55"
+          strokeLinecap="round"
+        />
+        <text x={dx} y={dy + 5} className="hex-label" fontSize={9} fill="#3a2a08" fontWeight={800}>4</text>
+      </g>
+    );
+  }
+
+  if (level === 6) {
+    const fill = '#4a8fcc';
+    const stroke = '#163d6e';
+    return (
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.65))' }}>
+        {/* Cube — rounded square */}
+        <rect
+          x={dx - 12}
+          y={dy - 12}
+          width={24}
+          height={24}
+          rx={3.5}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth="1.6"
+        />
+        {/* Subtle bevel — light top edge */}
+        <path
+          d={`M ${dx - 9} ${dy - 9} L ${dx + 9} ${dy - 9}`}
+          stroke="#9bc8ef"
+          strokeWidth="1.5"
+          opacity="0.7"
+          strokeLinecap="round"
+        />
+        {/* Subtle bevel — darker bottom edge */}
+        <path
+          d={`M ${dx - 9} ${dy + 9} L ${dx + 9} ${dy + 9}`}
+          stroke="#0e2a52"
+          strokeWidth="0.8"
+          opacity="0.5"
+          strokeLinecap="round"
+        />
+        <text x={dx} y={dy + 1} className="hex-label" fontSize={11} fill="#fff" fontWeight={800}>6</text>
+      </g>
+    );
+  }
+
+  if (level === 8) {
+    const fill = '#c84030';
+    const stroke = '#5a0e08';
+    return (
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.65))' }}>
+        {/* Octahedron — diamond */}
+        <path
+          d={`M ${dx} ${dy - 14} L ${dx + 13} ${dy} L ${dx} ${dy + 14} L ${dx - 13} ${dy} Z`}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        {/* Equator line dividing upper/lower pyramid */}
+        <path
+          d={`M ${dx - 13} ${dy} L ${dx + 13} ${dy}`}
+          stroke={stroke}
+          strokeWidth="0.8"
+          opacity="0.65"
+        />
+        {/* Top edge highlight */}
+        <path
+          d={`M ${dx} ${dy - 14} L ${dx + 7} ${dy - 7}`}
+          stroke="#ff9080"
+          strokeWidth="1.3"
+          opacity="0.65"
+          strokeLinecap="round"
+        />
+        <text x={dx} y={dy + 3} className="hex-label" fontSize={11} fill="#fff" fontWeight={800}>8</text>
+      </g>
+    );
+  }
+
+  // Fallback (k2 — neměl by se na houští vyskytovat, ale defenzivně)
+  return (
+    <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))' }}>
+      <rect x={dx - 10} y={dy - 10} width={20} height={20} rx={3}
+        fill="#fff8e0" stroke="#1a0e02" strokeWidth="1.5" />
+      <text x={dx} y={dy + 2} className="hex-label" fontSize={10} fill="#1a0e02" fontWeight={700}>{level}</text>
+    </g>
+  );
+}
+
 function renderTunnelArt(cx: number, cy: number): JSX.Element {
   // Cave entrance with mystic glow
   return (
@@ -745,30 +866,9 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
               </text>
             )}
 
-            {/* 9. Thorn die — wooden cube look */}
+            {/* 9. Thorn die — shape + color per level (k4/k6/k8) */}
             {c.type === 'thorn' && c.thornDieLevel != null && (
-              <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.65))' }}>
-                <rect
-                  x={x - 14}
-                  y={y + HEX_SIZE * 0.45}
-                  width={28}
-                  height={22}
-                  rx={4}
-                  fill="#fff8e0"
-                  stroke="#1a0e02"
-                  strokeWidth={1.6}
-                />
-                <text
-                  x={x}
-                  y={y + HEX_SIZE * 0.45 + 13}
-                  className="hex-label"
-                  fontSize={12}
-                  fill="#1a0e02"
-                  fontWeight={800}
-                >
-                  k{c.thornDieLevel}
-                </text>
-              </g>
+              renderThornDie(x, y, c.thornDieLevel)
             )}
 
             {/* 10. Blocked thorn ✕ badge */}
