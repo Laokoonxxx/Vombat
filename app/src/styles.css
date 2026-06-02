@@ -270,9 +270,40 @@ button.ghost:hover:not(:disabled) { background: var(--panel-soft); border-color:
   justify-content: center;
   align-items: center;
   background:
-    radial-gradient(ellipse at center, rgba(255, 245, 215, 0.55) 0%, transparent 70%),
-    linear-gradient(135deg, #e9d9b0 0%, #d5c290 50%, #c2ad75 100%);
+    /* Atmospheric vignette — dark edges, bright center */
+    radial-gradient(ellipse at center, rgba(70, 40, 15, 0) 30%, rgba(15, 8, 2, 0.55) 100%),
+    /* Wood grain layers */
+    repeating-linear-gradient(
+      92deg,
+      rgba(80, 40, 15, 0.08) 0px,
+      rgba(80, 40, 15, 0.08) 2px,
+      transparent 2px,
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      88deg,
+      rgba(40, 20, 5, 0.06) 0px,
+      rgba(40, 20, 5, 0.06) 1px,
+      transparent 1px,
+      transparent 11px
+    ),
+    /* Mahogany base */
+    linear-gradient(135deg, #5a3618 0%, #3e2410 50%, #2a1808 100%);
 }
+.board-area::before {
+  /* Subtle decorative frame — dark wood inner border */
+  content: '';
+  position: absolute;
+  top: 10px; right: 10px; bottom: 10px; left: 10px;
+  border: 2px solid rgba(30, 18, 6, 0.6);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px rgba(80, 50, 20, 0.4),
+    inset 0 0 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 0;
+}
+.board-area svg { position: relative; z-index: 1; }
 .sidebar {
   background: var(--panel-soft);
   border-left: 1px solid var(--border);
