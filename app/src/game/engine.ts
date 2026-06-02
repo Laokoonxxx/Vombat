@@ -1313,6 +1313,18 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
   return s;
 }
 
+// Spočítá očekávané skóre "Vyformuj kostku" na daném hexu:
+//   skóre = aktuální carrotTrack hráče + počet soupeřových značek
+//   v sousedství hexu. Pokud výsledek ≤ 0, akce nezíská žádnou kostku.
+// Slouží UI pro zakázání tlačítka když by akce byla zbytečná.
+export function dirtPoopExpectedScore(state: GameState, hex: Hex): number {
+  const p = currentPlayer(state);
+  const oppAdj = adjacentTo(state, hex).filter(
+    (c) => !!c.marker && c.marker.playerId !== p.id
+  ).length;
+  return p.carrotTrack + oppAdj;
+}
+
 function poopResult(score: number): DiceLevel | null {
   if (score <= 0) return null;
   if (score === 1) return 2;

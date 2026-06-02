@@ -14,6 +14,7 @@ import {
   SKIP_ROLL_POTATOES,
   rollAdjustmentsRemaining, ROLL_ADJUSTMENT_LIMIT,
   primka5Diagnostic, obkliceniDiagnostic,
+  dirtPoopExpectedScore,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
 import type { Action } from '../game/actions';
@@ -725,6 +726,13 @@ function AttackModal({ state, dispatch }: { state: GameState; dispatch: (a: Acti
 function DirtActionModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'select_dirt_action') return null;
+
+  // Spočítáme očekávané skóre Vyformování pro tento hex — pokud je 0,
+  // akce by nezískala kostku → tlačítko deaktivujeme.
+  const expectedScore = dirtPoopExpectedScore(state, pc.hex);
+  const p = currentPlayer(state);
+  const canPoop = expectedScore > 0;
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -739,8 +747,16 @@ function DirtActionModal({ state, dispatch }: { state: GameState; dispatch: (a: 
           <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'plant' })}>
             🥕 Zasaď mrkev
           </button>
-          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'poop' })}>
-            💩 Vyformuj kostku
+          <button
+            disabled={!canPoop}
+            title={
+              canPoop
+                ? `Skóre: 🥕${p.carrotTrack} + sousedi soupeře ${expectedScore - p.carrotTrack} = ${expectedScore}`
+                : 'Vyformuj kostku by nedalo žádnou kostku — máš 0 mrkví a žádnou soupeřovu značku v sousedství.'
+            }
+            onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'poop' })}
+          >
+            💩 Vyformuj kostku {canPoop ? `(skóre ${expectedScore})` : '(nedostaneš nic)'}
           </button>
         </div>
       </div>
