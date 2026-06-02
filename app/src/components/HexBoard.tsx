@@ -20,126 +20,205 @@ const HEX_SIZE = 58;
 // =============================================================================
 
 function renderDirtArt(cx: number, cy: number): JSX.Element {
-  // Farmland: rolling field furrows + a small barn silhouette
+  // Wombat country: earth mound + burrow entrance + loose stones + paw tracks.
+  // Žádné lidské stavby — pouze přírodní habitat hrabavých zvířat.
   return (
     <g>
-      {/* Field furrow stripes — curved horizontal lines */}
-      <path d={`M ${cx - 38} ${cy - 10} Q ${cx} ${cy - 14}, ${cx + 38} ${cy - 10}`}
-        stroke="#7a4710" strokeWidth="1.5" fill="none" opacity="0.55" />
-      <path d={`M ${cx - 40} ${cy + 2} Q ${cx} ${cy - 2}, ${cx + 40} ${cy + 2}`}
-        stroke="#7a4710" strokeWidth="1.5" fill="none" opacity="0.5" />
-      <path d={`M ${cx - 40} ${cy + 14} Q ${cx} ${cy + 10}, ${cx + 40} ${cy + 14}`}
-        stroke="#7a4710" strokeWidth="1.5" fill="none" opacity="0.45" />
-      {/* Small barn silhouette in top-right */}
-      <g style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.6))' }}>
-        {/* Barn body */}
-        <rect x={cx + 8} y={cy - 22} width={14} height={10} fill="#8a2a18" stroke="#1a0e02" strokeWidth="0.6" />
-        {/* Barn roof (triangle) */}
-        <path d={`M ${cx + 6} ${cy - 22} L ${cx + 15} ${cy - 28} L ${cx + 24} ${cy - 22} Z`}
-          fill="#5a1a10" stroke="#1a0e02" strokeWidth="0.6" />
-        {/* Door */}
-        <rect x={cx + 13} y={cy - 18} width={4} height={6} fill="#3a1408" />
+      {/* Soft earth mound silhouette (lighter band) */}
+      <ellipse cx={cx + 4} cy={cy + 4} rx={32} ry={10} fill="#a05a18" opacity="0.35" />
+
+      {/* Burrow entrance — dark crescent dug into hillside */}
+      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.7))' }}>
+        <ellipse cx={cx - 4} cy={cy - 4} rx={14} ry={9} fill="#1a0e02" />
+        {/* Inner darker pocket */}
+        <ellipse cx={cx - 4} cy={cy - 2} rx={10} ry={6} fill="#000" />
+        {/* Tiny piles of dirt at the burrow rim */}
+        <ellipse cx={cx - 16} cy={cy + 3} rx={4} ry={1.5} fill="#5a2e08" />
+        <ellipse cx={cx + 6} cy={cy + 3} rx={4} ry={1.5} fill="#5a2e08" />
       </g>
-      {/* Small wheat tufts */}
-      <g opacity="0.7">
-        <path d={`M ${cx - 22} ${cy + 18} l 0 -5 m -2 3 l 2 -3 m 2 3 l -2 -3`}
-          stroke="#d9a93a" strokeWidth="1" fill="none" />
-        <path d={`M ${cx - 14} ${cy + 20} l 0 -5 m -2 3 l 2 -3 m 2 3 l -2 -3`}
-          stroke="#d9a93a" strokeWidth="1" fill="none" />
+
+      {/* Loose stones on the ground */}
+      <g style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))' }}>
+        <ellipse cx={cx + 14} cy={cy + 16} rx={5} ry={3} fill="#7a5028" stroke="#3a2010" strokeWidth="0.4" />
+        <ellipse cx={cx + 20} cy={cy + 12} rx={3} ry={2} fill="#8a5e2a" stroke="#3a2010" strokeWidth="0.4" />
+        <ellipse cx={cx - 22} cy={cy + 16} rx={4} ry={2.2} fill="#7a5028" stroke="#3a2010" strokeWidth="0.4" />
+      </g>
+
+      {/* Animal paw tracks heading away from burrow */}
+      <g opacity="0.55" fill="#3a1a02">
+        <ellipse cx={cx + 4} cy={cy + 12} rx={1.6} ry={1.1} />
+        <ellipse cx={cx + 10} cy={cy + 16} rx={1.6} ry={1.1} />
+        <ellipse cx={cx + 16} cy={cy + 20} rx={1.4} ry={1} />
+        <ellipse cx={cx + 22} cy={cy + 24} rx={1.4} ry={1} />
       </g>
     </g>
   );
 }
 
 function renderBedArt(cx: number, cy: number): JSX.Element {
-  // Cultivated garden: tidy rows + sprouts + a small carrot tuft
+  // Lush meadow patch with wild carrots growing — natural clearing where
+  // zvířata pasou. Žádné lidské zahrady.
   return (
     <g>
-      {/* Vertical garden rows (raised beds) */}
-      {[-18, -6, 6, 18].map((dx) => (
-        <rect key={dx} x={cx + dx - 2} y={cy - 18} width={4} height={36} fill="#3a2e1a" opacity="0.35" />
-      ))}
-      {/* Small green sprouts on each row */}
-      <g opacity="0.85">
-        {[-18, -6, 6, 18].flatMap((dx) =>
-          [-12, 0, 12].map((dy) => (
-            <circle key={`${dx}-${dy}`} cx={cx + dx} cy={cy + dy} r={2} fill="#4a8a2a" />
-          ))
-        )}
+      {/* Grass tufts scattered across hex */}
+      <g opacity="0.75">
+        {[
+          [cx - 24, cy + 14],
+          [cx - 14, cy + 18],
+          [cx + 18, cy + 16],
+          [cx + 26, cy + 8],
+          [cx - 26, cy - 2],
+          [cx + 4, cy + 22],
+        ].map(([gx, gy], i) => (
+          <path
+            key={i}
+            d={`M ${gx} ${gy} l -3 -7 m 3 7 l 0 -9 m 0 9 l 3 -7`}
+            stroke="#2a5018" strokeWidth="1.3" fill="none"
+          />
+        ))}
       </g>
-      {/* A small carrot icon — orange triangle with green top */}
-      <g style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))' }}>
-        <path d={`M ${cx - 4} ${cy + 22} L ${cx + 4} ${cy + 22} L ${cx} ${cy + 32} Z`}
-          fill="#e07820" stroke="#5a2e08" strokeWidth="0.5" />
-        <path d={`M ${cx - 5} ${cy + 22} l 2 -4 m 3 4 l 0 -5 m 3 5 l 2 -4`}
-          stroke="#2a6818" strokeWidth="1.5" fill="none" />
+
+      {/* Cluster of wild carrots — orange roots with green leafy tops */}
+      <g style={{ filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.5))' }}>
+        {[
+          [cx - 6, cy - 8, 1.0],
+          [cx + 4, cy - 10, 0.85],
+          [cx + 12, cy - 4, 0.95],
+          [cx - 14, cy - 2, 0.9],
+        ].map(([rx, ry, scale], i) => (
+          <g key={i} transform={`translate(${rx} ${ry}) scale(${scale})`}>
+            {/* Carrot root (tapered orange triangle) */}
+            <path d="M -3 0 L 3 0 L 0 10 Z" fill="#e07820" stroke="#5a2e08" strokeWidth="0.5" />
+            {/* Leafy top — feathery green fronds */}
+            <path d="M -4 0 l 1 -6 M -2 0 l 0 -8 M 0 0 l 1 -7 M 2 0 l -1 -7 M 4 0 l -1 -6"
+              stroke="#2a8a32" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+          </g>
+        ))}
+      </g>
+
+      {/* Tiny yellow wildflowers */}
+      <g opacity="0.85">
+        <circle cx={cx + 22} cy={cy + 22} r={1.5} fill="#f5d040" />
+        <circle cx={cx - 22} cy={cy + 22} r={1.5} fill="#f5d040" />
+        <circle cx={cx + 10} cy={cy + 24} r={1.2} fill="#f5d040" />
       </g>
     </g>
   );
 }
 
 function renderDesertArt(cx: number, cy: number): JSX.Element {
-  // Sun-baked badlands: dunes + ancient ruin pillars + cracked earth
+  // Australian outback: red rocks (Uluru-style), dunes, animal bones,
+  // cracked earth. Žádné lidské ruiny.
   return (
     <g>
       {/* Dune curves */}
-      <path d={`M ${cx - 40} ${cy + 12} Q ${cx - 18} ${cy + 4}, ${cx + 4} ${cy + 14} Q ${cx + 28} ${cy + 22}, ${cx + 40} ${cy + 12}`}
+      <path d={`M ${cx - 40} ${cy + 16} Q ${cx - 18} ${cy + 8}, ${cx + 4} ${cy + 18} Q ${cx + 28} ${cy + 24}, ${cx + 40} ${cy + 16}`}
         stroke="#a87a30" strokeWidth="1.2" fill="none" opacity="0.55" />
-      <path d={`M ${cx - 36} ${cy + 24} Q ${cx - 8} ${cy + 18}, ${cx + 14} ${cy + 26} Q ${cx + 32} ${cy + 30}, ${cx + 38} ${cy + 22}`}
+      <path d={`M ${cx - 36} ${cy + 26} Q ${cx - 8} ${cy + 20}, ${cx + 14} ${cy + 28} Q ${cx + 30} ${cy + 32}, ${cx + 38} ${cy + 24}`}
         stroke="#a87a30" strokeWidth="1" fill="none" opacity="0.4" />
 
-      {/* Ancient ruin: 3 broken pillars in mid */}
-      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(60,30,0,0.6))' }}>
-        {/* Pillar 1 (tallest) */}
-        <rect x={cx - 14} y={cy - 18} width={5} height={20} fill="#d6c08a" stroke="#5a4218" strokeWidth="0.6" />
-        <rect x={cx - 16} y={cy - 18} width={9} height={3} fill="#b8a070" stroke="#5a4218" strokeWidth="0.6" />
-        {/* Pillar 2 (broken short) */}
-        <rect x={cx - 2} y={cy - 8} width={5} height={10} fill="#d6c08a" stroke="#5a4218" strokeWidth="0.6" />
-        {/* Pillar 3 (medium) */}
-        <rect x={cx + 10} y={cy - 14} width={5} height={16} fill="#d6c08a" stroke="#5a4218" strokeWidth="0.6" />
-        {/* Top capstone fragment lying on ground */}
-        <ellipse cx={cx + 8} cy={cy + 4} rx={8} ry={2} fill="#8a7048" stroke="#5a4218" strokeWidth="0.5" />
+      {/* Red rock formation (Uluru-like) — dominant mass in center-back */}
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(60,20,0,0.7))' }}>
+        <path d={`M ${cx - 18} ${cy + 6}
+                  Q ${cx - 16} ${cy - 4}, ${cx - 8} ${cy - 8}
+                  Q ${cx} ${cy - 14}, ${cx + 10} ${cy - 10}
+                  Q ${cx + 18} ${cy - 4}, ${cx + 20} ${cy + 4}
+                  Q ${cx + 22} ${cy + 8}, ${cx + 20} ${cy + 10}
+                  L ${cx - 18} ${cy + 10} Z`}
+          fill="#b04420"
+          stroke="#601808"
+          strokeWidth="1.2"
+        />
+        {/* Highlight on rock top */}
+        <path d={`M ${cx - 12} ${cy - 4}
+                  Q ${cx - 6} ${cy - 10}, ${cx + 4} ${cy - 12}
+                  Q ${cx + 12} ${cy - 8}, ${cx + 14} ${cy - 6}
+                  L ${cx + 4} ${cy - 6} Z`}
+          fill="#d96030"
+          opacity="0.7"
+        />
+        {/* Vertical erosion lines */}
+        <path d={`M ${cx - 8} ${cy - 6} L ${cx - 8} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.6" />
+        <path d={`M ${cx} ${cy - 10} L ${cx} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.5" />
+        <path d={`M ${cx + 8} ${cy - 8} L ${cx + 8} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.6" />
       </g>
 
-      {/* Cracked earth lines (small) */}
+      {/* Sun-bleached animal skull (small, foreground) */}
+      <g style={{ filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))' }}>
+        <ellipse cx={cx - 20} cy={cy + 20} rx={6} ry={4} fill="#f0e4c4" stroke="#5a4018" strokeWidth="0.5" />
+        {/* Eye sockets */}
+        <circle cx={cx - 22} cy={cy + 19} r={1.2} fill="#2a1a08" />
+        <circle cx={cx - 18} cy={cy + 19} r={1.2} fill="#2a1a08" />
+        {/* Nose */}
+        <ellipse cx={cx - 20} cy={cy + 21.5} rx={0.7} ry={0.5} fill="#2a1a08" />
+      </g>
+
+      {/* Cracked earth */}
       <g opacity="0.45">
-        <path d={`M ${cx - 30} ${cy + 18} l 6 4 l -3 5`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
-        <path d={`M ${cx + 20} ${cy + 16} l -4 5 l 5 3`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
+        <path d={`M ${cx + 14} ${cy + 22} l 4 4 l -2 4`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
+        <path d={`M ${cx + 24} ${cy + 18} l -3 4 l 4 2`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
       </g>
     </g>
   );
 }
 
 function renderTreeArt(cx: number, cy: number): JSX.Element {
-  // Lush old-growth forest: 3 layered tree silhouettes
-  // Eukalyptus = stylized, slightly mystic blue-teal tint
+  // Eucalyptus tree with KOALA sitting on a branch.
+  // Stěžejní postava = koala (proto se mu říká hex Eukalyptus — habitat koaly).
   return (
     <g>
-      {/* Mist overlay at base */}
-      <ellipse cx={cx} cy={cy + 22} rx={36} ry={5} fill="#d4ecf5" opacity="0.25" />
-
-      {/* Back row tree (smallest, distant) */}
-      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,30,60,0.55))' }}>
-        <rect x={cx - 18} y={cy - 4} width={3} height={14} fill="#2a1810" />
-        <circle cx={cx - 16.5} cy={cy - 12} r={11} fill="#2a6a4a" stroke="#0e3a26" strokeWidth="0.8" />
-        <circle cx={cx - 16.5} cy={cy - 14} r={6} fill="#4a8e62" opacity="0.6" />
+      {/* Eucalyptus tree trunk (single, tall, curved) */}
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,30,60,0.65))' }}>
+        <path d={`M ${cx - 4} ${cy + 22}
+                  Q ${cx - 6} ${cy + 4}, ${cx - 8} ${cy - 8}
+                  L ${cx - 4} ${cy - 14}
+                  L ${cx - 2} ${cy - 8}
+                  Q ${cx} ${cy + 4}, ${cx} ${cy + 22} Z`}
+          fill="#3a2818"
+          stroke="#1a0e02"
+          strokeWidth="0.7"
+        />
+        {/* Side branch (where koala sits) */}
+        <path d={`M ${cx - 6} ${cy - 4}
+                  Q ${cx + 4} ${cy - 8}, ${cx + 14} ${cy - 4}`}
+          stroke="#3a2818" strokeWidth="3.5" strokeLinecap="round" fill="none" />
       </g>
 
-      {/* Front-center BIG tree */}
-      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,30,60,0.7))' }}>
-        <rect x={cx - 3} y={cy - 2} width={6} height={20} fill="#3a2010" stroke="#1a0e02" strokeWidth="0.6" />
-        <circle cx={cx} cy={cy - 18} r={16} fill="#1f5a3a" stroke="#0a2818" strokeWidth="1" />
-        <circle cx={cx - 6} cy={cy - 20} r={10} fill="#2d7a4e" opacity="0.7" />
-        <circle cx={cx + 5} cy={cy - 16} r={8} fill="#2d7a4e" opacity="0.5" />
-        {/* Highlight glints */}
-        <circle cx={cx - 5} cy={cy - 22} r={2.5} fill="#5fb380" opacity="0.7" />
+      {/* Eucalyptus leaves — clusters of long narrow leaves */}
+      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,30,60,0.5))' }}>
+        {/* Upper foliage cluster */}
+        <ellipse cx={cx - 3} cy={cy - 18} rx={14} ry={8} fill="#3a6e5a" />
+        <ellipse cx={cx - 3} cy={cy - 18} rx={10} ry={5} fill="#5a9078" opacity="0.65" />
+        {/* Individual leaf hints */}
+        <path d={`M ${cx - 10} ${cy - 20} q 2 -3, 0 -6 q -2 3, 0 6 Z`} fill="#7aab90" opacity="0.7" />
+        <path d={`M ${cx + 4} ${cy - 22} q 2 -3, 0 -6 q -2 3, 0 6 Z`} fill="#7aab90" opacity="0.7" />
+        <path d={`M ${cx + 8} ${cy - 18} q 2 -3, 0 -6 q -2 3, 0 6 Z`} fill="#7aab90" opacity="0.6" />
       </g>
 
-      {/* Right tree (medium) */}
-      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,30,60,0.55))' }}>
-        <rect x={cx + 14} y={cy - 2} width={4} height={16} fill="#2a1810" />
-        <circle cx={cx + 16} cy={cy - 12} r={12} fill="#256c46" stroke="#0a2818" strokeWidth="0.8" />
-        <circle cx={cx + 12} cy={cy - 14} r={6} fill="#4a8e62" opacity="0.55" />
+      {/* KOALA on the branch — grey furry body with big round ears */}
+      <g style={{ filter: 'drop-shadow(0 1.5px 2px rgba(0,0,0,0.7))' }}>
+        {/* Body (round grey blob hugging branch) */}
+        <ellipse cx={cx + 6} cy={cy - 2} rx={9} ry={8} fill="#9a9a98" stroke="#3a3a38" strokeWidth="0.8" />
+        {/* Belly highlight */}
+        <ellipse cx={cx + 6} cy={cy + 1} rx={6} ry={4} fill="#c8c4be" opacity="0.7" />
+        {/* Head (slightly above body) */}
+        <circle cx={cx + 6} cy={cy - 9} r={6.5} fill="#9a9a98" stroke="#3a3a38" strokeWidth="0.8" />
+        {/* Ears — big round fluffy on either side */}
+        <ellipse cx={cx + 1} cy={cy - 12} rx={3.5} ry={4} fill="#9a9a98" stroke="#3a3a38" strokeWidth="0.6" />
+        <ellipse cx={cx + 11} cy={cy - 12} rx={3.5} ry={4} fill="#9a9a98" stroke="#3a3a38" strokeWidth="0.6" />
+        {/* Inner ear pink */}
+        <ellipse cx={cx + 1} cy={cy - 11.5} rx={1.8} ry={2.5} fill="#e0a8a0" />
+        <ellipse cx={cx + 11} cy={cy - 11.5} rx={1.8} ry={2.5} fill="#e0a8a0" />
+        {/* Eyes */}
+        <circle cx={cx + 4} cy={cy - 9} r={1.2} fill="#1a0e02" />
+        <circle cx={cx + 8} cy={cy - 9} r={1.2} fill="#1a0e02" />
+        {/* Eye highlights */}
+        <circle cx={cx + 4.3} cy={cy - 9.3} r={0.4} fill="#fff" />
+        <circle cx={cx + 8.3} cy={cy - 9.3} r={0.4} fill="#fff" />
+        {/* Nose (big black oval) */}
+        <ellipse cx={cx + 6} cy={cy - 6.5} rx={2.2} ry={1.6} fill="#1a0e02" />
+        {/* Nose highlight */}
+        <ellipse cx={cx + 5.4} cy={cy - 7} rx={0.5} ry={0.3} fill="#fff" opacity="0.8" />
       </g>
     </g>
   );
@@ -231,50 +310,82 @@ function renderCatArt(cx: number, cy: number, alive: boolean): JSX.Element {
 }
 
 function renderDevilArt(cx: number, cy: number): JSX.Element {
-  // Corrupted wasteland: volcanic cracks + horns silhouette + magical aura
+  // TASMÁNSKÝ ČERT (Sarcophilus harrisii) — skutečné australské zvíře.
+  // Černá srst, bílý pruh na hrudi a krku, růžové uši, ostré zuby.
+  // Pozadí zůstává tmavě červené (gameplay = nepřátelské černé pole).
   return (
     <g>
-      {/* Magical red-orange aura */}
-      <circle cx={cx} cy={cy - 4} r={26} fill="#c44020" opacity="0.18" />
-      <circle cx={cx} cy={cy - 4} r={18} fill="#c44020" opacity="0.22" />
+      {/* Subtle aggressive aura — naznačení nebezpečí */}
+      <circle cx={cx} cy={cy + 2} r={28} fill="#c44020" opacity="0.12" />
 
-      {/* Lava cracks radiating */}
-      <g style={{ filter: 'drop-shadow(0 0 3px #ff7a30)' }}>
-        <path d={`M ${cx - 32} ${cy + 18} L ${cx - 18} ${cy + 4} L ${cx - 10} ${cy + 10} L ${cx + 4} ${cy - 6}`}
-          stroke="#ff5510" strokeWidth="2" fill="none" />
-        <path d={`M ${cx + 30} ${cy + 14} L ${cx + 16} ${cy} L ${cx + 8} ${cy + 6} L ${cx - 4} ${cy - 4}`}
-          stroke="#ff5510" strokeWidth="2" fill="none" />
-        <path d={`M ${cx} ${cy + 26} L ${cx + 2} ${cy + 12} L ${cx - 2} ${cy + 4}`}
-          stroke="#ff5510" strokeWidth="1.8" fill="none" />
-      </g>
-
-      {/* Demon horns silhouette in upper area */}
+      {/* TĚLO — squat black furry mass, low to ground */}
       <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.85))' }}>
-        {/* Left horn (curved) */}
-        <path d={`M ${cx - 16} ${cy - 8}
-                  Q ${cx - 22} ${cy - 22}, ${cx - 14} ${cy - 28}
-                  Q ${cx - 10} ${cy - 18}, ${cx - 10} ${cy - 10}
-                  Z`}
-          fill="#2a0a0a" stroke="#000" strokeWidth="0.8" />
-        {/* Right horn (curved) */}
-        <path d={`M ${cx + 16} ${cy - 8}
-                  Q ${cx + 22} ${cy - 22}, ${cx + 14} ${cy - 28}
-                  Q ${cx + 10} ${cy - 18}, ${cx + 10} ${cy - 10}
-                  Z`}
-          fill="#2a0a0a" stroke="#000" strokeWidth="0.8" />
-        {/* Demonic head silhouette (between horns) */}
-        <ellipse cx={cx} cy={cy - 8} rx={11} ry={9} fill="#1a0408" />
-        {/* Glowing red eyes */}
-        <circle cx={cx - 4} cy={cy - 9} r={1.8} fill="#ff3a20" />
-        <circle cx={cx + 4} cy={cy - 9} r={1.8} fill="#ff3a20" />
+        {/* Hind quarters (vyšší kupole vzadu) */}
+        <ellipse cx={cx + 12} cy={cy + 6} rx={12} ry={9} fill="#1a0e0e" stroke="#000" strokeWidth="0.8" />
+        {/* Shoulders + chest (přední část těla) */}
+        <ellipse cx={cx - 4} cy={cy + 4} rx={12} ry={10} fill="#1a0e0e" stroke="#000" strokeWidth="0.8" />
+        {/* White chest stripe (signature znak tasmánského čerta) */}
+        <path d={`M ${cx - 10} ${cy + 4}
+                  Q ${cx - 4} ${cy + 8}, ${cx + 4} ${cy + 6}
+                  L ${cx + 4} ${cy + 10}
+                  Q ${cx - 4} ${cy + 12}, ${cx - 10} ${cy + 8} Z`}
+          fill="#f5ebd6" opacity="0.95" />
+        {/* White stripe on hindquarter (zadek) */}
+        <path d={`M ${cx + 16} ${cy + 12}
+                  Q ${cx + 22} ${cy + 8}, ${cx + 22} ${cy + 4}
+                  L ${cx + 24} ${cy + 4}
+                  Q ${cx + 24} ${cy + 10}, ${cx + 18} ${cy + 14} Z`}
+          fill="#f5ebd6" opacity="0.85" />
+        {/* Tail (krátký a tlustý, low-pointing) */}
+        <path d={`M ${cx + 22} ${cy + 8}
+                  Q ${cx + 28} ${cy + 14}, ${cx + 30} ${cy + 20}
+                  L ${cx + 26} ${cy + 20}
+                  Q ${cx + 22} ${cy + 14}, ${cx + 18} ${cy + 12} Z`}
+          fill="#1a0e0e" stroke="#000" strokeWidth="0.6" />
+        {/* Legs (4 short stubby) */}
+        <ellipse cx={cx - 10} cy={cy + 16} rx={3} ry={4} fill="#1a0e0e" />
+        <ellipse cx={cx - 2} cy={cy + 17} rx={3} ry={4} fill="#1a0e0e" />
+        <ellipse cx={cx + 8} cy={cy + 17} rx={3} ry={4} fill="#1a0e0e" />
+        <ellipse cx={cx + 18} cy={cy + 17} rx={3} ry={4} fill="#1a0e0e" />
       </g>
 
-      {/* Ember particles (small glowing dots) */}
+      {/* HLAVA — big stocky head with pink ears */}
+      <g style={{ filter: 'drop-shadow(0 1.5px 2px rgba(0,0,0,0.85))' }}>
+        {/* Ears — triangle s pink inside */}
+        <path d={`M ${cx - 14} ${cy - 8} L ${cx - 18} ${cy - 18} L ${cx - 10} ${cy - 14} Z`}
+          fill="#1a0e0e" stroke="#000" strokeWidth="0.6" />
+        <path d={`M ${cx - 13} ${cy - 9} L ${cx - 15} ${cy - 15} L ${cx - 11} ${cy - 13} Z`}
+          fill="#d27a78" />
+        <path d={`M ${cx - 4} ${cy - 12} L ${cx - 6} ${cy - 22} L ${cx + 2} ${cy - 16} Z`}
+          fill="#1a0e0e" stroke="#000" strokeWidth="0.6" />
+        <path d={`M ${cx - 3} ${cy - 13} L ${cx - 4} ${cy - 19} L ${cx} ${cy - 15} Z`}
+          fill="#d27a78" />
+        {/* Head main mass */}
+        <ellipse cx={cx - 10} cy={cy - 6} rx={10} ry={8} fill="#1a0e0e" stroke="#000" strokeWidth="0.9" />
+        {/* Snout (slightly lighter, protruding) */}
+        <ellipse cx={cx - 18} cy={cy - 4} rx={6} ry={4.5} fill="#2a1a1a" stroke="#000" strokeWidth="0.6" />
+        {/* Nose tip */}
+        <ellipse cx={cx - 22} cy={cy - 3} rx={1.4} ry={1.2} fill="#000" />
+        {/* Eyes — red glowing (mírně agresivní vibe) */}
+        <circle cx={cx - 13} cy={cy - 8} r={1.6} fill="#ff3a20" style={{ filter: 'drop-shadow(0 0 2px #ff3a20)' }} />
+        <circle cx={cx - 7} cy={cy - 7} r={1.6} fill="#ff3a20" style={{ filter: 'drop-shadow(0 0 2px #ff3a20)' }} />
+        {/* Open mouth showing teeth */}
+        <path d={`M ${cx - 22} ${cy - 1}
+                  Q ${cx - 18} ${cy + 2}, ${cx - 12} ${cy + 1}
+                  L ${cx - 12} ${cy + 2}
+                  Q ${cx - 18} ${cy + 4}, ${cx - 22} ${cy + 1} Z`}
+          fill="#1a0000" />
+        {/* Small white fangs */}
+        <path d={`M ${cx - 20} ${cy + 1} l 0.5 1.5 l 1 -1.5 Z`} fill="#f5ebd6" />
+        <path d={`M ${cx - 16} ${cy + 1} l 0.5 1.5 l 1 -1.5 Z`} fill="#f5ebd6" />
+        <path d={`M ${cx - 14} ${cy + 1.5} l 0.5 1.5 l 1 -1.5 Z`} fill="#f5ebd6" />
+      </g>
+
+      {/* Drobné ember particles — náznak agresivity / nebezpečí */}
       <g style={{ filter: 'drop-shadow(0 0 2px #ffaa30)' }}>
-        <circle cx={cx - 24} cy={cy + 10} r={1.2} fill="#ffaa30" opacity="0.85" />
-        <circle cx={cx + 22} cy={cy + 4} r={1} fill="#ff7a20" opacity="0.8" />
-        <circle cx={cx + 18} cy={cy + 22} r={0.9} fill="#ffaa30" opacity="0.7" />
-        <circle cx={cx - 14} cy={cy + 22} r={1.1} fill="#ff8a20" opacity="0.85" />
+        <circle cx={cx - 28} cy={cy + 14} r={1} fill="#ffaa30" opacity="0.7" />
+        <circle cx={cx + 22} cy={cy - 8} r={0.8} fill="#ff7a20" opacity="0.65" />
+        <circle cx={cx + 24} cy={cy + 22} r={1.1} fill="#ff8a20" opacity="0.75" />
       </g>
     </g>
   );
@@ -584,17 +695,7 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
               pointerEvents="none"
             />
 
-            {/* 4. Inner dark rim — depth ring */}
-            <polygon
-              points={points}
-              fill="none"
-              stroke="rgba(0,0,0,0.35)"
-              strokeWidth="1.8"
-              pointerEvents="none"
-              transform={`translate(${x} ${y}) scale(0.87) translate(${-x} ${-y})`}
-            />
-
-            {/* 5. Actionable golden glow */}
+            {/* 4. Actionable golden glow */}
             {actionable && !isSelected && (
               <polygon
                 points={points}
