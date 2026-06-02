@@ -453,6 +453,123 @@ function isFormationCompleted(state: GameState, playerId: string, f: FormationKi
   }
 }
 
+// =============================================================================
+// DIAGNOSTIKA FORMACÍ — pro UI panel, aby hráč viděl proč mu formace nejde
+// =============================================================================
+
+export interface Primka5Diag {
+  /** Délka nejlepší souvislé řady na libovolné z 3 hex-os. */
+  bestRunLen: number;
+  /** Souřadnice hexů této nejlepší řady. */
+  bestRun: Hex[];
+  /** True = nejlepší řada má 5+ a NENÍ blokovaná sousedem soupeře (= měla by být detekovaná). */
+  isComplete: boolean;
+  /** Pokud je nejlepší řada 5+ ale blokovaná, vrátí hex soupeře co ji blokuje. */
+  blockerOppHex?: Hex;
+}
+
+export function primka5Diagnostic(state: GameState, playerId: string): Primka5Diag {
+  const markerHexes: Hex[] = [];
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) markerHexes.push(c.hex);
+  });
+  const oppAdj = opponentMarkerHexSet(state, playerId);
+
+  const axes: { keyFn: (h: Hex) => string; posFn: (h: Hex) => number }[] = [
+    { keyFn: (h) => `q=${h.q}`,            posFn: (h) => h.r },
+    { keyFn: (h) => `r=${h.r}`,            posFn: (h) => h.q },
+    { keyFn: (h) => `s=${-h.q - h.r}`,     posFn: (h) => h.q },
+  ];
+
+  let bestRunLen = 0;
+  let bestRun: Hex[] = [];
+  let blockerOppHex: Hex | undefined;
+  let isComplete = false;
+
+  for (const axis of axes) {
+    const byLine = new Map<string, { hex: Hex; pos: number }[]>();
+    for (const h of markerHexes) {
+      const k = axis.keyFn(h);
+      if (!byLine.has(k)) byLine.set(k, []);
+      byLine.get(k)!.push({ hex: h, pos: axis.posFn(h) });
+    }
+    for (const positions of byLine.values()) {
+      positions.sort((a, b) => a.pos - b.pos);
+      // Procházej všechny souvislé pod-řady (pos[i+1] === pos[i]+1)
+      let runStart = 0;
+      for (let i = 1; i <= positions.length; i++) {
+        const isBreak = i === positions.length || positions[i].pos !== positions[i - 1].pos + 1;
+        if (isBreak) {
+          const runLen = i - runStart;
+          if (runLen >= bestRunLen) {
+            const run = positions.slice(runStart, i).map((p) => p.hex);
+            if (runLen > bestRunLen) {
+              bestRunLen = runLen;
+              bestRun = run;
+              blockerOppHex = undefined;
+            }
+            // Pokud 5+, zkontroluj adjacency
+            if (runLen >= 5) {
+              let foundBlocker: Hex | undefined;
+              for (const rhex of run) {
+                for (const nb of hexNeighbors(rhex)) {
+                  if (oppAdj.has(hexKey(nb))) {
+                    foundBlocker = nb;
+                    break;
+                  }
+                }
+                if (foundBlocker) break;
+              }
+              if (!foundBlocker) {
+                isComplete = true;
+                bestRunLen = runLen;
+                bestRun = run;
+                blockerOppHex = undefined;
+              } else if (runLen >= bestRunLen) {
+                bestRunLen = runLen;
+                bestRun = run;
+                blockerOppHex = foundBlocker;
+              }
+            }
+          }
+          runStart = i;
+        }
+      }
+    }
+  }
+
+  return { bestRunLen, bestRun, isComplete, blockerOppHex };
+}
+
+export interface ObkliceniDiag {
+  /** Maximální počet hráčových značek kolem libovolné soupeřovy značky (0-6). */
+  maxNeighbors: number;
+  /** Hex soupeřovy značky s nejvyšším obklíčením (pokud existuje). */
+  targetOppHex?: Hex;
+  isComplete: boolean;
+}
+
+export function obkliceniDiagnostic(state: GameState, playerId: string): ObkliceniDiag {
+  const myMarkers = new Set<string>();
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) myMarkers.add(hexKey(c.hex));
+  });
+  let maxNeighbors = 0;
+  let targetOppHex: Hex | undefined;
+  state.board.forEach((c) => {
+    if (!c.marker || c.marker.playerId === playerId) return;
+    let count = 0;
+    for (const nb of hexNeighbors(c.hex)) {
+      if (myMarkers.has(hexKey(nb))) count++;
+    }
+    if (count > maxNeighbors) {
+      maxNeighbors = count;
+      targetOppHex = c.hex;
+    }
+  });
+  return { maxNeighbors, targetOppHex, isComplete: maxNeighbors >= 4 };
+}
+
 // Detect formations the given player has newly completed and award dice.
 // Multiple formations completed in one placement are processed sequentially;
 // the FIRST one that triggers a human pick_die_acquisition pauses processing
