@@ -30,3 +30,6 @@ app/sim_results/research/
 
 # Vombat PHP backend — DB credentials (jen config.example.php je v gitu)
 /config.php
+
+# Vombat deploy package — local build artifact, NIKDY v gitu (obsahuje config.php s DB heslem!)
+/deploy/
