@@ -1,5 +1,5 @@
 import type { PlayerState, SkillId } from '../game/types';
-import { SKILL_REQUIREMENTS, skillBuyCost } from '../game/engine';
+import { SKILL_REQUIREMENTS } from '../game/engine';
 
 const ALL_SKILLS: SkillId[] = [
   'kapacita',
@@ -57,12 +57,11 @@ export function PlayerBoard({ player, active }: { player: PlayerState; active: b
           {ALL_SKILLS.map((sid) => {
             const req = SKILL_REQUIREMENTS[sid];
             const learned = player.skills.has(sid);
-            const cost = skillBuyCost(sid);
             const milestone = MILESTONE[sid];
             const tipParts = [
               req.desc,
               `🌳 stromy: ${req.trees}`,
-              `🛒 Spánek shop: ${cost} 🥔`,
+              `🌳 Obsaď + Uč se na Eukalyptu, nebo splň úkol`,
               milestone ? `Milestone: ${milestone}` : null,
             ].filter(Boolean);
             return (

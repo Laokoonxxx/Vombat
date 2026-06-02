@@ -12,7 +12,7 @@
 import type { GameState, BoardCell, SkillId } from './types';
 
 const STORAGE_KEY = 'vombat:gameState';
-const SAVE_VERSION = 18; // v18 = menší mapy pro 3-4p (3p=8, 4p=9 dílků)
+const SAVE_VERSION = 19; // v19 = Uč se na Hlíně + Sleep shop odstraněno (jen Eukalyptus + úkoly)
 
 interface SerializedState {
   version: number;

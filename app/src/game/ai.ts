@@ -38,7 +38,6 @@ import {
   canFightDevil,
   allWoundsTaken,
   learnSkill,
-  skillBuyCost,
   SKILL_REQUIREMENTS,
   preRollSwap,
   preRollSwapsRemaining,
@@ -790,18 +789,9 @@ function stateValue(state: GameState, myId: string): number {
   return v;
 }
 
-// Smarter Sleep choice: buy a skill if affordable, else gain potato.
+// Smarter Sleep choice: useful Sleep actions (Sleep shop byl odstraněn).
 function aiSleep(state: GameState): GameState {
   const p = currentPlayer(state);
-
-  // Priority 1: buy a skill if affordable
-  for (const sid of activeSkillPriority) {
-    if (p.skills.has(sid)) continue;
-    const cost = skillBuyCost(sid);
-    if (p.potatoes >= cost) {
-      return sleep(state, { kind: 'buy_skill', skill: sid });
-    }
-  }
 
   const adjDevil = p.vombats.some((v) => canFightDevil(state, v.hex));
   const ready = readyToFightDevil(state, p);
@@ -989,21 +979,19 @@ function scoreMove(target: BoardCell, p: PlayerState, state: GameState): number 
 
 function aiChooseDirtAction(state: GameState, hex: Hex): GameState {
   const p = currentPlayer(state);
-  // 1. Learn if affordable
-  const skill = bestAffordableSkill(p);
-  if (skill) return useField(state, hex, { dirtAction: 'learn' });
+  // (Dovednosti se na Hlíně už neučí — jen Eukalyptus / úkoly.)
 
-  // 2. Compute Vyformuj kostku projection (engine formula uses opponent markers only)
+  // 1. Compute Vyformuj kostku projection (engine formula uses opponent markers only)
   const adj = hexNeighbors(hex).filter((h) => {
     const nb = state.board.get(hexKey(h));
     return nb && nb.marker && nb.marker.playerId !== p.id;
   }).length;
   const kakejRaw = p.carrotTrack + adj;
 
-  // 3. Kakej if meaningful die (>= k4) is achievable
+  // 2. Kakej if meaningful die (>= k4) is achievable
   if (kakejRaw >= 2) return useField(state, hex, { dirtAction: 'poop' });
 
-  // 4. Otherwise plant — early carrot ramp
+  // 3. Otherwise plant — early carrot ramp
   if (p.carrotTrack < 4) return useField(state, hex, { dirtAction: 'plant' });
 
   // 5. Fallback: Kakej for whatever it yields

@@ -453,6 +453,123 @@ function isFormationCompleted(state: GameState, playerId: string, f: FormationKi
   }
 }
 
+// =============================================================================
+// DIAGNOSTIKA FORMACÍ — pro UI panel, aby hráč viděl proč mu formace nejde
+// =============================================================================
+
+export interface Primka5Diag {
+  /** Délka nejlepší souvislé řady na libovolné z 3 hex-os. */
+  bestRunLen: number;
+  /** Souřadnice hexů této nejlepší řady. */
+  bestRun: Hex[];
+  /** True = nejlepší řada má 5+ a NENÍ blokovaná sousedem soupeře (= měla by být detekovaná). */
+  isComplete: boolean;
+  /** Pokud je nejlepší řada 5+ ale blokovaná, vrátí hex soupeře co ji blokuje. */
+  blockerOppHex?: Hex;
+}
+
+export function primka5Diagnostic(state: GameState, playerId: string): Primka5Diag {
+  const markerHexes: Hex[] = [];
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) markerHexes.push(c.hex);
+  });
+  const oppAdj = opponentMarkerHexSet(state, playerId);
+
+  const axes: { keyFn: (h: Hex) => string; posFn: (h: Hex) => number }[] = [
+    { keyFn: (h) => `q=${h.q}`,            posFn: (h) => h.r },
+    { keyFn: (h) => `r=${h.r}`,            posFn: (h) => h.q },
+    { keyFn: (h) => `s=${-h.q - h.r}`,     posFn: (h) => h.q },
+  ];
+
+  let bestRunLen = 0;
+  let bestRun: Hex[] = [];
+  let blockerOppHex: Hex | undefined;
+  let isComplete = false;
+
+  for (const axis of axes) {
+    const byLine = new Map<string, { hex: Hex; pos: number }[]>();
+    for (const h of markerHexes) {
+      const k = axis.keyFn(h);
+      if (!byLine.has(k)) byLine.set(k, []);
+      byLine.get(k)!.push({ hex: h, pos: axis.posFn(h) });
+    }
+    for (const positions of byLine.values()) {
+      positions.sort((a, b) => a.pos - b.pos);
+      // Procházej všechny souvislé pod-řady (pos[i+1] === pos[i]+1)
+      let runStart = 0;
+      for (let i = 1; i <= positions.length; i++) {
+        const isBreak = i === positions.length || positions[i].pos !== positions[i - 1].pos + 1;
+        if (isBreak) {
+          const runLen = i - runStart;
+          if (runLen >= bestRunLen) {
+            const run = positions.slice(runStart, i).map((p) => p.hex);
+            if (runLen > bestRunLen) {
+              bestRunLen = runLen;
+              bestRun = run;
+              blockerOppHex = undefined;
+            }
+            // Pokud 5+, zkontroluj adjacency
+            if (runLen >= 5) {
+              let foundBlocker: Hex | undefined;
+              for (const rhex of run) {
+                for (const nb of hexNeighbors(rhex)) {
+                  if (oppAdj.has(hexKey(nb))) {
+                    foundBlocker = nb;
+                    break;
+                  }
+                }
+                if (foundBlocker) break;
+              }
+              if (!foundBlocker) {
+                isComplete = true;
+                bestRunLen = runLen;
+                bestRun = run;
+                blockerOppHex = undefined;
+              } else if (runLen >= bestRunLen) {
+                bestRunLen = runLen;
+                bestRun = run;
+                blockerOppHex = foundBlocker;
+              }
+            }
+          }
+          runStart = i;
+        }
+      }
+    }
+  }
+
+  return { bestRunLen, bestRun, isComplete, blockerOppHex };
+}
+
+export interface ObkliceniDiag {
+  /** Maximální počet hráčových značek kolem libovolné soupeřovy značky (0-6). */
+  maxNeighbors: number;
+  /** Hex soupeřovy značky s nejvyšším obklíčením (pokud existuje). */
+  targetOppHex?: Hex;
+  isComplete: boolean;
+}
+
+export function obkliceniDiagnostic(state: GameState, playerId: string): ObkliceniDiag {
+  const myMarkers = new Set<string>();
+  state.board.forEach((c) => {
+    if (c.marker && c.marker.playerId === playerId) myMarkers.add(hexKey(c.hex));
+  });
+  let maxNeighbors = 0;
+  let targetOppHex: Hex | undefined;
+  state.board.forEach((c) => {
+    if (!c.marker || c.marker.playerId === playerId) return;
+    let count = 0;
+    for (const nb of hexNeighbors(c.hex)) {
+      if (myMarkers.has(hexKey(nb))) count++;
+    }
+    if (count > maxNeighbors) {
+      maxNeighbors = count;
+      targetOppHex = c.hex;
+    }
+  });
+  return { maxNeighbors, targetOppHex, isComplete: maxNeighbors >= 4 };
+}
+
 // Detect formations the given player has newly completed and award dice.
 // Multiple formations completed in one placement are processed sequentially;
 // the FIRST one that triggers a human pick_die_acquisition pauses processing
@@ -959,7 +1076,7 @@ export function canUseField(state: GameState, hex: Hex): boolean {
 export function useField(
   state: GameState,
   hex: Hex,
-  opts?: { dirtAction?: 'plant' | 'poop' | 'learn'; treeAction?: 'occupy' | 'occupy_and_learn' }
+  opts?: { dirtAction?: 'plant' | 'poop'; treeAction?: 'occupy' | 'occupy_and_learn' }
 ): GameState {
   const cell = state.board.get(hexKey(hex));
   if (!cell) return state;
@@ -1108,7 +1225,7 @@ function thornThreshold(lvl: 2 | 4 | 6 | 8): number {
 }
 
 // --- DIRT (Hlína) / DESERT (Poušť with Koupel) ---
-function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'): GameState {
+function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop'): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   const cell = s.board.get(hexKey(hex))!;
@@ -1136,7 +1253,6 @@ function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'
   switch (action) {
     case 'plant':  return dirtPlant(s, p, cell);
     case 'poop':   return dirtPoop(s, p, cell);
-    case 'learn':  s.pendingChoice = { kind: 'pick_skill', hex }; return s;
   }
 }
 
@@ -1195,6 +1311,18 @@ function dirtPoop(s: GameState, p: PlayerState, cell: BoardCell): GameState {
     finishMarkerAction(s);
   }
   return s;
+}
+
+// Spočítá očekávané skóre "Vyformuj kostku" na daném hexu:
+//   skóre = aktuální carrotTrack hráče + počet soupeřových značek
+//   v sousedství hexu. Pokud výsledek ≤ 0, akce nezíská žádnou kostku.
+// Slouží UI pro zakázání tlačítka když by akce byla zbytečná.
+export function dirtPoopExpectedScore(state: GameState, hex: Hex): number {
+  const p = currentPlayer(state);
+  const oppAdj = adjacentTo(state, hex).filter(
+    (c) => !!c.marker && c.marker.playerId !== p.id
+  ).length;
+  return p.carrotTrack + oppAdj;
 }
 
 function poopResult(score: number): DiceLevel | null {
@@ -1269,9 +1397,11 @@ export type SleepAction =
   | { kind: 'downgrade_dice'; targets: { location: 'hand' | 'reserve'; index: number }[] }
   | { kind: 'swap'; ops: SwapOp[] }
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
-  | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
+// Skill shop ve Spánku byl odstraněn — schopnosti se získávají JEN přes
+// Eukalyptus (Obsaď + Uč se) nebo za splnění úkolu (taskRewards).
+// skillBuyCost zachováno pro statistická data ve StatsViewer (research archiv).
 export const SKILL_BUY_COST_PER_TREE = 5;
 export function skillBuyCost(skill: SkillId): number {
   return SKILL_REQUIREMENTS[skill].trees * SKILL_BUY_COST_PER_TREE;
@@ -1344,15 +1474,6 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       else return state; // k20 je max
       arr[action.index] = nu;
       logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Žvýkání).`);
-      break;
-    }
-    case 'buy_skill': {
-      if (p.skills.has(action.skill)) return state;
-      const cost = skillBuyCost(action.skill);
-      if (p.potatoes < cost) return state;
-      p.potatoes -= cost;
-      grantSkill(s, p, action.skill);
-      logEntry(s, `${p.name} koupil dovednost "${SKILL_REQUIREMENTS[action.skill].label}" za ${cost} 🥔.`);
       break;
     }
     case 'skip':

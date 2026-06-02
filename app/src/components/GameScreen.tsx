@@ -5,20 +5,53 @@ import {
   ALL_TASK_KEYS, TASK_LABEL,
 } from '../game/types';
 import { HexBoard } from './HexBoard';
-import { PlayerBoard } from './PlayerBoard';
+import { PlayerCard } from './PlayerCard';
 import { DiceTray } from './DiceTray';
-import { Legend } from './Legend';
 import {
   legalMoveTargets, canUseField, canFightDevil, allWoundsTaken,
-  currentPlayer, SKILL_REQUIREMENTS, skillBuyCost,
+  currentPlayer, SKILL_REQUIREMENTS,
   preRollSwapsRemaining, PRE_ROLL_SWAP_LIMIT,
   SKIP_ROLL_POTATOES,
   rollAdjustmentsRemaining, ROLL_ADJUSTMENT_LIMIT,
+  primka5Diagnostic, obkliceniDiagnostic,
+  dirtPoopExpectedScore,
 } from '../game/engine';
 import type { SwapOp } from '../game/engine';
 import type { Action } from '../game/actions';
 import { rollForCurrentPlayer } from '../game/actions';
 import { aiStep } from '../game/ai';
+
+// Najde nejnovější (= index 0) log entry, jejíž "subject" je daný hráč.
+// Heuristika: stripni leading emoji/whitespace, pak entry musí začínat
+// jménem hráče následovaným non-alfa charakterem (mezera, čárka, ...).
+// Vrací plné raw entry (s emoji prefixem), nebo null pokud nikdy nehrál.
+function findLastActionFor(log: string[], playerName: string): string | null {
+  for (const entry of log) {
+    const stripped = entry.replace(/^[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]+/u, '');
+    if (stripped.startsWith(playerName)) {
+      const after = stripped[playerName.length];
+      if (!after || /[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]/.test(after)) {
+        return entry;
+      }
+    }
+  }
+  return null;
+}
+
+// Vyhodí leading emoji + jméno hráče z entry, aby strip ukazoval jen
+// akci. Např. "🎉 Aleš chrupavčitým ... rozdrtil Kočku!" → "rozdrtil Kočku!"
+function stripPlayerPrefix(entry: string, playerName: string): string {
+  // 1) Strip leading non-letter chars (emoji, whitespace)
+  const stripped = entry.replace(/^[^A-Za-zÁ-Žá-žŠšŽžČčŘřŤťŇňĎďÝýÚú0-9]+/u, '');
+  // 2) Strip "PlayerName " prefix if present
+  if (stripped.startsWith(playerName + ' ')) {
+    return stripped.slice(playerName.length + 1);
+  }
+  if (stripped.startsWith(playerName + ',')) {
+    return stripped.slice(playerName.length + 1).trim();
+  }
+  return stripped;
+}
 
 // Prefix icons for the log feed — make events scannable at a glance.
 function eventIcon(entry: string): string {
@@ -197,19 +230,38 @@ export function GameScreen({
   // Detect post-roll combat-against-devil opportunity
   const adjDevilForMe = p.vombats.some((v) => canFightDevil(state, v.hex));
 
+  // Phase hint pro turn banner — krátká věta co hráč zrovna dělá / může dělat
+  let phaseHint = '';
+  if (state.phase === 'game_over') phaseHint = '🏆 Hra skončila';
+  else if (state.pendingChoice?.kind === 'attack_surrender') phaseHint = '⚠️ Útok! Odevzdat bramboru/kostku';
+  else if (state.pendingChoice?.kind === 'pick_die_acquisition') phaseHint = '🎲 Vyber velikost a umístění kostky';
+  else if (state.pendingChoice?.kind === 'pick_skill') phaseHint = '🧠 Vyber dovednost';
+  else if (state.pendingChoice?.kind === 'select_dirt_action') phaseHint = '🏜️ Vyber akci na Hlíně';
+  else if (state.pendingChoice?.kind === 'select_tree_action') phaseHint = '🌳 Vyber akci na Stromě';
+  else if (state.phase === 'devil_combat') phaseHint = '⚔️ Souboj s Čertem';
+  else if (state.phase === 'using_field') phaseHint = '🌿 Klikni na pole pro využití (Sprint)';
+  else if (mode === 'pickMove') phaseHint = '🐾 Klikni na cílový hex pro pohyb';
+  else if (mode === 'pickField') phaseHint = '🌿 Klikni na pole pro využití';
+  else if (mode === 'sleepMenu') phaseHint = '💤 Spánek — vyber akci';
+  else if (canRoll) phaseHint = '🎲 Hoď kostkami nebo speciální akce';
+  else if (rolled) phaseHint = '➡️ Vyber: Pohyb / Využij pole / Spánek';
+
+  // Effective sum (raw + adjustment) pro turn banner
+  const rawSum = (p.lastRoll || []).reduce((a, b) => a + b, 0);
+  const adj = p.rollAdjustment ?? 0;
+  const effectiveSum = rawSum + adj;
+
   return (
     <div className="app">
       <div className="topbar">
         <h1>🐾 Vombat</h1>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div className="turn-badge" style={{ color: p.color }}>
-            Tah #{state.turnNumber} · {p.name}
-          </div>
-          {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
-          {onShowProbabilities && <button onClick={onShowProbabilities}>🎲 Pravděpodobnosti</button>}
-          {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {onShowRules && <button className="ghost" onClick={onShowRules}>📖 Pravidla</button>}
+          {onShowProbabilities && <button className="ghost" onClick={onShowProbabilities}>🎲 P-osti</button>}
+          {onShowStats && <button className="ghost" onClick={onShowStats}>📊 Stats</button>}
           {onNewGame && (
             <button
+              className="ghost"
               onClick={() => {
                 if (confirm('Opravdu zahodit rozehranou hru a začít novou?')) onNewGame();
               }}
@@ -219,6 +271,67 @@ export function GameScreen({
           )}
         </div>
       </div>
+
+      {/* Last actions strip — co každý hráč naposled udělal */}
+      <div className={`last-actions-strip players-${state.players.length}`}>
+        {state.players.map((pl) => {
+          const last = findLastActionFor(state.log, pl.name);
+          const isCurrent = pl.id === p.id;
+          return (
+            <div
+              key={pl.id}
+              className={`last-action ${isCurrent ? 'current' : ''} ${last ? '' : 'empty'}`}
+              style={{ borderLeftColor: pl.color }}
+              title={last ?? 'Ještě nehrál'}
+            >
+              <div className="la-name" style={{ color: pl.color }}>{pl.name}</div>
+              <div className="la-msg">
+                {last ? (
+                  <>
+                    <span className="la-icon">{eventIcon(last)}</span>
+                    <span className="la-text">{stripPlayerPrefix(last, pl.name)}</span>
+                  </>
+                ) : (
+                  <span className="la-text">— ještě nehrál</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Turn banner — velký prominent indikátor čí je tah + co se zrovna děje */}
+      <div className="turn-banner">
+        <div className="color-band" style={{ background: p.color }} />
+        <div className="who">
+          <div className="who-label">{state.phase === 'game_over' ? 'Vítěz' : 'Na tahu'}</div>
+          <div className="who-name" style={{ color: p.color }}>
+            {state.phase === 'game_over' && state.winnerId
+              ? state.players.find((pp) => pp.id === state.winnerId)?.name || '—'
+              : p.name}
+          </div>
+          <div className="who-turn">Tah #{state.turnNumber} · {p.kind === 'ai' ? '🤖 AI' : '👤 Hráč'}</div>
+        </div>
+        {p.lastRoll && p.lastRoll.length > 0 && (
+          <div className="roll-display">
+            <div className="roll-dice">
+              {p.lastRoll.map((val, i) => (
+                <div key={i} className="roll-die" title={`Kostka 1k${p.hand[i] ?? '?'}`}>{val}</div>
+              ))}
+            </div>
+            <div className="roll-sum">
+              Σ {rawSum}
+              {adj !== 0 && (
+                <> {adj > 0 ? '+' : ''}{adj} = <span className="roll-sum-eff">{effectiveSum}</span></>
+              )}
+            </div>
+          </div>
+        )}
+        {phaseHint && (
+          <div className="phase-hint">{phaseHint}</div>
+        )}
+      </div>
+
       <div className="board-area">
         <HexBoard
           state={state}
@@ -253,17 +366,18 @@ export function GameScreen({
         )}
       </div>
       <div className="sidebar">
-        <Legend />
-        {state.players.map((pl) => (
-          <PlayerBoard key={pl.id} player={pl} active={pl.id === p.id} />
-        ))}
-        <div className="panel">
-          <h3>Hod</h3>
-          <DiceTray player={p} />
-          {state.phase === 'rolled' && !state.pendingChoice && <RollAdjustPanel state={state} dispatch={dispatch} />}
+        {/* Player cards grid — 1 sloupec pro 2 hráče, 2 sloupce pro 3-4 */}
+        <div className={`player-grid ${state.players.length >= 3 ? 'cols-2' : 'cols-1'}`}>
+          {state.players.map((pl) => (
+            <PlayerCard key={pl.id} player={pl} active={pl.id === p.id} state={state} />
+          ))}
         </div>
+
+        {/* Akce — vždy hned po hráčích, aby byl on-tah hráč rovnou vedle tlačítek */}
         <div className="panel">
           <h3>Akce</h3>
+          <DiceTray player={p} />
+          {state.phase === 'rolled' && !state.pendingChoice && <RollAdjustPanel state={state} dispatch={dispatch} />}
           {state.phase === 'game_over' ? (
             <div>
               <h2>🏆 Vítěz: {state.players.find((pp) => pp.id === state.winnerId)?.name}</h2>
@@ -400,43 +514,31 @@ export function GameScreen({
         </div>
         <TaskRewardsPanel state={state} />
         <FormationsPanel state={state} />
-        <div className="panel">
-          <h3>Čertova zranění (každý bojuje vlastního)</h3>
-          {state.players.map((pl) => (
-            <div key={pl.id} style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: pl.color, marginBottom: 2 }}>
-                {pl.name}
-              </div>
-              <div className="devil-tracker">
-                {WOUND_TYPES.map((w) => {
-                  const die = state.devilWounds.woundsByPlayer[pl.id][w];
-                  return (
-                    <div key={w} className={`wound-slot ${die ? 'taken' : ''}`}>
-                      <div style={{ fontWeight: 700 }}>{w}</div>
-                      <div style={{ fontSize: 10 }}>{die ? `1k${die}` : '—'}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-          {allWoundsTaken(state, p.id) && (
-            <p style={{ color: '#a05e2e', marginTop: 6, fontSize: 12 }}>
-              Tvoje 4 zranění zasazena. V boji s Čertem hoď součet 25+ pro vítězství.
-            </p>
-          )}
-        </div>
-        <div className="panel">
-          <h3>Log</h3>
+        {allWoundsTaken(state, p.id) && state.phase !== 'devil_combat' && (
+          <div
+            className="panel"
+            style={{
+              background: '#fff3d4',
+              borderColor: 'var(--accent)',
+              fontSize: 12,
+              color: 'var(--accent-dark)',
+              fontWeight: 600,
+            }}
+          >
+            🎯 Tvoje 4 zranění Čerta zasazena. V boji teď hoď součet ≥25 pro vítězství!
+          </div>
+        )}
+        <details className="panel">
+          <summary>📜 Log</summary>
           <div className="log">
-            {state.log.slice(0, 40).map((e, i) => (
+            {state.log.slice(0, 60).map((e, i) => (
               <div key={i} className="entry" style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
                 <span style={{ minWidth: 18 }}>{eventIcon(e)}</span>
                 <span style={{ flex: 1 }}>{e}</span>
               </div>
             ))}
           </div>
-        </div>
+        </details>
       </div>
     </div>
   );
@@ -624,6 +726,13 @@ function AttackModal({ state, dispatch }: { state: GameState; dispatch: (a: Acti
 function DirtActionModal({ state, dispatch }: { state: GameState; dispatch: (a: Action) => void }) {
   const pc = state.pendingChoice;
   if (pc?.kind !== 'select_dirt_action') return null;
+
+  // Spočítáme očekávané skóre Vyformování pro tento hex — pokud je 0,
+  // akce by nezískala kostku → tlačítko deaktivujeme.
+  const expectedScore = dirtPoopExpectedScore(state, pc.hex);
+  const p = currentPlayer(state);
+  const canPoop = expectedScore > 0;
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -631,15 +740,23 @@ function DirtActionModal({ state, dispatch }: { state: GameState; dispatch: (a: 
           <h2 style={{ margin: 0 }}>Hlína / Poušť — vyber akci</h2>
           <button onClick={() => dispatch({ type: 'cancelPendingChoice' })}>✕ Storno</button>
         </div>
+        <p style={{ margin: '6px 0', fontSize: 12, color: 'var(--muted)' }}>
+          Dovednosti se získávají jen na Eukalyptu (Obsaď + Uč se) nebo za úkol.
+        </p>
         <div className="actions" style={{ marginTop: 8 }}>
           <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'plant' })}>
             🥕 Zasaď mrkev
           </button>
-          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'poop' })}>
-            💩 Vyformuj kostku
-          </button>
-          <button onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'learn' })}>
-            🧠 Uč se dovednost
+          <button
+            disabled={!canPoop}
+            title={
+              canPoop
+                ? `Skóre: 🥕${p.carrotTrack} + sousedi soupeře ${expectedScore - p.carrotTrack} = ${expectedScore}`
+                : 'Vyformuj kostku by nedalo žádnou kostku — máš 0 mrkví a žádnou soupeřovu značku v sousedství.'
+            }
+            onClick={() => dispatch({ type: 'useField', hex: pc.hex, dirtAction: 'poop' })}
+          >
+            💩 Vyformuj kostku {canPoop ? `(skóre ${expectedScore})` : '(nedostaneš nic)'}
           </button>
         </div>
       </div>
@@ -1176,34 +1293,6 @@ function SleepModal({
           </button>
           <button onClick={close}>Zrušit</button>
         </div>
-        {/* Skill shop */}
-        {(Object.keys(SKILL_REQUIREMENTS) as SkillId[]).filter((s) => !p.skills.has(s)).length > 0 && (
-          <div style={{ marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 13, textTransform: 'uppercase', color: 'var(--muted)' }}>
-              🧠 Skill shop (Sleep)
-            </h3>
-            <p style={{ fontSize: 11, color: 'var(--muted)', margin: '4px 0 8px' }}>
-              Cena: 5 🥔 za každý vyžadovaný strom.
-            </p>
-            <div className="actions">
-              {(Object.keys(SKILL_REQUIREMENTS) as SkillId[]).map((sid) => {
-                const req = SKILL_REQUIREMENTS[sid];
-                if (p.skills.has(sid)) return null;
-                const cost = skillBuyCost(sid);
-                return (
-                  <button
-                    key={sid}
-                    disabled={p.potatoes < cost}
-                    onClick={() => dispatch({ type: 'sleep', sleepAction: { kind: 'buy_skill', skill: sid } })}
-                    title={req.desc}
-                  >
-                    🛒 {req.label} ({cost} 🥔)
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1330,11 +1419,50 @@ function FormationsPanel({ state }: { state: GameState }) {
             )}
             {f === 'primka5' && (
               <div style={{ fontSize: 11, marginTop: 2 }}>
-                {state.players.map((pl) => (
-                  <div key={pl.id} style={{ color: pl.color }}>
-                    {pl.name}: {markerCount(pl.id)} značek (min 5 v linii)
-                  </div>
-                ))}
+                {state.players.map((pl) => {
+                  const diag = primka5Diagnostic(state, pl.id);
+                  const alreadyDone = state.completedFormations.some(
+                    (c) => c.playerId === pl.id && c.formation === 'primka5'
+                  );
+                  let detail: string;
+                  if (alreadyDone) {
+                    detail = '✅ splněno';
+                  } else if (diag.isComplete) {
+                    detail = `✅ ${diag.bestRunLen} v řadě (čeká na detekci)`;
+                  } else if (diag.bestRunLen >= 5 && diag.blockerOppHex) {
+                    detail = `⚠️ ${diag.bestRunLen} v řadě, ale BLOKOVÁNO značkou soupeře v (${diag.blockerOppHex.q},${diag.blockerOppHex.r}) sousedící s linkou`;
+                  } else {
+                    detail = `${diag.bestRunLen}/5 nejdelší souvislá řada`;
+                  }
+                  return (
+                    <div key={pl.id} style={{ color: pl.color, fontSize: 10, marginBottom: 1 }}>
+                      <strong>{pl.name}</strong>: {markerCount(pl.id)} značek · {detail}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {f === 'obkliceni' && (
+              <div style={{ fontSize: 11, marginTop: 2 }}>
+                {state.players.map((pl) => {
+                  const diag = obkliceniDiagnostic(state, pl.id);
+                  const alreadyDone = state.completedFormations.some(
+                    (c) => c.playerId === pl.id && c.formation === 'obkliceni'
+                  );
+                  let detail: string;
+                  if (alreadyDone) {
+                    detail = '✅ splněno';
+                  } else if (diag.isComplete) {
+                    detail = `✅ ${diag.maxNeighbors}/6 (čeká na detekci)`;
+                  } else {
+                    detail = `nejvíc ${diag.maxNeighbors}/6 značek kolem soupeře (potřeba 4)`;
+                  }
+                  return (
+                    <div key={pl.id} style={{ color: pl.color, fontSize: 10, marginBottom: 1 }}>
+                      <strong>{pl.name}</strong>: {detail}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
