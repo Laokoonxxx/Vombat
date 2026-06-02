@@ -723,29 +723,26 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
               pointerEvents="none"
             />
 
-            {/* 8. Activation banner — small scroll-shape badge */}
+            {/* 8. Activation number — subtle light text, no background */}
             {!isTunnelOnly && !isDeadCat && (
-              <g style={{ filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))' }}>
-                <path
-                  d={`M ${x - 22} ${y - HEX_SIZE * 0.78}
-                      L ${x + 22} ${y - HEX_SIZE * 0.78}
-                      L ${x + 19} ${y - HEX_SIZE * 0.6}
-                      L ${x - 19} ${y - HEX_SIZE * 0.6} Z`}
-                  fill="#fdf3d3"
-                  stroke="#1a0e02"
-                  strokeWidth="0.9"
-                />
-                <text
-                  x={x}
-                  y={y - HEX_SIZE * 0.69}
-                  className="hex-label"
-                  fontSize={10}
-                  fill="#1a0e02"
-                  fontWeight={800}
-                >
-                  {ACTIVATION_LABEL[c.type]}
-                </text>
-              </g>
+              <text
+                x={x}
+                y={y - HEX_SIZE * 0.72}
+                className="hex-label"
+                fontSize={11}
+                fill="#fdf3d3"
+                fontWeight={300}
+                opacity={0.85}
+                style={{
+                  letterSpacing: '0.05em',
+                  paintOrder: 'stroke',
+                  stroke: 'rgba(0,0,0,0.55)',
+                  strokeWidth: '2px',
+                  strokeLinejoin: 'round',
+                }}
+              >
+                {ACTIVATION_LABEL[c.type]}
+              </text>
             )}
 
             {/* 9. Thorn die — wooden cube look */}
