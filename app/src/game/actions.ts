@@ -67,7 +67,7 @@ export type Action =
   | {
       type: 'useField';
       hex: Hex;
-      dirtAction?: 'plant' | 'poop' | 'learn';
+      dirtAction?: 'plant' | 'poop';
       treeAction?: 'occupy' | 'occupy_and_learn';
     }
   | { type: 'cancelPendingChoice' }

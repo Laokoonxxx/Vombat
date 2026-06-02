@@ -12,7 +12,7 @@
 
 import type { GameState, PlayerState, SkillId, WoundType } from '../game/types';
 import { WOUND_TYPES } from '../game/types';
-import { SKILL_REQUIREMENTS, skillBuyCost } from '../game/engine';
+import { SKILL_REQUIREMENTS } from '../game/engine';
 
 const ALL_SKILLS: SkillId[] = [
   'kapacita',
@@ -82,8 +82,7 @@ export function PlayerCard({
         {ALL_SKILLS.map((sid) => {
           const req = SKILL_REQUIREMENTS[sid];
           const learned = player.skills.has(sid);
-          const cost = skillBuyCost(sid);
-          const tip = `${req.desc}\n🛒 ${cost} 🥔 v Sleep shopu`;
+          const tip = `${req.desc}\n🌳 Naučit: Obsaď + Uč se na Eukalyptu, nebo za úkol`;
           return (
             <span
               key={sid}

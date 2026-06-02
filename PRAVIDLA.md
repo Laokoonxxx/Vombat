@@ -210,14 +210,9 @@ score = počet polí Mrkve (tvůj ukazatel)
 | 5–7 | 1k12 |
 | 8+ | 1k20 |
 
-#### Uč se 🧠
-Polož na Hlínu svůj žeton **Bobku**. Získej dovednost (viz § 6.7).
-
-Učení vyžaduje kontrolu nad určitým počtem **Eukalyptových stromů** (modrá pole). Jeden potřebovaný strom lze nahradit:
-- odhozením libovolné kostky z Ruky nebo Zásoby, nebo
-- zaplacením 3 brambor.
-
-Každou dovednost lze naučit pouze 1×.
+> Akce **Uč se na Hlíně byla odstraněna** (2026-06-01). Dovednosti se získávají
+> jen na **Eukalyptu** (viz § 6.3 — Obsaď + Uč se) nebo **za splnění úkolu**
+> (viz § 10 — náhodné přiřazení schopností k 5 úkolům).
 
 ---
 
@@ -289,9 +284,12 @@ Kočka není "pole k využití". Existují pouze dvě interakce:
 ---
 
 ### 6.7. Dovednosti (Uč se)
-Každou lze získat pouze 1×. Vyžaduje akci **Uč se** na Hlíně (nebo Poušti s Koupelí).
+Každou lze získat pouze 1×. Cesty získání:
 
-Všechny dovednosti stojí stejně: **1 strom** (= 5 🥔 v Sleep shopu, nebo 3 🥔 jako náhrada za chybějící strom).
+1. **Obsaď + Uč se na Eukalyptu** (§ 6.3) — preferovaná cesta. 1× per strom per hráč.
+2. **Splnění úkolu** (§ 10) — každá z 5 schopností je náhodně přiřazena jednomu z 5 úkolů (3 formace + 1. Kočka + 1. zranění Čerta). Při svém prvním splnění úkolu hráč obdrží přiřazenou schopnost zdarma.
+
+Všechny dovednosti stojí stejně: **1 strom** (= 1 Eukalyptus pod kontrolou, nebo 3 🥔 jako náhrada za chybějící strom).
 
 | Dovednost | 🌳 | Účinek |
 |---|---|---|
@@ -336,8 +334,7 @@ Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš roz
   - Přesuň kostku z Ruky do Zásoby.
   - Přesuň kostku ze Zásoby do Ruky.
   - Vyměň kostku v Ruce s kostkou v Zásobě.
-- **Skill shop** — kup libovolnou dovednost za **5 🥔** (každá dovednost vyžaduje 1 strom = 5 🥔).
-  - Skill shop je alternativa k tradičnímu "Uč se" na Hlíně — nepotřebuje Eukalypty ani vybavení Hlíny.
+- **(Skill shop odstraněn 2026-06-01)** — schopnosti se získávají jen přes Eukalyptus (§ 6.3) nebo za úkol (§ 10).
 
 ### Možnosti s dovednostmi
 - **Třídění (Klystýr)** → Před každým hodem (mimo Spánek) až 3× zdarma přesun Ruka ↔ Zásoba.
@@ -494,7 +491,8 @@ Následující drobné body byly v původních pravidlech buď nejednoznačné, 
 | Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
 | Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
 | Teleport (Spánek) | **odstraněno** — bývalo 5 🥔 → přemístění Vombata kamkoli. Příliš silné (instant Čert přístup), navíc redundantní s tunely. Tunely teď slouží jako jediný "fast travel". |
-| Skill shop (Spánek) | **přidáno** — 5 🥔 → koupíš libovolnou dovednost (všechny stojí 1 strom). Alternativa k tradičnímu Uč se. |
+| Skill shop (Spánek) | **odstraněno 2026-06-01** — schopnosti se získávají jen na Eukalyptu nebo za úkol. (Předtím: 5 🥔 → schopnost ve Spánku.) |
+| Učení na Hlíně | **odstraněno 2026-06-01** — Hlína má teď jen 2 akce (Zasaď, Vyformuj). Učení jen Eukalyptus + úkoly. |
 | Náhodné odměny za úkoly | **přidáno (2026-06-01)** — 5 schopností se na začátku hry **náhodně přiřadí 5 úkolům** (3 formace + 1. rozmačkaná Kočka + 1. zranění Čerta). Hráč dostane přiřazenou schopnost při svém PRVNÍM splnění daného úkolu. Mapping je viditelný od začátku, takže hráči plánují strategii. **Nahrazuje** dřívější fixní milestones (Koupel za 1. kočku, Kapacita za 1. zranění Čerta). U formací je odměna aditivní s kostkou (k20/k12/k6 za pořadí). |
 | Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
 | Eukalyptus: Obsaď + Uč se | **přidáno** — lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti. **1× per strom per hráč** (ne 1× za hru celkově) — když navštívíš 3 různé stromy, můžeš ho použít 3×. |

@@ -1076,7 +1076,7 @@ export function canUseField(state: GameState, hex: Hex): boolean {
 export function useField(
   state: GameState,
   hex: Hex,
-  opts?: { dirtAction?: 'plant' | 'poop' | 'learn'; treeAction?: 'occupy' | 'occupy_and_learn' }
+  opts?: { dirtAction?: 'plant' | 'poop'; treeAction?: 'occupy' | 'occupy_and_learn' }
 ): GameState {
   const cell = state.board.get(hexKey(hex));
   if (!cell) return state;
@@ -1225,7 +1225,7 @@ function thornThreshold(lvl: 2 | 4 | 6 | 8): number {
 }
 
 // --- DIRT (Hlína) / DESERT (Poušť with Koupel) ---
-function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'): GameState {
+function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop'): GameState {
   const s = cloneState(state);
   const p = currentPlayer(s);
   const cell = s.board.get(hexKey(hex))!;
@@ -1253,7 +1253,6 @@ function useDirt(state: GameState, hex: Hex, action?: 'plant' | 'poop' | 'learn'
   switch (action) {
     case 'plant':  return dirtPlant(s, p, cell);
     case 'poop':   return dirtPoop(s, p, cell);
-    case 'learn':  s.pendingChoice = { kind: 'pick_skill', hex }; return s;
   }
 }
 
@@ -1386,9 +1385,11 @@ export type SleepAction =
   | { kind: 'downgrade_dice'; targets: { location: 'hand' | 'reserve'; index: number }[] }
   | { kind: 'swap'; ops: SwapOp[] }
   | { kind: 'upgrade_die'; location: 'hand' | 'reserve'; index: number }
-  | { kind: 'buy_skill'; skill: SkillId }
   | { kind: 'skip' };
 
+// Skill shop ve Spánku byl odstraněn — schopnosti se získávají JEN přes
+// Eukalyptus (Obsaď + Uč se) nebo za splnění úkolu (taskRewards).
+// skillBuyCost zachováno pro statistická data ve StatsViewer (research archiv).
 export const SKILL_BUY_COST_PER_TREE = 5;
 export function skillBuyCost(skill: SkillId): number {
   return SKILL_REQUIREMENTS[skill].trees * SKILL_BUY_COST_PER_TREE;
@@ -1461,15 +1462,6 @@ export function sleep(state: GameState, action: SleepAction): GameState {
       else return state; // k20 je max
       arr[action.index] = nu;
       logEntry(s, `${p.name} upgradnul 1k${old} → 1k${nu} (Žvýkání).`);
-      break;
-    }
-    case 'buy_skill': {
-      if (p.skills.has(action.skill)) return state;
-      const cost = skillBuyCost(action.skill);
-      if (p.potatoes < cost) return state;
-      p.potatoes -= cost;
-      grantSkill(s, p, action.skill);
-      logEntry(s, `${p.name} koupil dovednost "${SKILL_REQUIREMENTS[action.skill].label}" za ${cost} 🥔.`);
       break;
     }
     case 'skip':

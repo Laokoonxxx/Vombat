@@ -65,7 +65,7 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
               <ul style={{ margin: 0 }}>
                 <li><strong>🐾 Pohyb</strong> — Vombat na sousední pole, pokud součet odpovídá rozsahu</li>
                 <li><strong>🌿 Využij pole</strong> — kde stojíš nebo sousedíš (pole se obsadí)</li>
-                <li><strong>💤 Spánek</strong> — menu speciálních akcí (výměna kostek, Skill shop, upgrade…)</li>
+                <li><strong>💤 Spánek</strong> — menu speciálních akcí (výměna kostek, upgrade kostky, brambora…)</li>
               </ul>
             </li>
           </ol>
@@ -232,9 +232,10 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
             <li>Downgrade kostky (z větší na menší)</li>
             <li>Výměna kostek mezi Rukou a Zásobou</li>
             <li>
-              <strong>🛒 Skill shop</strong>: každá dovednost stojí <code>1 strom</code>
-              (= 5 🥔 v Sleep shopu nebo 3 🥔 jako náhrada za chybějící strom).
-              Všechny dovednosti mají stejnou cenu.
+              <strong>🌳 Učení dovedností:</strong> jediná cesta = <strong>Obsaď + Uč se</strong> na
+              Eukalyptu (1× per strom per hráč) nebo splň jeden z 5 úkolů
+              (3 formace + 1. rozdrcená Kočka + 1. zranění Čerta).
+              Mapping úkol → schopnost je náhodný per hra, vidíš v sidebar panelu.
             </li>
           </ul>
         </Section>
