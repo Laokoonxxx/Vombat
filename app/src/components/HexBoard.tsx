@@ -20,36 +20,30 @@ const HEX_SIZE = 58;
 // =============================================================================
 
 function renderDirtArt(cx: number, cy: number): JSX.Element {
-  // Wombat country: earth mound + burrow entrance + loose stones + paw tracks.
-  // Žádné lidské stavby — pouze přírodní habitat hrabavých zvířat.
+  // Pure dirt — bez doupěte, bez staveb. Jen jemné hliněné motivy:
+  // hroudy, drobné kameny, lehké stínování pro texture.
   return (
     <g>
-      {/* Soft earth mound silhouette (lighter band) */}
-      <ellipse cx={cx + 4} cy={cy + 4} rx={32} ry={10} fill="#a05a18" opacity="0.35" />
+      {/* Soft earth bands (subtle lighter/darker patches) */}
+      <ellipse cx={cx - 8} cy={cy - 4} rx={26} ry={8} fill="#d68a3d" opacity="0.18" />
+      <ellipse cx={cx + 10} cy={cy + 10} rx={22} ry={6} fill="#7a4710" opacity="0.22" />
 
-      {/* Burrow entrance — dark crescent dug into hillside */}
-      <g style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.7))' }}>
-        <ellipse cx={cx - 4} cy={cy - 4} rx={14} ry={9} fill="#1a0e02" />
-        {/* Inner darker pocket */}
-        <ellipse cx={cx - 4} cy={cy - 2} rx={10} ry={6} fill="#000" />
-        {/* Tiny piles of dirt at the burrow rim */}
-        <ellipse cx={cx - 16} cy={cy + 3} rx={4} ry={1.5} fill="#5a2e08" />
-        <ellipse cx={cx + 6} cy={cy + 3} rx={4} ry={1.5} fill="#5a2e08" />
+      {/* Small dirt clumps scattered (low-contrast tečky/grudky) */}
+      <g opacity="0.55">
+        <ellipse cx={cx - 18} cy={cy - 6} rx={3} ry={1.6} fill="#5a2e08" />
+        <ellipse cx={cx + 4} cy={cy - 10} rx={2.4} ry={1.3} fill="#5a2e08" />
+        <ellipse cx={cx + 16} cy={cy - 2} rx={3.2} ry={1.5} fill="#5a2e08" />
+        <ellipse cx={cx - 6} cy={cy + 4} rx={2.6} ry={1.3} fill="#5a2e08" />
+        <ellipse cx={cx + 22} cy={cy + 10} rx={2.8} ry={1.4} fill="#5a2e08" />
+        <ellipse cx={cx - 22} cy={cy + 14} rx={3.4} ry={1.6} fill="#5a2e08" />
+        <ellipse cx={cx - 10} cy={cy + 18} rx={2.4} ry={1.3} fill="#5a2e08" />
+        <ellipse cx={cx + 10} cy={cy + 20} rx={3.2} ry={1.5} fill="#5a2e08" />
       </g>
 
-      {/* Loose stones on the ground */}
-      <g style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))' }}>
-        <ellipse cx={cx + 14} cy={cy + 16} rx={5} ry={3} fill="#7a5028" stroke="#3a2010" strokeWidth="0.4" />
-        <ellipse cx={cx + 20} cy={cy + 12} rx={3} ry={2} fill="#8a5e2a" stroke="#3a2010" strokeWidth="0.4" />
-        <ellipse cx={cx - 22} cy={cy + 16} rx={4} ry={2.2} fill="#7a5028" stroke="#3a2010" strokeWidth="0.4" />
-      </g>
-
-      {/* Animal paw tracks heading away from burrow */}
-      <g opacity="0.55" fill="#3a1a02">
-        <ellipse cx={cx + 4} cy={cy + 12} rx={1.6} ry={1.1} />
-        <ellipse cx={cx + 10} cy={cy + 16} rx={1.6} ry={1.1} />
-        <ellipse cx={cx + 16} cy={cy + 20} rx={1.4} ry={1} />
-        <ellipse cx={cx + 22} cy={cy + 24} rx={1.4} ry={1} />
+      {/* Pár drobných oblázků s outlinem (žádná masivnost) */}
+      <g style={{ filter: 'drop-shadow(0 0.5px 0.8px rgba(0,0,0,0.4))' }}>
+        <ellipse cx={cx + 14} cy={cy + 12} rx={3} ry={1.8} fill="#8a5e2a" stroke="#3a2010" strokeWidth="0.35" />
+        <ellipse cx={cx - 14} cy={cy - 12} rx={2.2} ry={1.4} fill="#7a5028" stroke="#3a2010" strokeWidth="0.35" />
       </g>
     </g>
   );
@@ -107,57 +101,36 @@ function renderBedArt(cx: number, cy: number): JSX.Element {
 }
 
 function renderDesertArt(cx: number, cy: number): JSX.Element {
-  // Australian outback: red rocks (Uluru-style), dunes, animal bones,
-  // cracked earth. Žádné lidské ruiny.
+  // Pouze poušť — duny, písek, drobné kameny a praskliny. Bez masivní skály
+  // co by odváděla pozornost.
   return (
     <g>
-      {/* Dune curves */}
-      <path d={`M ${cx - 40} ${cy + 16} Q ${cx - 18} ${cy + 8}, ${cx + 4} ${cy + 18} Q ${cx + 28} ${cy + 24}, ${cx + 40} ${cy + 16}`}
-        stroke="#a87a30" strokeWidth="1.2" fill="none" opacity="0.55" />
-      <path d={`M ${cx - 36} ${cy + 26} Q ${cx - 8} ${cy + 20}, ${cx + 14} ${cy + 28} Q ${cx + 30} ${cy + 32}, ${cx + 38} ${cy + 24}`}
-        stroke="#a87a30" strokeWidth="1" fill="none" opacity="0.4" />
+      {/* 3 dune curves přes celý hex — vlna písku */}
+      <path d={`M ${cx - 40} ${cy - 8} Q ${cx - 14} ${cy - 14}, ${cx + 8} ${cy - 10} Q ${cx + 28} ${cy - 6}, ${cx + 40} ${cy - 8}`}
+        stroke="#b88a3a" strokeWidth="1.4" fill="none" opacity="0.55" />
+      <path d={`M ${cx - 38} ${cy + 4} Q ${cx - 12} ${cy - 2}, ${cx + 10} ${cy + 4} Q ${cx + 30} ${cy + 8}, ${cx + 40} ${cy + 4}`}
+        stroke="#a87a30" strokeWidth="1.3" fill="none" opacity="0.55" />
+      <path d={`M ${cx - 40} ${cy + 18} Q ${cx - 14} ${cy + 12}, ${cx + 8} ${cy + 18} Q ${cx + 28} ${cy + 22}, ${cx + 40} ${cy + 18}`}
+        stroke="#a87a30" strokeWidth="1.2" fill="none" opacity="0.5" />
+      <path d={`M ${cx - 36} ${cy + 28} Q ${cx - 8} ${cy + 22}, ${cx + 14} ${cy + 28} Q ${cx + 30} ${cy + 32}, ${cx + 38} ${cy + 26}`}
+        stroke="#a87a30" strokeWidth="1" fill="none" opacity="0.45" />
 
-      {/* Red rock formation (Uluru-like) — dominant mass in center-back */}
-      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(60,20,0,0.7))' }}>
-        <path d={`M ${cx - 18} ${cy + 6}
-                  Q ${cx - 16} ${cy - 4}, ${cx - 8} ${cy - 8}
-                  Q ${cx} ${cy - 14}, ${cx + 10} ${cy - 10}
-                  Q ${cx + 18} ${cy - 4}, ${cx + 20} ${cy + 4}
-                  Q ${cx + 22} ${cy + 8}, ${cx + 20} ${cy + 10}
-                  L ${cx - 18} ${cy + 10} Z`}
-          fill="#b04420"
-          stroke="#601808"
-          strokeWidth="1.2"
-        />
-        {/* Highlight on rock top */}
-        <path d={`M ${cx - 12} ${cy - 4}
-                  Q ${cx - 6} ${cy - 10}, ${cx + 4} ${cy - 12}
-                  Q ${cx + 12} ${cy - 8}, ${cx + 14} ${cy - 6}
-                  L ${cx + 4} ${cy - 6} Z`}
-          fill="#d96030"
-          opacity="0.7"
-        />
-        {/* Vertical erosion lines */}
-        <path d={`M ${cx - 8} ${cy - 6} L ${cx - 8} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.6" />
-        <path d={`M ${cx} ${cy - 10} L ${cx} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.5" />
-        <path d={`M ${cx + 8} ${cy - 8} L ${cx + 8} ${cy + 8}`} stroke="#7a2008" strokeWidth="0.6" opacity="0.6" />
+      {/* Drobné rozpukané praskliny — sun-baked earth (suchá podlaha) */}
+      <g opacity="0.55">
+        <path d={`M ${cx - 14} ${cy + 8} l 5 4 l -2 5 l 4 3`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
+        <path d={`M ${cx + 12} ${cy - 6} l 3 5 l -4 3 l 5 4`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
+        <path d={`M ${cx - 6} ${cy - 14} l 2 5 l -3 2`} stroke="#5a3a10" strokeWidth="0.6" fill="none" />
       </g>
 
-      {/* Sun-bleached animal skull (small, foreground) */}
-      <g style={{ filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))' }}>
-        <ellipse cx={cx - 20} cy={cy + 20} rx={6} ry={4} fill="#f0e4c4" stroke="#5a4018" strokeWidth="0.5" />
-        {/* Eye sockets */}
-        <circle cx={cx - 22} cy={cy + 19} r={1.2} fill="#2a1a08" />
-        <circle cx={cx - 18} cy={cy + 19} r={1.2} fill="#2a1a08" />
-        {/* Nose */}
-        <ellipse cx={cx - 20} cy={cy + 21.5} rx={0.7} ry={0.5} fill="#2a1a08" />
+      {/* Pár malých kamínků/oblázků (žádné masivní skály) */}
+      <g style={{ filter: 'drop-shadow(0 0.5px 0.8px rgba(0,0,0,0.4))' }}>
+        <ellipse cx={cx - 22} cy={cy + 4} rx={2.4} ry={1.4} fill="#a07440" stroke="#5a3a18" strokeWidth="0.35" />
+        <ellipse cx={cx + 8} cy={cy + 14} rx={1.8} ry={1.1} fill="#b08850" stroke="#5a3a18" strokeWidth="0.35" />
+        <ellipse cx={cx + 18} cy={cy - 8} rx={2} ry={1.2} fill="#a07440" stroke="#5a3a18" strokeWidth="0.35" />
       </g>
 
-      {/* Cracked earth */}
-      <g opacity="0.45">
-        <path d={`M ${cx + 14} ${cy + 22} l 4 4 l -2 4`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
-        <path d={`M ${cx + 24} ${cy + 18} l -3 4 l 4 2`} stroke="#5a3a10" strokeWidth="0.7" fill="none" />
-      </g>
+      {/* Subtle sun glare / heat shimmer (subtle warm circle highlight) */}
+      <circle cx={cx - 6} cy={cy - 14} r={6} fill="#fcefb0" opacity="0.15" />
     </g>
   );
 }
