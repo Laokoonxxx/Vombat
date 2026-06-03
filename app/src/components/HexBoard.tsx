@@ -240,42 +240,104 @@ function renderThornArt(cx: number, cy: number): JSX.Element {
 
 function renderCatArt(cx: number, cy: number, alive: boolean): JSX.Element {
   if (!alive) {
-    // Dead cat = tunnel — render as cave opening (handled by renderTunnelArt fallback)
     return renderTunnelArt(cx, cy);
   }
-  // Predator lair: rocky den + glowing eyes
+  // Hrozivý predátor: temná jeskyně, ZE STÍNU vyčnívá kočičí hlava
+  // s vyceněnými zuby a žhnoucíma červenýma očima, kolem hexu drápance
+  // a roztroušené kosti kořisti. Cítí se to jako "TADY POZOR".
   return (
     <g>
-      {/* Rocky outcrop / den base */}
-      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))' }}>
-        <path d={`M ${cx - 28} ${cy + 16}
-                  L ${cx - 22} ${cy + 4}
-                  L ${cx - 10} ${cy - 4}
-                  L ${cx + 6} ${cy - 8}
-                  L ${cx + 22} ${cy - 2}
-                  L ${cx + 28} ${cy + 8}
-                  L ${cx + 26} ${cy + 18} Z`}
-          fill="#5a3a20" stroke="#1a0e02" strokeWidth="1.2" />
-        {/* Den opening (dark cave) */}
-        <ellipse cx={cx} cy={cy + 4} rx={12} ry={9} fill="#0a0604" />
+      {/* Subtle red danger atmosphere — naznačení nebezpečí */}
+      <circle cx={cx} cy={cy + 2} r={32} fill="#c4201a" opacity="0.10" />
+      <circle cx={cx} cy={cy + 2} r={20} fill="#c4201a" opacity="0.14" />
+
+      {/* Drápance — 3 paralelní oblouky napříč hexem (čerstvé claw marks) */}
+      <g style={{ filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.55))' }}>
+        <path d={`M ${cx - 32} ${cy - 10} Q ${cx - 18} ${cy - 4}, ${cx - 4} ${cy - 12}`}
+          stroke="#2a0a04" strokeWidth="2.2" fill="none" strokeLinecap="round" opacity="0.75" />
+        <path d={`M ${cx - 30} ${cy - 4} Q ${cx - 16} ${cy + 2}, ${cx - 2} ${cy - 6}`}
+          stroke="#2a0a04" strokeWidth="2.2" fill="none" strokeLinecap="round" opacity="0.75" />
+        <path d={`M ${cx - 28} ${cy + 2} Q ${cx - 14} ${cy + 8}, ${cx} ${cy}`}
+          stroke="#2a0a04" strokeWidth="2.2" fill="none" strokeLinecap="round" opacity="0.7" />
       </g>
 
-      {/* Glowing predator eyes inside the den */}
-      <g style={{ filter: 'drop-shadow(0 0 4px #ffe066)' }}>
-        <ellipse cx={cx - 5} cy={cy + 2} rx={2.2} ry={3} fill="#ffe066" />
-        <ellipse cx={cx + 5} cy={cy + 2} rx={2.2} ry={3} fill="#ffe066" />
-        {/* Pupils — black slits */}
-        <rect x={cx - 5.7} y={cy + 0.5} width={1.4} height={3} fill="#1a0e02" />
-        <rect x={cx + 4.3} y={cy + 0.5} width={1.4} height={3} fill="#1a0e02" />
+      {/* Skalnatá ústa jeskyně — tmavá silueta */}
+      <g style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.85))' }}>
+        <path d={`M ${cx - 22} ${cy + 22}
+                  L ${cx - 24} ${cy + 6}
+                  Q ${cx - 14} ${cy - 6}, ${cx - 2} ${cy - 10}
+                  Q ${cx + 16} ${cy - 8}, ${cx + 22} ${cy + 4}
+                  L ${cx + 24} ${cy + 22} Z`}
+          fill="#1a0a04" stroke="#000" strokeWidth="1.2" />
+        {/* Vnitřní temnota (ještě tmavší než silueta) */}
+        <ellipse cx={cx} cy={cy + 8} rx={16} ry={12} fill="#000" />
       </g>
 
-      {/* Paw prints in the foreground */}
-      <g opacity="0.55">
-        <g fill="#1a0e02">
-          <circle cx={cx - 18} cy={cy + 22} r={1.4} />
-          <circle cx={cx - 21} cy={cy + 20} r={1.2} />
-          <circle cx={cx - 16} cy={cy + 20} r={1.2} />
-          <ellipse cx={cx - 18} cy={cy + 24} rx={1.5} ry={1.1} />
+      {/* KOČIČÍ HLAVA — vyčnívá ze stínu, jen částečně viditelná */}
+      <g style={{ filter: 'drop-shadow(0 1.5px 2px rgba(0,0,0,0.85))' }}>
+        {/* Špičaté uši */}
+        <path d={`M ${cx - 10} ${cy - 2} L ${cx - 12} ${cy - 12} L ${cx - 4} ${cy - 6} Z`}
+          fill="#3a2410" stroke="#000" strokeWidth="0.7" />
+        <path d={`M ${cx + 10} ${cy - 2} L ${cx + 12} ${cy - 12} L ${cx + 4} ${cy - 6} Z`}
+          fill="#3a2410" stroke="#000" strokeWidth="0.7" />
+        {/* Vnitřní růžová uší */}
+        <path d={`M ${cx - 9} ${cy - 4} L ${cx - 10} ${cy - 10} L ${cx - 6} ${cy - 6} Z`}
+          fill="#7a3a30" opacity="0.85" />
+        <path d={`M ${cx + 9} ${cy - 4} L ${cx + 10} ${cy - 10} L ${cx + 6} ${cy - 6} Z`}
+          fill="#7a3a30" opacity="0.85" />
+        {/* Vlastní hlava — vystupující z temnoty */}
+        <path d={`M ${cx - 12} ${cy - 2}
+                  Q ${cx - 14} ${cy + 8}, ${cx - 8} ${cy + 12}
+                  Q ${cx} ${cy + 16}, ${cx + 8} ${cy + 12}
+                  Q ${cx + 14} ${cy + 8}, ${cx + 12} ${cy - 2}
+                  Q ${cx + 10} ${cy - 6}, ${cx} ${cy - 6}
+                  Q ${cx - 10} ${cy - 6}, ${cx - 12} ${cy - 2} Z`}
+          fill="#3a2410" stroke="#000" strokeWidth="0.9" />
+        {/* Subtle highlight pro definici tvaru */}
+        <path d={`M ${cx - 8} ${cy + 2} Q ${cx} ${cy - 2}, ${cx + 8} ${cy + 2}`}
+          stroke="#5a3a20" strokeWidth="0.6" fill="none" opacity="0.6" />
+      </g>
+
+      {/* ŽHNOUCÍ ČERVENÉ OČI — slit pupils, glowy */}
+      <g style={{ filter: 'drop-shadow(0 0 4px #ff2010)' }}>
+        <ellipse cx={cx - 5} cy={cy + 3} rx={2.6} ry={3.4} fill="#ffaa20" />
+        <ellipse cx={cx + 5} cy={cy + 3} rx={2.6} ry={3.4} fill="#ffaa20" />
+        {/* Vertical slit pupily — predator look */}
+        <rect x={cx - 5.6} y={cy + 0.5} width={1.2} height={5} fill="#000" rx={0.4} />
+        <rect x={cx + 4.4} y={cy + 0.5} width={1.2} height={5} fill="#000" rx={0.4} />
+        {/* Tiny white catchlight */}
+        <circle cx={cx - 4.2} cy={cy + 1.8} r={0.5} fill="#fff" opacity="0.9" />
+        <circle cx={cx + 5.8} cy={cy + 1.8} r={0.5} fill="#fff" opacity="0.9" />
+      </g>
+
+      {/* OTEVŘENÁ TLAMA — vycenené zuby */}
+      <g style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.7))' }}>
+        {/* Dark mouth interior */}
+        <path d={`M ${cx - 5} ${cy + 9}
+                  Q ${cx} ${cy + 13}, ${cx + 5} ${cy + 9}
+                  L ${cx + 4} ${cy + 11}
+                  Q ${cx} ${cy + 14}, ${cx - 4} ${cy + 11} Z`}
+          fill="#3a0000" />
+        {/* Horní zuby (fangs visible) */}
+        <path d={`M ${cx - 4} ${cy + 9.5} L ${cx - 3} ${cy + 12} L ${cx - 2} ${cy + 9.5} Z`}
+          fill="#f5ebd6" stroke="#3a2a18" strokeWidth="0.3" />
+        <path d={`M ${cx + 2} ${cy + 9.5} L ${cx + 3} ${cy + 12} L ${cx + 4} ${cy + 9.5} Z`}
+          fill="#f5ebd6" stroke="#3a2a18" strokeWidth="0.3" />
+      </g>
+
+      {/* Roztroušené kosti kořisti (drobné, v rohu) */}
+      <g style={{ filter: 'drop-shadow(0 0.5px 0.8px rgba(0,0,0,0.5))' }} opacity="0.85">
+        {/* Bone 1 — small humerus shape */}
+        <g transform={`translate(${cx + 18} ${cy + 22}) rotate(-25)`}>
+          <ellipse cx={-4} cy={0} rx={1.6} ry={1.2} fill="#f0e4c4" />
+          <ellipse cx={4} cy={0} rx={1.6} ry={1.2} fill="#f0e4c4" />
+          <rect x={-3} y={-0.7} width={6} height={1.4} fill="#f0e4c4" />
+        </g>
+        {/* Bone 2 — even smaller */}
+        <g transform={`translate(${cx - 22} ${cy + 24}) rotate(45)`}>
+          <ellipse cx={-2.5} cy={0} rx={1.1} ry={0.9} fill="#e0d4b4" />
+          <ellipse cx={2.5} cy={0} rx={1.1} ry={0.9} fill="#e0d4b4" />
+          <rect x={-2} y={-0.5} width={4} height={1} fill="#e0d4b4" />
         </g>
       </g>
     </g>
