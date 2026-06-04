@@ -62,8 +62,77 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
 
         <Section title="🎯 Cíl hry">
           <p style={{ margin: 0 }}>
-            <strong>Rozmačkat Tasmánského Čerta.</strong> Hra je tahová pro 2 hráče.
+            <strong>Rozmačkat Tasmánského Čerta.</strong> Hra je tahová pro 2–4 hráče.
             Vyhrává ten, kdo zabije Čerta první.
+          </p>
+        </Section>
+
+        <Section title="🧠 O čem hra opravdu je">
+          <p style={{ margin: '0 0 8px' }}>
+            Vombat <strong>není „kdo má víc kostek, vyhrává"</strong>. Je to o tom,
+            <strong> jaké</strong> kostky si vybíráš.
+          </p>
+          <p style={{ margin: '0 0 8px', fontSize: 13 }}>
+            Každé pole má svůj <strong>aktivační rozsah</strong> — součet hodu musí spadnout
+            přesně dovnitř: Hlína <code>2–4</code>, Záhon <code>4–6</code>, Houští{' '}
+            <code>5–9</code>, Eukalyptus <code>7–8</code>, Čert <code>12+</code>. A v tom je
+            celé dilema:
+          </p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 8,
+              fontSize: 12,
+              marginTop: 4,
+            }}
+          >
+            <div
+              style={{
+                padding: 10,
+                background: '#e8f4ff',
+                border: '1px solid #b8d4f0',
+                borderRadius: 6,
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                🎲 Malé kostky (k4 / k6)
+              </div>
+              <div style={{ color: '#1a4470' }}>
+                Úzký rozptyl, <strong>spolehlivě trefíš</strong> běžná pole. Skvělé pro
+                průzkum, sběr.
+              </div>
+              <div style={{ color: '#c33', marginTop: 4 }}>
+                ✕ Ale 6× k4 nikdy nedá součet ≥25 pro Čerta.
+              </div>
+            </div>
+            <div
+              style={{
+                padding: 10,
+                background: '#ffe9d4',
+                border: '1px solid #f0b890',
+                borderRadius: 6,
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                🎲 Velké kostky (k12 / k20)
+              </div>
+              <div style={{ color: '#7a3a10' }}>
+                Vysoký max součet = <strong>šance na zabití Čerta</strong>.
+              </div>
+              <div style={{ color: '#c33', marginTop: 4 }}>
+                ✕ Ale na Hlínu (2–4) <strong>přestřelíš</strong>. k20 padne typicky 10+.
+              </div>
+            </div>
+          </div>
+          <p style={{ margin: '8px 0 0', fontSize: 12 }}>
+            <strong>Chytrá kombinace</strong> = velké do Zásoby (schované pro endgame), malé
+            v Ruce (na každodenní akce). Přestavba ruky stojí čas — pokud nemáš dovednost{' '}
+            <strong>Třídění</strong> (3 výměny zdarma před hodem).
+          </p>
+          <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--muted)', fontStyle: 'italic' }}>
+            Tip: „Inženýři krychlí" v podtitulu nejsou náhodou. Celá hra je o ladění svého
+            kostkového setu pro správné okamžiky.
           </p>
         </Section>
 
