@@ -16,7 +16,25 @@ Jeden takový predátor zrovna teď ohrožuje vombatí rodinu — je to **Tasmá
 
 Než se ale do něj pustíte, musíte si vybudovat **arzenál kostek** — sbírejte je z Houští, formujte je na Hlíně, učte se schopnosti pod Eukalyptem. Pak jednoho dne (= jednoho tahu) přijde okamžik, kdy zaútočíte.
 
-Hra kombinuje **hex mapu**, **hod kostkami** a **lehký deck-building**: postupně si vylepšujete sbírku kostek, zatímco lavírujete mezi soupeři, kočkami v křoví a tikajícím nebezpečím Čerta.
+### O čem hra opravdu je
+
+Vombat **není „kdo má víc kostek, vyhrává"**. Je to o tom, **jaké** kostky si vybíráš — a kdy je použiješ.
+
+Každé pole na mapě má svůj **aktivační rozsah** — součet hodu musí spadnout přesně dovnitř. Hlína chce 2–4, Záhon 4–6, Houští 5–9, Eukalyptus 7–8, Tasmánský čert 12+. A v tom je celé strategické dilema:
+
+- 🎲 **Hodně malých kostek (k4, k6)** → úzký rozptyl součtu = **spolehlivě trefíš běžná pole** (Hlína, Záhon, Houští). Skvělé pro průzkum, sázení mrkve, sbírání kostek z Houští. **ALE** ve finále proti Čertovi nestačí — k smrtelné ráně potřebuješ hodit součet **≥ 25**, a šest k4 to nikdy nedá.
+- 🎲 **Pár velkých kostek (k12, k20)** → vysoký maximální součet = **šance na zabití Čerta**. **ALE** běžná pole pořád budeš **přestřelovat** — k20 padne typicky 10+, takže na Hlínu (2–4) se s ní prostě nedostaneš. Velké kostky jsou nepoužitelné pro precizní akce.
+- 🎲 **Chytrá kombinace** → drž **velké kostky v Zásobě** schované pro endgame, **malé v Ruce** pro každodenní pohyb. Před soubojem si je vyměníš. Jenže přestavba Ruky stojí čas (1 tah na Spánek = 1 výměna), pokud nemáš dovednost **Třídění** (3 výměny zdarma před hodem).
+
+Skoro každý tah si tedy odpovídáš na nepříjemné otázky:
+
+> *„Mám na Čerta dost síly, nebo nasbírám ještě jednu kostku?"*
+> *„Vezmu si teď 1k4 z Houští, nebo počkám na 1k8 — ale soupeř ji možná seberete dřív?"*
+> *„Mám na Hlíně 4 mrkve. Mám zasadit pátou, nebo už radši Vyformovat kostku?"*
+
+To je to, proč Vombat není jen házecí hra. **Kostka navíc není vždycky dobrá**. Někdy ti menší kostka pomůže víc, protože sedne na pole, které právě potřebuješ aktivovat.
+
+**„Inženýři krychlí"** v podtitulu nejsou náhodou — celá hra je o tom navrhovat a ladit svůj kostkový set tak, aby v správnou chvíli vystřelil přesně tam, kde to bolí.
 
 ---
 
