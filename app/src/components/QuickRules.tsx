@@ -40,8 +40,25 @@ export function QuickRules({ onClose }: { onClose: () => void }) {
           <button onClick={close}>✕ Zavřít</button>
         </div>
         <p style={{ marginTop: 0, color: 'var(--muted)', fontSize: 13 }}>
-          Stručný úvod (~2 minuty). Plná pravidla najdeš na GitHubu.
+          Stručný úvod (~2 minuty). Pro celé znění klikni na odkaz níže.
         </p>
+        <a
+          href="https://github.com/Laokoonxxx/Vombat/blob/main/PRAVIDLA.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-block',
+            padding: '10px 16px',
+            background: 'var(--accent)',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: 8,
+            fontWeight: 600,
+            marginBottom: 12,
+          }}
+        >
+          📚 Otevřít plná pravidla na GitHubu →
+        </a>
 
         <Section title="🎯 Cíl hry">
           <p style={{ margin: 0 }}>

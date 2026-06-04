@@ -400,6 +400,28 @@ export function App() {
         >
           📖 Jak hrát (rychlý úvod)
         </button>
+        <a
+          href="https://github.com/Laokoonxxx/Vombat/blob/main/PRAVIDLA.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'block',
+            marginTop: 8,
+            width: '100%',
+            padding: '8px 14px',
+            border: '1px solid var(--border)',
+            background: 'var(--panel)',
+            borderRadius: 8,
+            color: 'var(--text)',
+            textDecoration: 'none',
+            cursor: 'pointer',
+            textAlign: 'center',
+            boxShadow: 'var(--shadow-sm)',
+            fontSize: 14,
+          }}
+        >
+          📚 Plná pravidla (GitHub) ↗
+        </a>
         <button onClick={() => setShowProbabilities(true)} style={{ marginTop: 8, width: '100%' }}>
           🎲 Pravděpodobnosti kostek (tabulka pro plánování ruky)
         </button>

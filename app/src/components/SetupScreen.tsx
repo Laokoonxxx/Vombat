@@ -80,6 +80,24 @@ export function SetupScreen({
         <h1>🐾 Vombat — příprava hry</h1>
         <div style={{ display: 'flex', gap: 8 }}>
           {onShowRules && <button onClick={onShowRules}>📖 Pravidla</button>}
+          <a
+            href="https://github.com/Laokoonxxx/Vombat/blob/main/PRAVIDLA.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Otevřít plná pravidla na GitHubu (nová záložka)"
+            style={{
+              padding: '8px 14px',
+              border: '1px solid var(--border)',
+              background: 'var(--panel)',
+              borderRadius: 8,
+              color: 'var(--text)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              fontSize: 'inherit',
+            }}
+          >
+            📚 Plná pravidla
+          </a>
           {onShowProbabilities && <button onClick={onShowProbabilities}>🎲 Pravděpodobnosti</button>}
           {onShowStats && <button onClick={onShowStats}>📊 Statistiky</button>}
           {onNewGame && (
