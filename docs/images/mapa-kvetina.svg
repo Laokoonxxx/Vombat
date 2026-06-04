@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <filter id="ms"><feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.45"/></filter>
+    <linearGradient id="m-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5a05c"/><stop offset="100%" stop-color="#6a3a0a"/></linearGradient>
+    <linearGradient id="m-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a8b48a"/><stop offset="100%" stop-color="#4a5a30"/></linearGradient>
+    <linearGradient id="m-de" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce5a8"/><stop offset="100%" stop-color="#947030"/></linearGradient>
+    <linearGradient id="m-t" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9bd0e8"/><stop offset="100%" stop-color="#103658"/></linearGradient>
+    <linearGradient id="m-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9cd070"/><stop offset="100%" stop-color="#1c4a10"/></linearGradient>
+    <radialGradient id="m-c" cx="50%" cy="45%"><stop offset="0%" stop-color="#a06a3a"/><stop offset="100%" stop-color="#1c0e08"/></radialGradient>
+    <radialGradient id="m-dev" cx="50%" cy="40%"><stop offset="0%" stop-color="#9a2820"/><stop offset="100%" stop-color="#040000"/></radialGradient>
+    <linearGradient id="mgloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.25"/><stop offset="100%" stop-color="#000" stop-opacity="0.3"/></linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="#3e2410"/>
+  <text x="300" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#fdf3d3">Mapa pro 2 hráče — „květina" 7 dílků</text>
+  <text x="300" y="50" text-anchor="middle" font-size="11" fill="#c9b88e">Každý dílek = 7 hexů (1 střed + 6 okolo)</text>
+
+  <!-- Each "tile" is shown as a hex of 7 small hexes -->
+  <!-- Tile centers at flower-of-7 positions: scaled for SVG -->
+  <!-- Center -->
+  <g transform="translate(300, 300)">
+    <!-- 1 mini tile = 7 small hexes -->
+    <g>
+      <!-- center hex: tree -->
+      <polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-t)" stroke="#1a0e02" stroke-width="1" filter="url(#ms)"/>
+      <polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/>
+      <text y="6" text-anchor="middle" font-size="14">🐨</text>
+      <!-- 6 surrounding -->
+      <g transform="translate(33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+      <g transform="translate(33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-b)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+      <g transform="translate(0, 38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-g)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+      <g transform="translate(-33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+      <g transform="translate(-33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-de)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+      <g transform="translate(0, -38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-c)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="12">🐱</text></g>
+    </g>
+  </g>
+
+  <!-- Helper to draw tile at offset (only shapes, no labels) -->
+  <!-- Tile flower-of-tiles offset = (3*sqrt(3)*size, ...) ~ for size 22: 114 wide -->
+  <!-- Approximate positions for 6 outer tiles -->
+
+  <!-- Outer 1: top-right -->
+  <g transform="translate(414, 234)">
+    <g><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-dev)" stroke="#1a0e02" stroke-width="1" filter="url(#ms)"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="14">👹</text></g>
+    <g transform="translate(33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-de)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(0, 38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-c)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="12">🐱</text></g>
+    <g transform="translate(-33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-g)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(-33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(0, -38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-b)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+  </g>
+
+  <!-- Outer 2: bottom-right -->
+  <g transform="translate(376, 414)">
+    <g><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-t)" stroke="#1a0e02" stroke-width="1" filter="url(#ms)"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="14">🐨</text></g>
+    <g transform="translate(33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-de)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(0, 38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-b)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(-33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(-33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-g)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(0, -38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-c)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="12">🐱</text></g>
+  </g>
+
+  <!-- Outer 3: bottom -->
+  <g transform="translate(186, 414)">
+    <g><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-t)" stroke="#1a0e02" stroke-width="1" filter="url(#ms)"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="14">🐨</text></g>
+    <g transform="translate(33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-b)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(0, 38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-de)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(-33, 19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-d)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+    <g transform="translate(-33, -19)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-c)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/><text y="6" text-anchor="middle" font-size="12">🐱</text></g>
+    <g transform="translate(0, -38)"><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#m-g)" stroke="#1a0e02" stroke-width="1"/><polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="url(#mgloss)"/></g>
+  </g>
+
+  <!-- For brevity: just show 4 tile examples (center + 3 outer). The other 4 outer are clearly implied by the flower pattern. -->
+  <text x="300" y="570" text-anchor="middle" font-size="11" fill="#c9b88e" font-style="italic">Ukázka 4 ze 7 dílků pro přehlednost. Reálná hra má všech 7 dílků poskládaných do plné květiny.</text>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <filter id="sh"><feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.4"/></filter>
+    <linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5a05c"/><stop offset="50%" stop-color="#c47820"/><stop offset="100%" stop-color="#6a3a0a"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a8b48a"/><stop offset="50%" stop-color="#7a8a5a"/><stop offset="100%" stop-color="#4a5a30"/></linearGradient>
+    <linearGradient id="sh-gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.3"/><stop offset="100%" stop-color="#000" stop-opacity="0.3"/></linearGradient>
+  </defs>
+  <rect width="800" height="320" fill="#f3ece0"/>
+  <text x="400" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#2d2418">Příklad: Vyformuj kostku</text>
+  <text x="400" y="50" text-anchor="middle" font-size="12" fill="#6e624c">Ukazatel mrkve = 3, kolem hexu 2 značky soupeře</text>
+
+  <!-- Center Hlína hex -->
+  <g transform="translate(400, 175)">
+    <!-- Cluster of 7 hexes around center (simplified) -->
+    <!-- top-left: empty bed -->
+    <g transform="translate(-65, -37)"><polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#b)" stroke="#1a0e02" stroke-width="1.5" filter="url(#sh)"/><polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#sh-gloss)"/></g>
+    <!-- top-right: bed with red marker (opponent) -->
+    <g transform="translate(65, -37)">
+      <polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#b)" stroke="#1a0e02" stroke-width="1.5" filter="url(#sh)"/>
+      <polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#sh-gloss)"/>
+      <circle cx="0" cy="0" r="10" fill="#d94a4a" stroke="#1a0e02" stroke-width="1.5"/>
+      <text y="4" text-anchor="middle" font-size="11" fill="#fff">💩</text>
+    </g>
+    <!-- left: empty -->
+    <g transform="translate(-65, 37)"><polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#d)" stroke="#1a0e02" stroke-width="1.5" filter="url(#sh)"/><polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#sh-gloss)"/></g>
+    <!-- right: dirt with red marker (opponent) -->
+    <g transform="translate(65, 37)">
+      <polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#d)" stroke="#1a0e02" stroke-width="1.5" filter="url(#sh)"/>
+      <polygon points="0,-32 28,-16 28,16 0,32 -28,16 -28,-16" fill="url(#sh-gloss)"/>
+      <circle cx="0" cy="0" r="10" fill="#d94a4a" stroke="#1a0e02" stroke-width="1.5"/>
+      <text y="4" text-anchor="middle" font-size="11" fill="#fff">🥕</text>
+    </g>
+    <!-- center: Hlína active -->
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#d)" stroke="#f59820" stroke-width="3" filter="url(#sh)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#sh-gloss)"/>
+    <text y="0" text-anchor="middle" font-size="22" fill="#fff">🟫</text>
+    <text y="22" text-anchor="middle" font-size="10" fill="#fdf3d3" font-weight="700">Hlína (akce)</text>
+  </g>
+
+  <!-- Equation on the right -->
+  <g transform="translate(560, 110)" font-family="Segoe UI" fill="#2d2418">
+    <text font-size="14" font-weight="700">Výpočet skóre:</text>
+    <text y="28" font-size="13">🥕 mrkev (ukazatel)      = <tspan font-weight="700">3</tspan></text>
+    <text y="48" font-size="13">+ sousedi soupeře (🥕💩) = <tspan font-weight="700">2</tspan></text>
+    <line x1="0" y1="58" x2="220" y2="58" stroke="#2d2418" stroke-width="1"/>
+    <text y="78" font-size="14" font-weight="800" fill="#b86e3a">Σ skóre = 5</text>
+    <text y="106" font-size="14">→ získáš <tspan font-weight="800" fill="#b86e3a">1k12</tspan></text>
+    <text y="126" font-size="11" fill="#6e624c">(skóre 5–7 = k12)</text>
+  </g>
+
+  <!-- Legend at bottom -->
+  <g transform="translate(40, 280)" font-size="11" fill="#6e624c">
+    <circle cx="8" cy="0" r="6" fill="#d94a4a"/><text x="20" y="4">červené = značky soupeře</text>
+    <circle cx="180" cy="0" r="6" fill="none" stroke="#f59820" stroke-width="2"/><text x="195" y="4">oranžový okraj = pole akce</text>
+  </g>
+</svg>

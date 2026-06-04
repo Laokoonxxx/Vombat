@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <filter id="sh2"><feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.45"/></filter>
+    <radialGradient id="d-bg" cx="50%" cy="40%" r="72%"><stop offset="0%" stop-color="#9a2820"/><stop offset="50%" stop-color="#4a0e10"/><stop offset="100%" stop-color="#040000"/></radialGradient>
+  </defs>
+  <rect width="800" height="360" fill="#f3ece0"/>
+  <text x="400" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#2d2418">Souboj s Tasmánským čertem</text>
+  <text x="400" y="50" text-anchor="middle" font-size="12" fill="#6e624c">4 sloty zranění + smrtelná rána (≥25 na novém hodu)</text>
+
+  <!-- Devil hex on left -->
+  <g transform="translate(120, 175)">
+    <polygon points="0,-50 44,-25 44,25 0,50 -44,25 -44,-25" fill="url(#d-bg)" stroke="#1a0e02" stroke-width="2" filter="url(#sh2)"/>
+    <text y="8" text-anchor="middle" font-size="36" fill="#fff">👹</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#2d2418">Čert</text>
+  </g>
+
+  <!-- 4 wound slots -->
+  <g transform="translate(280, 100)" font-family="Segoe UI">
+    <text font-size="13" font-weight="700" fill="#2d2418">Sloty zranění:</text>
+
+    <!-- Slot 1 -->
+    <g transform="translate(0, 30)">
+      <rect width="100" height="50" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="2"/>
+      <text x="50" y="20" text-anchor="middle" font-size="14" font-weight="800" fill="#2d4f1a">1</text>
+      <text x="50" y="38" text-anchor="middle" font-size="11" fill="#2d4f1a">kostka 1k4 ✓</text>
+    </g>
+    <!-- Slot 2 -->
+    <g transform="translate(110, 30)">
+      <rect width="100" height="50" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="2"/>
+      <text x="50" y="20" text-anchor="middle" font-size="14" font-weight="800" fill="#2d4f1a">2</text>
+      <text x="50" y="38" text-anchor="middle" font-size="11" fill="#2d4f1a">kostka 1k6 ✓</text>
+    </g>
+    <!-- Slot 7+ -->
+    <g transform="translate(220, 30)">
+      <rect width="100" height="50" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="2"/>
+      <text x="50" y="20" text-anchor="middle" font-size="14" font-weight="800" fill="#2d4f1a">7+</text>
+      <text x="50" y="38" text-anchor="middle" font-size="11" fill="#2d4f1a">kostka 1k8 ✓</text>
+    </g>
+    <!-- Slot 10+ — empty / pending -->
+    <g transform="translate(330, 30)">
+      <rect width="100" height="50" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="50" y="20" text-anchor="middle" font-size="14" font-weight="800" fill="#a05e2e">10+</text>
+      <text x="50" y="38" text-anchor="middle" font-size="11" fill="#a05e2e">čeká na kostku</text>
+    </g>
+
+    <!-- After all 4 -->
+    <text y="120" font-size="13" font-weight="700" fill="#2d2418">Po zasazení všech 4 zranění:</text>
+    <g transform="translate(0, 130)">
+      <rect width="430" height="80" rx="10" fill="#fff3d4" stroke="#b86e3a" stroke-width="2"/>
+      <text x="215" y="28" text-anchor="middle" font-size="14" font-weight="800" fill="#8e4f25">⚔️ SMRTELNÁ RÁNA</text>
+      <text x="215" y="50" text-anchor="middle" font-size="12" fill="#2d2418">Hoď znovu zbylými kostkami. Pokud součet ≥ 25 → VÍTĚZSTVÍ.</text>
+      <text x="215" y="68" text-anchor="middle" font-size="11" fill="#6e624c" font-style="italic">Leftover z hodu kde jsi odevzdal kostku NEPOČÍTÁ — musíš znovu hodit.</text>
+    </g>
+  </g>
+</svg>

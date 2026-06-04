@@ -1,82 +1,112 @@
 # Vombat & Co. — Inženýři krychlí
 
-*Pravidla digitální verze*
+*Pravidla pro 2–4 hráče · 30–60 minut · od 10 let*
 
-Tahová desková hra pro 2–4 hráče. Vombati žvýkají eukalyptus, vyformovávají kostkové bobky (skutečná biologie!) a chystají se rozmačkat Tasmánského Čerta. Tento dokument je úplné znění pravidel pro digitální adaptaci. Zahrnuje původní pravidla z `Pravidla hry.docx` doplněná o rozhodnutí učiněná při návrhu digitální verze.
-
-> **MVP poznámka:** Aktuální digitální verze podporuje pouze **2 hráče** lokálně (hot-seat) a pouze jeden vítězný cíl **Rozmačkej Tasmánského Čerta**. Pravidla pro 3–4 hráče a ostatní cíle jsou v dokumentu zachována pro pozdější rozšíření.
+![Vombat & Co. — pohled na hrací plochu během hry](docs/images/game.webp)
 
 ---
 
-## 1. Komponenty a slovník
+## 1. Vítejte ve hře
+
+Hluboko v australském buši žijí **vombati** — chlupatá, podsaditá zvířata s nečekanou super-schopností. Jejich zadek je obrněný kost-deskou tak tvrdou, že se s ním vombat může opřít o stěnu nory a **rozdrtit predátora o strop**. (Ano, je to skutečný biologický fakt!)
+
+A jako bonus: vombati **vyformovávají kostkové bobky**. Doslova krychlové. (Taky pravda!)
+
+Jeden takový predátor zrovna teď ohrožuje vombatí rodinu — je to **Tasmánský čert**, vzteklý šelmovitý masožravec s vyceněnými fangs a žhnoucíma očima. Vašim úkolem je hodit po něm dost kostek, abyste mu nakonec zasadili **smrtelnou ránu zadkem**.
+
+Než se ale do něj pustíte, musíte si vybudovat **arzenál kostek** — sbírejte je z Houští, formujte je na Hlíně, učte se schopnosti pod Eukalyptem. Pak jednoho dne (= jednoho tahu) přijde okamžik, kdy zaútočíte.
+
+Hra kombinuje **hex mapu**, **hod kostkami** a **lehký deck-building**: postupně si vylepšujete sbírku kostek, zatímco lavírujete mezi soupeři, kočkami v křoví a tikajícím nebezpečím Čerta.
+
+---
+
+## 2. Cíl hry
+
+**Hraješ za vombata.** Tvým hlavním úkolem je **rozdrtit Tasmánského čerta** dřív, než to stihnou soupeři.
+
+Souboj s Čertem má dvě části:
+1. **Zranit ho na 4 místech** (slotech).
+2. Pak **hodit součet ≥ 25** na samostatném hodu = smrtelná rána.
+
+**Vyhrává hráč, který Čerta rozdrtí jako první.** Hra ihned skončí.
+
+> 💡 **Tip pro první hru:** Nepokoušej se na Čerta zaútočit ihned. Nejdřív si nasbírej víc kostek (k8+) a naučíš se nějakou dovednost.
+
+---
+
+## 3. Co najdete v krabici
 
 ### Hexagonální mapa
-Mapa se skládá z **dílků**. Každý dílek má 7 hexů: 1 centrální hex + 6 hexů kolem něj.
+- **Dílky** s biomy (každý dílek = 7 hexagonálních polí). 7–9 dílků podle počtu hráčů.
 
-Středový hex dílku je vždy buď:
-- 🌳 **modrý** (Eukalyptový strom), nebo
-- 👹 **černý** (Tasmánský Čert)
+![Sedm typů polí v Vombatu — Hlína, Záhon, Poušť, Eukalyptus, Houští, Kočka, Tasmánský čert](docs/images/hex-types.svg)
 
-6 okolních hexů má jeden z těchto typů:
-| Symbol | Typ | Barva | Aktivace (hod) |
-|---|---|---|---|
-| 🟫 | Hlína | oranžová | 2–4 |
-| 🌱 | Záhon | šedá | 4–6 |
-| 🏜️ | Poušť | písková | 7+ |
-| 🌵 | Houští | zelená | 5–9 (pohyb), 5+/7+/9+ (využití) |
-| 🐱 | Kočka | hnědá | 11–14 (rozmačkání) |
+### Druhy polí
+| Symbol | Pole | K čemu slouží |
+|---|---|---|
+| 🟫 **Hlína** | oranžová | Sázení mrkve, formování kostek 💩 |
+| 🌱 **Záhon** | šedo-zelená | Sázení mrkve (klíčové pro skóre formování) |
+| 🌳 **Eukalyptus** | modrá | Učení dovedností (žvýkání listů) |
+| 🌵 **Houští** | zelená | Sbírání kostek z trnitých keřů |
+| 🏜️ **Poušť** | písková | Akce jako Hlína, ale jen s Lázněmi |
+| 🐱 **Kočka** | hnědá | Nebezpečí + možná kořist (drtí se hod 11–14) |
+| 👹 **Čert** | černá | Tvůj cíl. Tunelový vchod do bojiště. |
 
-Středové hexy se aktivují takto:
-| Symbol | Typ | Barva | Aktivace |
-|---|---|---|---|
-| 🌳 | Eukalyptový strom | modrá | 7–8 |
-| 👹 | Tasmánský Čert | černá | 12+ (pohyb) |
+### Žetony a komponenty
+- **Vombat figurka** 🐾 — tvoje postava na mapě (max 2 za hráče).
+- **Bobek** 💩 — značíš jím pole, kde jsi udělal nepříjemnou akci (vše kromě sázení mrkve).
+- **Mrkev** 🥕 — značíš jím pole, kde jsi zasadil mrkev.
+- **Brambora** 🥔 — měna a obranný předmět. Začínáš s tím, co ti zbude po startovním nákupu.
+- **Kostky** — k2, k4, k6, k8, k12, k20. *Pozn.: k10 ve hře neexistuje.* Tvoje "ruka" pro akce.
 
-### Počet dílků dle počtu hráčů
-Každý hráč přidá 1 dílek nad základ 6. Modrých zůstává 5, černých = počet hráčů (každý hráč má svého Čerta).
+![Komponenty hráče — Vombat figurka, Bobek, Mrkev, Brambora, Kostky](docs/images/komponenty.svg)
 
-| Hráči | Dílků celkem | Modrých 🌳 | Černých 👹 |
+### Deska hráče
+- **Ruka** — kostky, kterými budeš v tomto tahu házet (max 2 stejné velikosti).
+- **Zásoba** — záložní kostky (max 3 kostky, nebo neomezené s Kapacitou).
+- **Ukazatele** — kolik máš mrkve, eukalyptů a obsazených dílků mapy.
+
+---
+
+## 4. Příprava hry
+
+### Krok 1: Slož mapu
+Mapa se generuje automaticky podle počtu hráčů:
+
+| Hráči | Dílků | Z toho Eukalypty 🌳 | Z toho Čerti 👹 |
 |---|---|---|---|
 | 2 | 7 | 5 | 2 |
 | 3 | 8 | 5 | 3 |
 | 4 | 9 | 5 | 4 |
 
-### Skládání mapy
-Dílky se skládají do "květiny" — pro 7 dílků je 1 střední dílek a 6 dílků kolem něj. Dílky se dotýkají hranami; mezi sousedními dílky není žádná mezera.
+Dílky se skládají do **„květiny"** — 1 centrální + 6 kolem (a pro 3-4 hráče + 1-2 vnější dílky).
 
-Konkrétní vnitřní rozložení každého dílku je dáno **předprogramovanou sadou šablon**. Při startu hry se náhodně vybere odpovídající počet modrých a černých šablon a každá se náhodně otočí.
+![Schéma mapy pro 2 hráče — 7 dílků v květinovém uspořádání](docs/images/mapa-kvetina.svg)
 
-### Žetony a předměty
-- **Vombat** — figurka hráče. Každý hráč začíná s 1 Vombatem, druhého lze koupit v setupu za 5 brambor.
-- **Bobek 💩** — žeton, kterým hráč označuje pole, na kterém provedl akci kromě "Zasaď".
-- **Mrkev 🥕** — žeton, kterým hráč označuje pole, na kterém provedl "Zasaď".
-- **Brambora 🥔** — měna a obranný prostředek. Hráč začíná hry s tím, co mu zbylo po nákupu (z výchozích 10 brambor).
-- **Kostky** — k2, k4, k6, k8, k10, k12, k20. Hráč má **Ruku** (kostky, kterými se hází) a **Zásobu** (rezerva).
+### Krok 2: Na Houští se rozloží kostky
+Náhodně, v poměru **2 : 2 : 1** pro k4 : k6 : k8. Tyto kostky pak hráči získávají hodem.
 
-### Hexy se zelenými kostkami
-V Houští se generují kostky v poměru **2 : 2 : 1** pro k4 : k6 : k8. Tyto kostky lze získat akcí na Houští (viz § 6).
+### Krok 3: Každý hráč si vezme
+- 1 Vombata své barvy (druhý se kupuje v nákupu)
+- 20 žetonů své barvy (Bobky + Mrkve)
+- **10 brambor** 🥔
+- Desku hráče
 
-### Tunely
-Tunelem jsou:
-- **Všechna černá pole** (Čert žije v podzemí a vede tam několik tunelů).
-- **Pole bývalé Kočky** po jejím rozmačkání.
+### Krok 4: Náhodně zvolte začínajícího hráče
 
-Pohyb skrz tunel viz § 5.
+### Krok 5: Umístění Vombatů
+Po směru hodinových ručiček každý hráč postupně umístí svého prvního Vombata na libovolné pole mapy.
 
----
+> **Omezení:** Nelze začít na poli Kočky 🐱 ani Čerta 👹.
+> **Tip:** Pole sousedící s živou Kočkou jsou riziková — pokud později hodíš málo, kočka tě napadne.
 
-## 2. Příprava hry
+![Hrací plocha po umístění Vombatů — různé biomy, kostky na Houští, Kočky, Čerti](docs/images/game.webp)
 
-1. **Slož desku** podle počtu hráčů (viz tabulka v § 1). Mapa se generuje automaticky.
-2. Houště se obsadí kostkami k4/k6/k8 v poměru 2 : 2 : 1.
-3. Hnědá pole obsadí Kočky.
-4. **Každý hráč si vezme:** desku hráče, 2 Vombaty své barvy (druhý Vombat se umístí na hrací plán až po koupi v setupu), a 20 žetonů své barvy.
-5. **Začínající hráč** se vylosuje náhodně.
-6. **Výběr startovní pozice** — postupně každý hráč vybere libovolné pole na mapě a umístí na něj svého prvního Vombata. Nelze začít na poli Kočky ani Čerta.
-   > Tip: Pole sousedící s Kočkou nejsou úplně bezpečná.
-7. **Nákup startovního vybavení** — každý hráč dostane 10 brambor a *musí* si koupit alespoň 1 kostku. Zbylé brambory si ponechá do hry.
+> Na obrázku vidíš: 🟫 Hlína (oranžová), 🌱 Záhon s mrkvemi (zelená), 🐨 Eukalyptus s koalou (modrá), 🌵 Houští s kostkami (zelené pruhy), 🏜️ Poušť (písková), 🐱 Kočka s žlutýma očima (hnědá), 👹 Tasmánský čert (rudě-černá). Bílý kruh s tlapkou 🐾 je Vombat hráče.
 
-### Ceník startovního nákupu
+### Krok 6: Startovní nákup
+Každý hráč si musí koupit **alespoň 1 kostku**. Zbylé brambory zůstávají do hry.
+
 | Předmět | Cena |
 |---|---|
 | 1k2 | 5 🥔 |
@@ -84,125 +114,108 @@ Pohyb skrz tunel viz § 5.
 | 1k6 | 8 🥔 |
 | 1k8 | 10 🥔 |
 | 1k12 | 10 🥔 |
-| 2. Vombat (na stejné pole jako 1.) | 5 🥔 |
+| Druhý Vombat | 5 🥔 |
 
-> k10 v Vombatu **neexistuje** — kostky jdou v posloupnosti k2 → k4 → k6 → k8 → k12 → k20.
+> **Pozor:** k20 si nelze koupit. Lze ji jen získat ve hře (vysokým skóre formování, upgrade Žvýkáním, nebo 1. místem v úkolu Přímka 5).
 
-> 1k20 nelze koupit. Lze ji pouze získat (Vyformovat s vysokým skóre, Žvýkání upgrade z 1k12, 1. místo ve formaci, rozdrcení Kočky — zde 1k8, 1k20 jen ve výjimečných případech).
-
----
-
-## 3. Cíl hry
-
-Hráči se střídají v tazích, dokud některý hráč nedosáhne cíle. Hra nemá pevně daný počet tahů.
-
-### Vítězné cíle
-1. **Rozmačkej Tasmánského Čerta** — porazit Čerta v boji (viz § 9). **(MVP — pouze tento cíl je aktivní v digitální verzi.)**
-2. **Ovládej v jednu chvíli 4 Eukalyptové stromy** (modrá pole).
-3. **Ovládej v jednu chvíli 3 Eukalyptové stromy a 7 záhonů mrkve** (šedá pole + oranžová pole, na kterých bylo zasazeno).
-
-> Pro první hry doporučujeme hrát pouze cíl 1.
+> **Tip pro první hru:** Vezmi si 1k8 — pokrývá širokou paletu polí (Hlína, Záhon, Eukalyptus, Houští). Zbylé 2 🥔 si schovej.
 
 ---
 
-## 4. Tah hráče
+## 5. Jak hra probíhá
 
-Pokud Vombat hráče **nestojí na** ani **nesousedí s** černým polem (Čertem), tah vždy začíná **hodem všemi kostkami v Ruce**.
+### Velký obrázek
+Hráči se **střídají v tazích**. Hra běží, dokud někdo nesplní cíl (rozdrcení Čerta). Hra nemá pevný počet kol — někdy končí za 15 tahů, někdy za 30.
 
-Pokud Vombat sousedí/stojí na černém poli, hráč se může **před hodem** rozhodnout, že bude bojovat s Čertem (viz § 9).
+### Co se děje v jednom kole
+Každý hráč postupně odehraje 1 tah. Pak je na řadě další. Není kolo formálně rozdělené — prostě sekvence tahů.
 
-### Standardní tah
-1. **(Pouze s Tříděním)** Můžeš až 3× zdarma přesunout kostku Ruka ↔ Zásoba — naladíš si tvar Ruky podle příležitostí, které vidíš.
-2. **Rozhodni se:** hod kostkami, nebo „neházej" (viz Alternativy).
-3. (Pokud hodíš) Sečti hodnoty všech kostek.
-4. **Zkontroluj Kočku** — pokud Vombat sousedí s živou Kočkou a součet hodu je nižší než 5, musíš odevzdat 🥔 bramboru nebo 1 kostku (viz § 7).
-5. Vyber jednu z akcí:
-   - **Pohyb** (§ 5)
-   - **Využití pole** (§ 6)
-   - **Spánek** (§ 8)
+### Co dělá hráč ve svém tahu
+Ve zkratce: **hodí kostkami → vybere jednu akci → tah končí.**
 
-### Alternativy
-- **🥔🥔 Neházej** — strategická volba **místo hodu**. Tah skončí a získáš **2 brambory**. Vhodné, když vidíš že tvá Ruka špatně sedí na sousední pole (např. máš k20 a kolem jen Hlína 2-4 = malá šance trefit). Brambory pak využiješ na Skill shop, defense nebo úpravy hodu (viz dále).
-- **🥔 ±1 k hodu** — **po hodu** můžeš za každou utracenou bramboru posunout součet o ±1, **maximálně 2× za tah** (= max ±2). Použiješ to když ti hod jen tak-tak nesedl: rolled 5 vedle Hlíny → 🥔 → 4 ⇒ trefíš Hlínu. Neplatí v souboji s Čertem (tam jsou per-kostkové hodnoty, ne součet).
-- **💤 Spánek** — komplexnější alternativa s menu: 1 brambor, výměna kostek, Skill shop, upgrade kostek (s dovednostmi).
-- **Sprint** (§ 6.7) — můžeš v jednom tahu provést **Pohyb + Využití pole** (na stejné cílové pole).
-
-> 💡 **Roll vs. Neházej:** binární strategická volba. AI ji dělá podle pravděpodobnostního skóre: pokud Σ P(rozsah pole) × důležitost &lt; ~4.5, AI vezme brambory místo hodu. Pro hráče: hrubě platí „kdyby všechny kostky padly maximálně a stejně bys netrefil žádný rozsah → ber brambory".
-
-### Třídění před hodem (deck-building knob)
-S dovedností **Třídění** (§ 6.7) si na začátku každého tahu — ještě před hozením kostek — můžeš až **3× zdarma** přesunout kostku mezi Rukou a Zásobou. To je hlavní mechanika aktivního deck-buildingu: vidíš, která sousední pole chceš aktivovat, a stáhneš si do Ruky kostky, které k tomu pasují. Po hodu už tato volba není (kostky které hodíš, jdou na stůl).
+Podrobněji v § 6.
 
 ---
 
-## 5. Pohyb
+## 6. Tah hráče
 
-Posuň jednoho svého Vombata na **sousední neobsazené pole**, jehož **aktivační rozsah** odpovídá tvému součtu hodu.
+![Schéma průběhu tahu — hod kostkami → výběr akce → konec tahu](docs/images/tah-flow.svg)
 
-### Aktivační rozsah pro pohyb
-| Pole | Rozsah |
-|---|---|
-| Hlína | 2–4 |
-| Záhon | 4–6 |
-| Poušť | 7+ |
-| Eukalyptus | 7–8 |
-| Houští | 5–9 |
-| Kočka | 11–14 (= rozmačkání, viz níže) |
-| Čert | 12+ |
+### Standardní průběh
 
-### Omezení pohybu
-- Nelze vstoupit na pole obsazené **jiným Vombatem**.
-- Nelze vstoupit na pole se **živou Kočkou** (kromě případu rozmačkání 11–14).
-- Nelze vstoupit na **zelené pole** (Houští), na kterém leží kostka. (Lze jej obsadit, pokud na poli leží žeton soupeře/tvůj — pole bylo už použito.)
-- **Lze** vstupovat na černé, šedé nebo oranžové pole, na kterém leží žeton kostky soupeře (Obrana).
-
-### Tunel
-Pokud Vombat **stojí na poli s tunelem**, může si **místo vstupu na sousední pole** zvolit pohyb na libovolné jiné pole s tunelem na mapě. (Hodnota hodu pro tento "teleport" se neuplatňuje.)
-
-> ⚠️ Musíš na tunelu **stát** — sousedství nestačí. Nejdřív musíš tunel obsadit běžným pohybem, pak na dalším tahu z něj můžeš teleportovat.
-
-Tunely jsou: **všechna černá pole** + **pole bývalé Kočky** (po rozmačkání).
-
-### Rozdrcení Kočky (zadkem o stěnu nory)
-Hod 11–14 + sousední Kočka → Vombat zaláká kočku do své nory a chrupavčitě zpevněným zadkem ji rozdrtí o strop. Kočka je odstraněna, hráč získá **1k8**, pole se mění na **tunel**.
-
-> 🔬 **Vědecký fakt:** Vombati skutečně mají osmifolovou strukturu kostí v zadní části (tzv. „armored bum"), kterou zatahují vchody do nor a dokážou s ní zabít predátora. Mechanika v této hře je biologicky autentická.
-
-🎁 **Milestone bonus:** Pokud je tohle tvoje **první rozdrcená Kočka** ve hře, automaticky získáš dovednost **Lázně** zdarma (i bez Eukalyptů).
-
-### Konec tahu při pohybu
-Posunutí Vombata **ukončí tvůj tah** (kromě případu Sprintu, viz § 6.7).
-
----
-
-## 6. Využití pole
-
-Můžeš využít pole, na kterém **stojí** některý tvůj Vombat nebo se kterým tvůj Vombat **sousedí**, a které ještě nebylo dříve využito (kromě případů uvedených u jednotlivých polí).
-
-Hodnota hodu musí spadat do aktivačního rozsahu pole.
-
-Vždy, když využiješ pole, **označíš ho svým Bobkem nebo Mrkví** (dle akce). Pole je tím "obsazené".
-
-### 6.1. Hlína 🟫 (oranžová, aktivace 2–4)
-Hráč vybere jednu z následujících akcí:
-
-#### Zasaď 🥕
-Polož na Hlínu svůj žeton **Mrkve**. Posuň svůj ukazatel Mrkve na společné desce o 1 pole.
-> Pozor: Pokud později soupeř využije tuto Hlínu, může tvoji Mrkev odstranit a využít Hlínu pro jinou akci. Tvůj ukazatel Mrkve se mu sníží o 1. Vlastní Mrkev odstranit nemůžeš.
-
-#### Vyformuj kostku 💩
-Vombat má kostkové fekálie (skutečná biologie!). Polož na Hlínu svůj **žeton** a vyformuj kostku, jejíž maximální hodnotu určuje vzorec:
 ```
-score = počet polí Mrkve (tvůj ukazatel)
-      + počet brambor, které do akce investuješ (odhodíš)
-      + počet polí sousedících s touto Hlínou, jež jsou obsazeny značkou SOUPEŘE
+1. (Nepovinně) Třídění před hodem  — když máš dovednost Třídění
+2. HODI KOSTKAMI (nebo: nehodíš a vezmeš 2 🥔)
+3. Sečti hodnoty hozených kostek
+4. (Pokud sousedíš s Kočkou a hod < 5) Útok Kočky — odevzdáš 🥔 nebo kostku
+5. VYBER JEDNU AKCI:
+     • Pohyb (§ 6.1)
+     • Využití pole (§ 6.2)
+     • Spánek (§ 6.3)
+6. Tah končí, na řadě je další hráč
 ```
 
-> 💡 **Sousední soupeřovy značky** (nikoli tvoje vlastní) zvyšují skóre.
-> Záměr: pobízí agresivní hru — Vyformuj kostku poblíž soupeře vyplatí víc.
+> **Poznámka — boj s Čertem:** Pokud tvůj Vombat **stojí na Čertu nebo s ním sousedí**, můžeš **PŘED hodem** vyhlásit souboj místo standardního tahu. Viz § 8.
 
-| score | Zisk |
+### 6.1. Pohyb
+
+Pohyb znamená posunout **jednoho** svého Vombata na **sousední pole**, jehož **aktivační rozsah** odpovídá tvému součtu hodu.
+
+#### Aktivační rozsah = co tvůj hod „aktivuje"
+| Pole | Hod pro pohyb |
 |---|---|
-| 0 | nic |
+| 🟫 Hlína | 2–4 |
+| 🌱 Záhon | 4–6 |
+| 🏜️ Poušť | 7+ |
+| 🌳 Eukalyptus | 7–8 |
+| 🌵 Houští | 5–9 |
+| 🐱 Kočka | 11–14 (= rozdrcení!) |
+| 👹 Čert | 12+ |
+
+> **Příklad:** Hodil jsi součet 6. Sousední pole jsou Hlína (2–4) a Záhon (4–6). Můžeš se pohnout **jen na Záhon** (Hlína vyžaduje max 4).
+
+#### Tunel — fast-travel přes mapu
+**Tunelem** jsou všechna pole Čerta 👹 a všechna pole, kde dříve byla Kočka 🕳️ (po rozdrcení se mění na tunel).
+
+Pokud tvůj Vombat **STOJÍ** na tunelu, místo pohybu na souseda můžeš **teleportovat na libovolný jiný tunel** na mapě. (Hodnota hodu se nepoužívá.)
+
+> ⚠️ **Pozor:** Musíš na tunelu **stát**, ne jen sousedit. To znamená: nejdřív si do tunelu musíš dojít obvyklým pohybem.
+
+#### Rozdrcení Kočky 🐱 (hod 11–14)
+Pokud sousedíš s živou Kočkou a hodíš součet 11–14, můžeš Kočku **rozdrtit zadkem o strop nory** (skutečná biologie!).
+
+**Co získáš:**
+- 1k8 do své sbírky
+- Pole se mění na tunel (= bonus fast-travel)
+- Plus **odměna za úkol** „Rozmačkání Kočky" (viz § 9), pokud je to tvoje první kočka
+
+#### Konec tahu při pohybu
+Pohyb **ukončuje tvůj tah** — kromě případu dovednosti **Sprint**, která ti dovolí v témže tahu navíc využít pole, na které jsi se přesunul.
+
+![Příklad pohybu — hod 6 aktivuje Záhon a Houští, ale ne Hlínu ani Eukalyptus](docs/images/pohyb-priklad.svg)
+
+### 6.2. Využití pole
+
+Místo pohybu můžeš ve stejném tahu **využít pole**, na kterém **stojíš** nebo s ním **sousedíš**, pokud:
+- Hodnota tvého hodu spadá do **aktivačního rozsahu** pole
+- Pole ještě nebylo využité (ne každé — viz výjimky níže)
+
+Po využití označíš pole svým **Bobkem** 💩 nebo **Mrkví** 🥕 podle akce.
+
+#### 🟫 Hlína (rozsah 2–4)
+Vyber jednu ze 2 akcí:
+
+- **🥕 Zasaď mrkev** — Polož na Hlínu žeton Mrkve. Tvůj ukazatel Mrkve +1.
+- **💩 Vyformuj kostku** — Vombat „vyrobí" kostku ze svých bobků. Velikost závisí na **skóre**:
+
+```
+skóre = tvůj ukazatel Mrkve (🥕)
+      + počet sousedních polí SOUPEŘE (jeho 🥕 nebo 💩)
+```
+
+| Skóre | Získaná kostka |
+|---|---|
+| 0 | Nic (akce nemožná) |
 | 1 | 1k2 |
 | 2 | 1k4 |
 | 3 | 1k6 |
@@ -210,305 +223,253 @@ score = počet polí Mrkve (tvůj ukazatel)
 | 5–7 | 1k12 |
 | 8+ | 1k20 |
 
-> Akce **Uč se na Hlíně byla odstraněna** (2026-06-01). Dovednosti se získávají
-> jen na **Eukalyptu** (viz § 6.3 — Obsaď + Uč se) nebo **za splnění úkolu**
-> (viz § 10 — náhodné přiřazení schopností k 5 úkolům).
+> **Příklad:** Máš ukazatel Mrkve = 3 (3 zasazené mrkve) a Hlína sousedí se 2 poli soupeře. Skóre = 3 + 2 = **5** → získáš **1k12**.
 
----
+![Příklad Vyformuj kostku — výpočet skóre 3+2=5 → 1k12](docs/images/vyformuj-priklad.svg)
 
-### 6.2. Záhon 🌱 (šedá, aktivace 4–6)
-Záhony slouží jako "katalyzátor" pro Hlínu (zvyšují skóre Vyformování). Jediná akce:
+> 💡 Akce **Vyformuj** podporuje agresivní hru — čím blíž soupeři jsi, tím větší kostku dostaneš.
 
-#### Zasaď 🥕
-Polož na Záhon žeton Mrkve. Ukazatel Mrkve +1.
+#### 🌱 Záhon (rozsah 4–6)
+Jediná akce: **🥕 Zasaď mrkev**. Ukazatel Mrkve +1.
 
-#### Převzetí soupeři
-Pokud má soupeř na Záhoně svoji Mrkev, můžeš ji odstranit:
-- Pokud soupeř Záhon **nechrání kostkou** (Obrana, viz níže), prostě umístíš svou Mrkev. Soupeřův ukazatel Mrkve −1.
-- Pokud soupeř Záhon **chrání kostkou**, musíš na Záhoně nechat **větší kostku** než tu, kterou je nyní chráněn. Soupeřova kostka se mu vrátí (do Ruky nebo Zásoby — jeho volba).
+Záhon je „rampa" — sázením tady zvyšuješ skóre pro pozdější Vyformuj na Hlíně.
 
-#### Obrana
-Ihned po akci "Zasaď" se můžeš rozhodnout, že na Záhoně necháš některou svoji kostku z Ruky nebo Zásoby. Kostka zde zůstává do konce hry nebo do okamžiku, kdy ji někdo přebere.
+#### 🌳 Eukalyptus (rozsah 7–8)
+Dva způsoby:
 
-> **MVP poznámka:** Obrana kostkou je v digitální verzi zjednodušena — takeover lze provést bez ověření vyšší kostky. Plné enforcement plánováno v další iteraci.
+- **💩 Obsaď** — Polož žeton Bobku. Ukazatel Stromů +1.
+- **🌳🧠 Obsaď + Uč se** *(jednou per strom)* — Stejné jako Obsaď, ale navíc se okamžitě **naučíš dovednost** (viz § 6.4).
 
----
+> ⚠️ **Omezení 1× per strom:** Variantu *Obsaď + Uč se* můžeš použít **na každém stromě jen jednou**, ale pokud později navštívíš jiný strom, můžeš to zopakovat.
 
-### 6.3. Eukalyptový Strom 🌳 (modrá, aktivace 7–8)
-Eukalyptové stromy slouží jako "kapitál vědění" pro učení dovedností. Akce:
+#### 🌵 Houští (různé rozsahy)
+V Houští leží kostka (k4, k6 nebo k8). Pro **získání** musíš hodit:
 
-#### Obsaď 💩 (vždy možné)
-Polož na Eukalyptus žeton Bobku. Ukazatel Bobku +1.
-
-#### Obsaď + Uč se 🌳🧠 (volitelné, 1× per strom)
-Místo standardního Obsaď můžeš ve stejném tahu **i hned naučit dovednost**.
-- Strom se obsadí jako obvykle (+1 ukazatel stromů).
-- Bezprostředně pak vybereš dovednost (jako akce **Uč se** na Hlíně).
-- Strom který si právě obsadil **se počítá do požadovaných stromů**.
-
-⚠️ **Omezení 1× per strom:** Hráč může využít akci „Obsaď + Uč se" **jednou na každém stromě** (ne 1× za hru celkově). Pokud hráč během hry navštíví 3 různé Eukalypty, může na každém z nich kombo využít. Na témže stromě jen 1× — soupeřův takeover stromu na tom nic nemění.
-
-**Převzetí soupeři** a **Obrana** fungují identicky jako u Záhonu.
-
----
-
-### 6.4. Ostnaté Houští 🌵 (zelená)
-Houští nabízí možnost získat kostku, která na něm leží (k4/k6/k8). Aktivační rozsah pro **využití** závisí na hodnotě kostky:
-
-| Kostka na Houští | Požadavek |
+| Kostka v Houští | Potřebuješ hodit |
 |---|---|
-| 1k4 | hod 5+ |
-| 1k6 | hod 7+ |
-| 1k8 | hod 9+ |
+| 1k4 | 5+ |
+| 1k6 | 7+ |
+| 1k8 | 9+ |
 
-Akce:
-1. Hoď a dosáhni požadované hodnoty.
-2. Přidej kostku do své Ruky nebo Zásoby.
-3. Označ Houští svým Bobkem.
+Po úspěšném hodu si kostku **vezmeš do Ruky nebo Zásoby** a označíš Houští Bobkem.
 
-Aktivační rozsah pro **pohyb** přes Houští (pokud na poli žádná kostka neleží — tj. už bylo využito) je 5–9.
+> **Pohyb přes Houští:** Hod 5–9. Ale pozor — pokud na Houští **leží kostka**, **nelze přes něj jít**. Musíš ho buď vyčistit (akce Využití), nebo obejít.
 
----
+#### 🏜️ Poušť (rozsah 7+)
+Poušť je „zamčená" — můžeš ji **využít jen pokud máš dovednost Lázně**. S Lázněmi funguje jako Hlína (Zasaď nebo Vyformuj), ale stále s rozsahem 7+.
 
-### 6.5. Poušť 🏜️ (písková, aktivace 7+)
-Poušť **nelze využít**, dokud nezískáš dovednost **Lázně** (§ 6.7). Po jejím získání ji můžeš využít stejně jako Hlínu (Zasaď / Vyformuj / Uč se), s tím rozdílem, že stále potřebuješ hod 7+.
+#### 🐱 Kočka (rozsah 11–14)
+Kočka **není pole k využití**. Jediná smysluplná interakce je **rozdrcení** (viz § 6.1 — Pohyb).
 
----
-
-### 6.6. Kočka 🐱 (hnědá)
-Kočka není "pole k využití". Existují pouze dvě interakce:
-
-- **Útok Kočky** — pokud Vombat sousedí s živou Kočkou a hod < 5, hráč musí odevzdat bramboru/kostku (viz § 7).
-- **Rozmačkání** — hod 11–14, viz § 5.
+#### 👹 Čert (rozsah 12+)
+Čert je tvůj cíl. **Vstup je pohyb** (hod 12+), ale samotný vstup nezahájí boj. Boj se vyhlašuje **PŘED hodem** (viz § 8).
 
 ---
 
-### 6.7. Dovednosti (Uč se)
-Každou lze získat pouze 1×. Cesty získání:
+### 6.3. Spánek 💤
 
-1. **Obsaď + Uč se na Eukalyptu** (§ 6.3) — preferovaná cesta. 1× per strom per hráč.
-2. **Splnění úkolu** (§ 10) — každá z 5 schopností je náhodně přiřazena jednomu z 5 úkolů (3 formace + 1. Kočka + 1. zranění Čerta). Při svém prvním splnění úkolu hráč obdrží přiřazenou schopnost zdarma.
+Místo hodu (nebo místo akce po hodu) můžeš jít spát. **Spánek neaktivuje rozsahy** — funguje vždy.
 
-Všechny dovednosti stojí stejně: **1 strom** (= 1 Eukalyptus pod kontrolou, nebo 3 🥔 jako náhrada za chybějící strom).
+Co můžeš dělat:
+- **🥔 Získej 1 bramboru**
+- **⬇️ Downgrade kostek** — sníží level libovolných kostek (k8 → k6 → k4 → k2)
+- **🔄 Výměna Ruka ↔ Zásoba** — 1× zdarma (s **Tříděním** víc)
+- **⬆️⬆️ Upgrade kostky o 2 lvly** — jen s dovedností **Žvýkání** (k2→k6, k4→k8, k6→k12, k8→k12, k12→k20)
 
-| Dovednost | 🌳 | Účinek |
-|---|---|---|
-| **Kapacita** | 1 | Ruší oba limity: max 2 kostky stejného lvl v Ruce **i** max 3 kostky v Zásobě. |
-| **Lázně** (Koupel) | 1 | Můžeš využívat Poušť stejně jako Hlínu (stále hod 7+). |
-| **Třídění** (Klystýr) | 1 | **Před každým hodem** až 3× zadarmo přesun Ruka ↔ Zásoba. Umožňuje aktivní deck-building. |
-| **Žvýkání** (Masáž Střev) | 1 | Při Spánku: Upgrade 1 kostky o **2 lvly** (k12 → k20 povoleno). |
-| **Sprint** | 1 | Po Pohybu můžeš v témže tahu **Využít** pole, na které jsi se přesunul (pokud lze; jinak tah končí). |
+Po Spánku tvůj tah končí.
 
 ---
 
-### 6.8. Pravidlo "pole 1× za hru"
-Každé pole lze využít **pouze 1× za hru**, s těmito výjimkami:
+### 6.4. Dovednosti (5 schopností)
 
-- **Záhon** a **Eukalyptus** — lze přebrat soupeři (viz Převzetí).
-- **Hlína** s Mrkví soupeře — soupeř ji může odstranit a využít Hlínu pro jinou akci (Vyformuj kostku, Uč se).
+Dovednosti jsou trvalé bonusy, které tě posouvají na další úroveň. **Získat je můžeš jen dvěma způsoby:**
 
-Když je pole označeno značkou (Vyformuj kostku, Uč se), je trvale obsazeno a nelze ho znovu využít.
+1. **Na Eukalyptu** — akce *Obsaď + Uč se* (1× per strom)
+2. **Za splnění úkolu** — viz § 9
+
+| Dovednost | Co dělá |
+|---|---|
+| **Kapacita** | Ruší limity Ruky (max 2 stejných) i Zásoby (max 3 celkem). Důležitá pro endgame. |
+| **Lázně** | Odemkne **Poušť** jako využitelné pole (Zasaď, Vyformuj). |
+| **Třídění** | Před každým hodem až 3× zdarma přesun kostky mezi Rukou a Zásobou. Mocný deck-building. |
+| **Žvýkání** | Při Spánku: upgrade 1 kostky o **2 lvly**. Jediná cesta k 1k20 (z k12). |
+| **Sprint** | Po pohybu můžeš v tomtéž tahu **využít** pole, na které jsi se přesunul. |
+
+> **Cena:** Každá dovednost vyžaduje **1 strom** (Eukalyptus). Pokud nemáš dost stromů, můžeš chybějící zaplatit **3 brambory za 1 strom**.
+
+> *(Náhled karet dovedností v sidebar panelu hry — doplníme screenshotem po testování.)*
 
 ---
 
 ## 7. Útok Kočky a Čerta
 
-Když utrpíš útok (Kočka při hodu < 5 v sousedství, Čert po neúspěšném boji), musíš **odevzdat 1 bramboru nebo 1 kostku** dle vlastní volby.
+Když je tvůj Vombat napaden, **musíš odevzdat 1 bramboru NEBO 1 kostku** (tvoje volba).
 
-**Priorita** je na hráči — v digitální verzi vidíš dialog s nabídkou (brambora vždy první volba pokud ji máš).
+**Kdy se to stane:**
+- Sousedíš s živou Kočkou a hodíš součet **< 5**
+- Selhal jsi v boji s Čertem (nedokázal jsi způsobit zranění)
 
-### Speciální případy
-- Pokud **nemáš žádnou bramboru** a v Ruce + Zásobě máš dohromady jen **1 kostku**, musíš tuto kostku **downgradovat** o 1 level (k4 → k2, k6 → k4, atd.).
-- Pokud je tvá jediná kostka **1k2**, útok **ignoruj**.
-
----
-
-## 8. Spánek 💤
-
-Kdykoliv po hodu (nebo místo hodu, pokud máš v Ruce 0 kostek) se můžeš rozhodnout pro **Spánek**. Spánek není závislý na hozených hodnotách.
-
-### Výchozí možnosti (všichni hráči)
-- **Získej 1 bramboru.**
-- **Downgrade kostek** — okamžitý downgrade libovolných kostek v Ruce nebo Zásobě o libovolné množství levlů.
-- **Výměna se Zásobou (1×)** — jedna z:
-  - Přesuň kostku z Ruky do Zásoby.
-  - Přesuň kostku ze Zásoby do Ruky.
-  - Vyměň kostku v Ruce s kostkou v Zásobě.
-- **(Skill shop odstraněn 2026-06-01)** — schopnosti se získávají jen přes Eukalyptus (§ 6.3) nebo za úkol (§ 10).
-
-### Možnosti s dovednostmi
-- **Třídění (Klystýr)** → Před každým hodem (mimo Spánek) až 3× zdarma přesun Ruka ↔ Zásoba.
-- **Žvýkání (Masáž Střev)** → Upgrade 1 kostky o **2 lvly** (k2→k6, k4→k8, …, k10→k20, k12→k20).
-
-### Brambora jako prostředek
-Bramboru lze použít na:
-- Odvrácení útoku Kočky / Čerta (1 brambora).
-- Investice do Vyformování (každá brambora +1 ke skóre).
-- Upgrade kostky (3 brambory = +1 lvl).
-- Náhrada Eukalyptu při Uč se (3 brambory = 1 strom).
+> **Výjimky:**
+> - Pokud máš 0 brambor a **jen 1 kostku**, musíš ji **downgradovat** o 1 level (k4 → k2, k6 → k4, …).
+> - Pokud je ta jediná kostka **1k2**, útok se **ignoruje** (nemůžeš jít níž).
 
 ---
 
-## 9. Boj s Tasmánským Čertem 👹
+## 8. Souboj s Tasmánským čertem 👹
 
-**Vstup na pole Čerta** je možný za běžných pravidel pohybu (hod 12+). Sám vstup ale **neaktivuje boj** — pouze stojíš na poli, které je tunelem.
+### Kdy bojovat
+Pokud tvůj Vombat **stojí na Čertu nebo s ním sousedí**, můžeš **PŘED hodem** vyhlásit souboj. Místo standardního tahu pak proběhne boj.
 
-### Vyhlášení boje
-Pokud Vombat **stojí na** nebo **sousedí s** Čertem, můžeš se **PŘED HODEM** v daném tahu rozhodnout, že budeš s Čertem bojovat.
+### Cíl: 4 zranění + smrtelná rána
+Čert má **4 sloty zranění**: **1**, **2**, **7+**, **10+**.
 
-V boji se na hozené kostky **nedívá jako na součet**, ale **každá kostka samostatně**.
-
-### Cíl: 4 typy zranění
-Čert má 4 sloty zranění: **1**, **2**, **7+**, **10+**.
-
-Kostka může způsobit zranění pokud její hodnota přesně odpovídá:
+Kostka tě zraní Čerta, pokud její **hodnota** odpovídá:
 - **1** → kostka padla 1
 - **2** → kostka padla 2
-- **7+** → kostka padla ≥ 7
-- **10+** → kostka padla ≥ 10
+- **7+** → kostka padla 7 nebo víc
+- **10+** → kostka padla 10 nebo víc
 
-Kostky použité na zranění **propadají natrvalo** (znázorňují, že Čert je zraněn).
-
-🎁 **Úkol „Zranění Čerta":** Při tvém **prvním zaneseném zranění** Čerta (jakémkoli ze 4 typů) získáš schopnost přiřazenou tomuto úkolu (viz § 10 — mapping je náhodný per hra).
-
-Každý hráč má **vlastní 4 sloty zranění** (každý hráč bojuje se "svým" Čertem). Jeden hráč může mít v každém slotu maximálně 1 kostku.
+> **V souboji se každá kostka hodnotí zvlášť**, ne jako součet (jako u běžných polí).
 
 ### Průběh boje
-Hod 1:
-1. Hráč hodí všemi kostkami v Ruce.
-2. Pro každou kostku, která splňuje nějaký volný slot zranění, hráč rozhodne, zda ji použije (nebo nechá pro další hody).
-3. Pokud **alespoň jedna kostka byla použita na zranění**, hráč pokračuje dalším hodem se **zbylými kostkami**.
-4. Pokud **žádná kostka** nesplnila žádné zbývající zranění, **boj končí neúspěšně** → **útok Čerta** (viz § 7).
+1. **Hod 1:** Hodíš všemi kostkami v Ruce.
+2. Pro každou kostku, která sedí na volný slot, se rozhodni: **použít ji (kostka propadá!)** nebo nechat pro další hod.
+3. Pokud jsi alespoň 1 kostku použil → další hod se zbylými kostkami.
+4. Pokud žádná kostka neseděla → **boj končí útokem Čerta** (viz § 7).
 
-Hody pokračují, dokud:
-- Hráč nezasadí **všechna 4 zranění** → pak musí v **samostatném dalším hodu** se zbylými kostkami dosáhnout **součtu 25+**. **Pozor:** leftover kostek z hodu, ve kterém už něco odevzdal na zranění, se NEPOČÍTÁ — vždy je nutný **nový hod**. Pokud nový hod ≥ 25 → **VÍTĚZSTVÍ**. Pokud ne → útok Čerta.
-- Hráč v některém hodu nedokáže způsobit žádné další zranění → útok Čerta.
+### Smrtelná rána
+Jakmile máš všechna 4 zranění zasazená, musíš **v dalším hodu** se zbylými kostkami dosáhnout **součtu ≥ 25**.
 
-> **Výjimka pro úvodní hod:** Pokud hráč přichází do souboje s **už zasazenými 4 zraněními** z předchozích tahů a otvírací hod sám o sobě dá 25+, je to platná smrtelná rána (žádné kostky nebyly v tomto hodu odevzdány). To je jediný případ, kdy úvodní hod může zabít.
+> ⚠️ **Důležité:** Musí to být **samostatný hod**. Zbytky kostek z hodu, ve kterém jsi právě zasadil 4. zranění, se **nepočítají**. Musíš znovu hodit.
 
-> **Poznámka:** Pravidlo obrany u Čerta není v základní hře aplikováno (pro 2–4 hráče by nedávalo smysl).
+- Pokud hod ≥ 25 → **VÍTĚZSTVÍ** 🏆
+- Pokud hod < 25 → útok Čerta (§ 7), boj končí
+
+> **Výjimka:** Pokud do boje vstoupíš s **už zasazenými 4 zraněními** z minulých tahů a úvodní hod sám dá 25+, je to platná smrtelná rána. *(Jediný případ, kdy úvodní hod může zabít.)*
+
+![Souboj s Čertem — 4 sloty zranění + smrtelná rána ≥25](docs/images/souboj-cert.svg)
 
 ---
 
-## 10. Úkoly (5 dohromady)
+## 9. Úkoly — bonusové cíle
 
-Vedle hlavního cíle (rozmačkat Čerta) hráči plní **5 úkolů** — 3 prostorové formace + 2 milestones (rozmačkání 1. kočky, zranění 1. Čerta). **Před začátkem hry se každá z 5 schopností náhodně přiřadí jednomu z úkolů.** Mapping je viditelný od začátku (sidebar „🎁 Odměny za úkoly") — hráči tak vědí co hrát.
+Vedle hlavního cíle (rozdrtit Čerta) hráči plní **5 úkolů**. Plnění úkolu ti dá **schopnost zdarma** — která je každou hru **náhodně přiřazená**.
 
-**Trigger:** Hráč dostane přiřazenou schopnost při svém **prvním splnění** daného úkolu (per hráč, ne globálně — i druhý hráč co rozmačká kočku dostane schopnost).
+### Jak to funguje
+- Na začátku hry se **5 schopností náhodně přiřadí 5 úkolům**.
+- Mapping je viditelný od začátku v sidebar panelu.
+- **Při prvním splnění úkolu** (per hráč) dostaneš přiřazenou schopnost zdarma.
+- Schopnost už ti zůstává, i kdyby ji někdo splnil i po tobě.
 
-### Aditivní odměny u formací
-Formace navíc dál dávají **kostku podle pořadí**:
+### 5 úkolů
+
+| Úkol | Splníš tím že… |
+|---|---|
+| **Přímka 5** | Máš 5+ svých značek v rovné hex-linii. Žádná značka soupeře nesousedí s těmito 5 hexy. |
+| **Obklíčení** | Kolem libovolné značky soupeře leží **alespoň 4 tvé** sousední značky. |
+| **Průzkumník** | Tvé značky leží na **6 různých dílcích** mapy. |
+| **Rozmačkání Kočky** | Rozdrtíš první Kočku. |
+| **Zranění Čerta** | V boji zasadíš první zranění Čertu (jakékoli ze 4). |
+
+### Bonusové kostky pro 3 prostorové úkoly
+Formace (Přímka 5, Obklíčení, Průzkumník) navíc dávají **kostku podle pořadí splnění**:
 
 | Pořadí | Kostka |
 |---|---|
 | 1. hráč | 1k20 |
 | 2. hráč | 1k12 |
 | 3. hráč | 1k6 |
-| 4.+ | žádná (formaci přesto získáš započítanou + schopnost za úkol) |
+| 4.+ | Žádná (schopnost ano) |
 
-> Odměna je kostka – přidá se jako jakákoli jiná získaná kostka (volíš velikost ≤ nabídka a kam ji umístit: Ruka/Zásoba/Čekající). Schopnost za úkol se uděluje **navíc** — dostaneš obě.
-
-### 5 úkolů a jejich triggery
-
-- **Přímka 5** — 5+ tvých značek v libovolně orientované **hex-přímce po sobě jdoucích polí**. S žádným z těchto 5 hexů nesmí sousedit značka soupeře.
-- **Obklíčení** — 4+ tvých značek kolem jedné značky soupeře (kolem libovolného z jeho hexů s 🥕/💩 leží minimálně 4 tvé sousední značky).
-- **Průzkumník** — tvé značky leží na minimálně **6 různých dílcích** mapy (dílek = sada 7 hexů s černým/modrým středem).
-- **Rozmačkání Kočky** (1.) — tvůj první cat smash. K standardní odměně 1k8 + tunel dostaneš přiřazenou schopnost.
-- **Zranění Čerta** (1.) — tvé první úspěšné zasažení libovolného slotu Čerta v souboji. Dostaneš přiřazenou schopnost.
-
-### Detekce v digitální verzi
-Detekce formací probíhá ihned po každém umístění značky. Pokud jednou akcí splníš více formací najednou (např. „Vyformuj kostku" zároveň dokončí Přímku 5 i Obklíčení), získáš odměny postupně – jednu po druhé. Pokud máš přiřazenou schopnost už z jiného úkolu (např. ji ses naučil přes Hlínu), úkol se stejně počítá za splněný, ale schopnost se neuděluje znovu.
+![Příklad náhodného přiřazení 5 dovedností k 5 úkolům v jedné konkrétní hře](docs/images/ukoly-mapping.svg)
 
 ---
 
-## 11. Obecná pravidla pro kostky
+## 10. Důležité pojmy
 
-### Hand a Reserve limity
-- **Ruka** — max 2 kostky stejného levelu (např. nejvýše 2× 1k6). Limit zruší **Kapacita**.
-- **Zásoba** — max 3 kostky. Limit zruší **Kapacita**.
+**Aktivační rozsah** — Rozmezí součtu hodu, které „aktivuje" konkrétní pole pro pohyb nebo využití. Např. Hlína = 2–4.
 
-### Overflow přes Kapacitu (📥 Čekající kostky)
-Když hráč získá kostku během hry (Houští, Vyformuj kostku, rozmačkaná Kočka), kostka se vždy někam vejde:
-1. **Pokud se vejde do Ruky** (respektuje limit) → jde do Ruky.
-2. **Jinak pokud se vejde do Zásoby** (respektuje limit) → jde do Zásoby.
-3. **Jinak putuje do "📥 Čekající"** zóny — kostku jsi získal, ale je dočasně zamknutá. Nelze ji použít pro hod ani jako obrana.
+**Bobek** 💩 — Žeton, kterým označuješ pole, kde jsi udělal jinou akci než „Zasaď mrkev". Trvalá značka.
 
-Jakmile hráč získá dovednost **Kapacita** (libovolnou cestou — Uč se, Sleep shop, milestone z 1. zranění Čerta), **všechny čekající kostky se okamžitě uvolní do Ruky**.
+**Boj s Čertem** — Speciální tah, který vyhlásíš místo standardního hodu. Hodnoty kostek se v boji počítají **jednotlivě**, ne jako součet.
 
-> Pozor: V **setupu** se toto pravidlo neuplatňuje. Pokud si chceš v nákupu koupit 3. stejnou kostku, prodej je odmítnut (limit 2× stejného lvl).
+**Brambora** 🥔 — Měna. Slouží k obraně, úpravám hodu, investování do skóre Vyformuj a náhradě za chybějící strom při Učení.
 
-### Volba velikosti při získání
-Kdykoliv hráč získá kostku, může se **rozhodnout pro menší** (např. 1k6 místo 1k12).
+**Hod** — Hod všemi kostkami v Ruce. Výsledek = **součet** hodnot (mimo souboj s Čertem, kde se počítají jednotlivě).
 
-### Volba umístění
-Kdykoliv hráč získá kostku, může si **vybrat Ruku nebo Zásobu** (s ohledem na limity).
+**Kapacita** — Dovednost, která ruší limity Ruky (max 2 stejných) i Zásoby (max 3).
 
-### Upgrade kostek
-Stupnice kostek: **1k2 → 1k4 → 1k6 → 1k8 → 1k12 → 1k20** (k10 neexistuje).
+**Markery / Značky** — Žetony Bobku 💩 nebo Mrkve 🥕 na poli. Trvale obsazují pole.
 
-Žvýkání (Masáž Střev) je jediná cesta k upgradu o **2 lvly**:
-- 1k2 → 1k6
-- 1k4 → 1k8
-- 1k6 → 1k12 (skok přes k8 — k10 jako fiktivní mezistupeň)
-- 1k8 → 1k12
-- 1k12 → 1k20
+**Mrkev** 🥕 — Žeton, kterým označuješ pole po akci „Zasaď". Trvalá značka.
 
-### Downgrade
-Při povinném downgrade (jediná kostka při útoku, Spánek) jdeš po stejné stupnici opačně.
+**Ruka** — Kostky, kterými budeš v tahu házet. Limit: max 2 stejné velikosti (zruší Kapacita).
 
-### Volba kostky při odhození
-Kdykoliv hráč musí odhodit nebo odložit kostku, vybírá si zda z Ruky nebo Zásoby.
+**Smrtelná rána** — Hod ≥ 25 na samostatném hodu po zasazení všech 4 zranění Čerta. Vyhrává hru.
+
+**Tunel** — Pole, ze kterého lze teleportovat na libovolný jiný tunel. Jsou jím všechna pole Čerta 👹 + pole bývalé Kočky 🕳️. **Musíš na něm stát** (sousedství nestačí).
+
+**Vombat** 🐾 — Tvoje figurka na mapě. Začínáš s 1, druhého si můžeš koupit v setupu za 5 🥔.
+
+**Zásoba** — Záložní kostky mimo Ruku. Limit: max 3 (zruší Kapacita). Pro hod musíš nejdřív kostku přesunout do Ruky.
 
 ---
 
-## 12. Konec hry
+## 11. Konec hry
 
-Hra okamžitě končí, jakmile některý hráč dosáhne svého cíle (viz § 3). V MVP je to **rozmačkání Tasmánského Čerta** (souboj v § 9).
+Hra **okamžitě končí**, jakmile některý hráč zasadí Čertovi **smrtelnou ránu** (souboj § 8). Tento hráč vyhrává.
 
-Vítěz je oznámen na obrazovce.
-
----
-
-## Příloha A — Souhrn rozhodnutí pro digitální verzi
-
-Následující drobné body byly v původních pravidlech buď nejednoznačné, nebo explicitně otevřené. Pro digitální verzi byly rozhodnuty takto (po dohodě s autorem):
-
-| Otázka | Rozhodnutí |
-|---|---|
-| MVP rozsah | 2 hráči, hot-seat na jednom zařízení |
-| MVP cíl | pouze "Rozmačkej Tasmánského Čerta" |
-| Vizuální styl | barevné hexy + emoji (🐾🐱👹🥕💩🥔🌳) |
-| Stack | React 18 + TypeScript + Vite, SVG hex grid |
-| Vnitřek dílků | předprogramovaná sada šablon (5 modrých + 3 černé), náhodně rotované |
-| Skládání mapy | pevná "květina" 7 dílků (1 střed + 6 okolo) |
-| Limit Ruky | max 2 kostky stejného levlu, jinak neomezeno |
-| Začínající hráč | losováním |
-| Druhý Vombat (5 🥔) | umístí se na stejné pole jako první |
-| Útok Kočky/Čerta | hráč v dialogu volí (brambora vs. kostka) |
-| Pole 1× za hru | ano, kromě převzetí Záhonu/Eukalyptu a Hlíny s Mrkví soupeře |
-| Tunely | všechna černá pole + pole bývalé Kočky |
-| 1k12 cena v setupu | 12 🥔 (v pravidlech neuvedeno, doplněno rozumně) |
-| Vrtej | **odstraněno** v MVP — bez úkolů nemělo využití |
-| Žonglování + Zácpa | **sloučeno** do dovednosti **Kapacita** (1× 🌳) — ruší oba limity najednou |
-| Teleport (Spánek) | **odstraněno** — bývalo 5 🥔 → přemístění Vombata kamkoli. Příliš silné (instant Čert přístup), navíc redundantní s tunely. Tunely teď slouží jako jediný "fast travel". |
-| Skill shop (Spánek) | **odstraněno 2026-06-01** — schopnosti se získávají jen na Eukalyptu nebo za úkol. (Předtím: 5 🥔 → schopnost ve Spánku.) |
-| Učení na Hlíně | **odstraněno 2026-06-01** — Hlína má teď jen 2 akce (Zasaď, Vyformuj). Učení jen Eukalyptus + úkoly. |
-| Náhodné odměny za úkoly | **přidáno (2026-06-01)** — 5 schopností se na začátku hry **náhodně přiřadí 5 úkolům** (3 formace + 1. rozmačkaná Kočka + 1. zranění Čerta). Hráč dostane přiřazenou schopnost při svém PRVNÍM splnění daného úkolu. Mapping je viditelný od začátku, takže hráči plánují strategii. **Nahrazuje** dřívější fixní milestones (Koupel za 1. kočku, Kapacita za 1. zranění Čerta). U formací je odměna aditivní s kostkou (k20/k12/k6 za pořadí). |
-| Overflow přes Kapacitu | **přidáno** — kostky se při získání nikdy neztratí; pokud se nevejdou nikam, čekají do získání Kapacity |
-| Eukalyptus: Obsaď + Uč se | **přidáno** — lze místo standardního Obsaď využít Eukalyptus i pro učení dovednosti. **1× per strom per hráč** (ne 1× za hru celkově) — když navštívíš 3 různé stromy, můžeš ho použít 3×. |
-| Třídění (Klystýr) — redesign | **změna** — místo „neomezené výměny ve Spánku" nyní „**3× zdarma před hodem**". Cílem je donutit hráče aktivně stavět ruku každý tah (deck-building). |
-| Odměna za Kočku | **změna** — 1k20 → **1k8**. K20 byla příliš dominantní strategie (84-96 % win rate při 2+ rozdrcených kočkách). 1k8 je solidní bonus, ale ne instant-win. Milestone Lázně zdarma za 1. kočku zachováno. |
-| Neházej (skip roll) | **přidáno** — strategická volba místo hodu: vezmeš 2 🥔, tah skončí. Buduje brambor-economy a snižuje frustraci ze špatných hodů, aniž by se musela komplikovat Spánek menu. |
-| ±1 k hodu za 🥔 | **přidáno** — po hodu můžeš utratit brambor pro ±1 ke skóre hodu, max 2× za tah. Propojí deck-building s economy: stačí být blízko trefení rozsahu, brambory ho dolaďujou. Neplatí v souboji s Čertem (per-die mechanika). |
+*(V budoucnu plánujeme další vítězné cíle — ovládat 4 stromy, 3 stromy + 7 záhonů — ale aktuálně podporuje hra jen rozdrcení Čerta.)*
 
 ---
 
-## Příloha B — MVP zjednodušení (k doladění)
+## 12. Nejčastější otázky
 
-Tyto věci jsou v aktuální digitální verzi zjednodušené:
+**Q: Co když nemám žádné kostky a stojím u Kočky?**
+A: V tomhle případě útok Kočky ignoruješ (nemůžeš downgradovat nic). Ale tah ti začne i tak — buď zkus akci „Vyformuj kostku" pokud máš mrkve, nebo Spánek pro 1 bramboru.
 
-1. **Obrana kostkou** na Záhonu/Eukalyptu — takeover lze provést bez ověření vyšší kostky.
-2. **Investice brambor do Vyformování** — UI dialog zatím nenabízí; počítá se jen carrotTrack + sousední markery.
-3. ~~**Úkoly (formace)** — celá sekce neimplementována.~~ ✅ Implementováno.
-4. **3–4 hráči** — neimplementováno (vyžaduje další šablony a layout 10/13 dílků).
-5. **Vítězné cíle 2 a 3** — neimplementováno.
+**Q: Můžu na Čerta zaútočit hned na 1. tahu?**
+A: Teoreticky ano, pokud jsi začal vedle Čerta a hodil 12+. Ale s 1 kostkou v Ruce nemáš šanci ho zranit ve všech 4 slotech — boj rychle skončí útokem Čerta. Doporučujeme nejdřív posbírat 4-5 kostek různých velikostí.
+
+**Q: Mám 5 značek v řadě, ale úkol Přímka 5 mi nesplnil. Proč?**
+A: Pravidlo říká: **žádná značka soupeře nesmí sousedit** s žádným z 5 hexů přímky. Při hře s 3-4 hráči je deska často natěsno a soupeřova značka v sousedství blokuje. Sidebar diagnostický panel ti řekne přesně kde.
+
+**Q: Mohu jet do Pouště bez Lázní?**
+A: **Pohybem ano** (hod 7+). Ale **využít** ji můžeš jen s Lázněmi. Bez dovednosti je to mrtvé pole.
+
+**Q: Co se stane když získám kostku, ale mám už plnou Ruku i Zásobu?**
+A: Kostka jde do **„Čekající"** zóny (📥). Nemůžeš s ní hrát ani bránit. Až získáš **Kapacitu**, všechny čekající kostky se ti uvolní do Ruky.
+
+**Q: Mohu odejít ze souboje s Čertem?**
+A: Když boj selže (žádná kostka neseděla na slot), je z toho automaticky útok Čerta. Ale **dobrovolně** ze souboje odejít můžeš — tlačítko „Ukončit boj" tah ukončí beztrestně.
+
+**Q: K čemu jsou tunely?**
+A: Fast-travel přes mapu. Pokud stojíš na tunelu (pole Čerta nebo bývalé Kočky), místo pohybu na souseda můžeš teleportovat na libovolný jiný tunel. Ideální když ti zbývá souboj s Čertem, ale jsi daleko.
+
+**Q: Mohu rozdrtit Kočku, na kterou nesousedím přímo?**
+A: Ne. Rozdrcení vyžaduje, abys s Kočkou **sousedil** (jeden z 6 hexů od ní) a hodil 11–14. Vstup na pole Kočky obvyklým pohybem **nelze** — živá Kočka je neprůchozí.
+
+**Q: Co když mi soupeř ukradne značku Mrkve z Hlíny?**
+A: Pokud soupeř využije tvoji Hlínu pro **Vyformuj kostku**, může tvoji Mrkev odstranit. Tvůj ukazatel Mrkve se sníží o 1. Vlastní Mrkev odstranit nemůžeš.
+
+**Q: Jak je to s Žvýkáním a kostkou k20?**
+A: Žvýkání upgraduje kostku o **2 lvly**. Posloupnost je k2→k4→k6→k8→k12→k20 (k10 v Vombatu neexistuje). Takže: k6→k12, k8→k12, k12→k20.
+
+**Q: Můžu mít dva Vombaty?**
+A: Ano, pokud sis druhého koupil v setupu (za 5 🥔). Druhý se umístí na stejné pole jako první. V tahu **hýbeš pouze jedním Vombatem** dle své volby — druhý zůstává na místě.
+
+---
+
+## Změnové poznámky (pro hráče, co znají starší verze)
+
+- **Dovednosti se učí jen na Eukalyptu nebo za úkol.** Hlína již neumožňuje „Uč se", Sleep shop byl odstraněn.
+- **k10 ve hře nefiguruje.** Stupnice je k2 → k4 → k6 → k8 → k12 → k20.
+- **Žvýkání dělá +2 lvly** (dříve +1). Sloučeno se starou „Ajurvédou".
+- **Kočka dává 1k8** (dříve 1k20).
+- **Smrtelná rána vyžaduje samostatný hod** (dříve stačily zbylé kostky).
+- **Tunely** — musíš na nich stát, sousedství nestačí.
+- **Náhodné přiřazení dovedností úkolům** — každá hra je trochu jiná.
+
+---
+
+🐾 **Hodně štěstí v boji!**
