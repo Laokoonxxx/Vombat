@@ -257,6 +257,24 @@ export function GameScreen({
         <h1>🐾 Vombat</h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {onShowRules && <button className="ghost" onClick={onShowRules}>📖 Pravidla</button>}
+          <a
+            className="ghost"
+            href="https://github.com/Laokoonxxx/Vombat/blob/main/PRAVIDLA.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Otevřít plná pravidla na GitHubu (nová záložka)"
+            style={{
+              padding: '8px 14px',
+              border: '1px solid transparent',
+              borderRadius: 8,
+              color: 'var(--text)',
+              textDecoration: 'none',
+              fontSize: 'inherit',
+              cursor: 'pointer',
+            }}
+          >
+            📚 Plná pravidla
+          </a>
           {onShowProbabilities && <button className="ghost" onClick={onShowProbabilities}>🎲 P-osti</button>}
           {onShowStats && <button className="ghost" onClick={onShowStats}>📊 Stats</button>}
           {onNewGame && (
