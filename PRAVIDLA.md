@@ -2,6 +2,8 @@
 
 *Pravidla pro 2–4 hráče · 30–60 minut · od 10 let*
 
+![Vombat & Co. — pohled na hrací plochu během hry](docs/images/game.webp)
+
 ---
 
 ## 1. Vítejte ve hře
@@ -98,7 +100,9 @@ Po směru hodinových ručiček každý hráč postupně umístí svého prvníh
 > **Omezení:** Nelze začít na poli Kočky 🐱 ani Čerta 👹.
 > **Tip:** Pole sousedící s živou Kočkou jsou riziková — pokud později hodíš málo, kočka tě napadne.
 
-> *(Screenshot z reálné hry doplníme po prvním testování — zatím viz živou demo na produkční URL.)*
+![Hrací plocha po umístění Vombatů — různé biomy, kostky na Houští, Kočky, Čerti](docs/images/game.webp)
+
+> Na obrázku vidíš: 🟫 Hlína (oranžová), 🌱 Záhon s mrkvemi (zelená), 🐨 Eukalyptus s koalou (modrá), 🌵 Houští s kostkami (zelené pruhy), 🏜️ Poušť (písková), 🐱 Kočka s žlutýma očima (hnědá), 👹 Tasmánský čert (rudě-černá). Bílý kruh s tlapkou 🐾 je Vombat hráče.
 
 ### Krok 6: Startovní nákup
 Každý hráč si musí koupit **alespoň 1 kostku**. Zbylé brambory zůstávají do hry.
