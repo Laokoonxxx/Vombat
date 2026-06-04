@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <filter id="hex-shadow"><feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.45" flood-color="#1a0e02"/></filter>
+    <linearGradient id="g-dirt" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5a05c"/><stop offset="50%" stop-color="#c47820"/><stop offset="100%" stop-color="#6a3a0a"/></linearGradient>
+    <linearGradient id="g-bed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a8b48a"/><stop offset="50%" stop-color="#7a8a5a"/><stop offset="100%" stop-color="#4a5a30"/></linearGradient>
+    <linearGradient id="g-desert" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce5a8"/><stop offset="50%" stop-color="#dcb568"/><stop offset="100%" stop-color="#947030"/></linearGradient>
+    <linearGradient id="g-tree" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9bd0e8"/><stop offset="50%" stop-color="#3a82b3"/><stop offset="100%" stop-color="#103658"/></linearGradient>
+    <linearGradient id="g-thorn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9cd070"/><stop offset="50%" stop-color="#4a8a30"/><stop offset="100%" stop-color="#1c4a10"/></linearGradient>
+    <radialGradient id="g-cat" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#a06a3a"/><stop offset="60%" stop-color="#5a3a1c"/><stop offset="100%" stop-color="#1c0e08"/></radialGradient>
+    <radialGradient id="g-devil" cx="50%" cy="40%" r="72%"><stop offset="0%" stop-color="#9a2820"/><stop offset="50%" stop-color="#4a0e10"/><stop offset="100%" stop-color="#040000"/></radialGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/><stop offset="40%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#000000" stop-opacity="0.35"/></linearGradient>
+  </defs>
+  <rect width="900" height="340" fill="#3e2410"/>
+  <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#fdf3d3">Sedm typů polí v Vombatu</text>
+
+  <!-- Row 1: dirt, bed, desert, tree -->
+  <g transform="translate(80, 90)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-dirt)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🟫</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Hlína</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">aktivace 2–4</text>
+  </g>
+  <g transform="translate(260, 90)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-bed)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🌱</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Záhon</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">aktivace 4–6</text>
+  </g>
+  <g transform="translate(440, 90)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-desert)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🏜️</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Poušť</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">aktivace 7+ (Lázně)</text>
+  </g>
+  <g transform="translate(620, 90)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-tree)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🐨</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Eukalyptus</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">aktivace 7–8</text>
+  </g>
+
+  <!-- Row 2: thorn, cat, devil -->
+  <g transform="translate(170, 220)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-thorn)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🌵</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Houští</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">aktivace 5–9</text>
+  </g>
+  <g transform="translate(380, 220)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-cat)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">🐱</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Kočka</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">rozdrcení 11–14</text>
+  </g>
+  <g transform="translate(590, 220)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#g-devil)" stroke="#1a0e02" stroke-width="2" filter="url(#hex-shadow)"/>
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="url(#shine)"/>
+    <text y="6" text-anchor="middle" font-size="26" fill="#fff">👹</text>
+    <text y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf3d3">Tasmánský čert</text>
+    <text y="98" text-anchor="middle" font-size="11" fill="#c9b88e">pohyb 12+, cíl hry</text>
+  </g>
+</svg>

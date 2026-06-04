@@ -34,12 +34,10 @@ Souboj s Čertem má dvě části:
 
 ## 3. Co najdete v krabici
 
-[OBRÁZEK: Celkový pohled na rozloženou hru]
-
 ### Hexagonální mapa
 - **Dílky** s biomy (každý dílek = 7 hexagonálních polí). 7–9 dílků podle počtu hráčů.
 
-[OBRÁZEK: Jednotlivý dílek mapy s vyznačenými typy polí]
+![Sedm typů polí v Vombatu — Hlína, Záhon, Poušť, Eukalyptus, Houští, Kočka, Tasmánský čert](docs/images/hex-types.svg)
 
 ### Druhy polí
 | Symbol | Pole | K čemu slouží |
@@ -59,7 +57,7 @@ Souboj s Čertem má dvě části:
 - **Brambora** 🥔 — měna a obranný předmět. Začínáš s tím, co ti zbude po startovním nákupu.
 - **Kostky** — k2, k4, k6, k8, k12, k20. *Pozn.: k10 ve hře neexistuje.* Tvoje "ruka" pro akce.
 
-[OBRÁZEK: Komponenty hráče — figurky, žetony, kostky]
+![Komponenty hráče — Vombat figurka, Bobek, Mrkev, Brambora, Kostky](docs/images/komponenty.svg)
 
 ### Deska hráče
 - **Ruka** — kostky, kterými budeš v tomto tahu házet (max 2 stejné velikosti).
@@ -81,7 +79,7 @@ Mapa se generuje automaticky podle počtu hráčů:
 
 Dílky se skládají do **„květiny"** — 1 centrální + 6 kolem (a pro 3-4 hráče + 1-2 vnější dílky).
 
-[OBRÁZEK: Setup po kroku 1 — složená mapa pro 2 hráče]
+![Schéma mapy pro 2 hráče — 7 dílků v květinovém uspořádání](docs/images/mapa-kvetina.svg)
 
 ### Krok 2: Na Houští se rozloží kostky
 Náhodně, v poměru **2 : 2 : 1** pro k4 : k6 : k8. Tyto kostky pak hráči získávají hodem.
@@ -100,7 +98,7 @@ Po směru hodinových ručiček každý hráč postupně umístí svého prvníh
 > **Omezení:** Nelze začít na poli Kočky 🐱 ani Čerta 👹.
 > **Tip:** Pole sousedící s živou Kočkou jsou riziková — pokud později hodíš málo, kočka tě napadne.
 
-[OBRÁZEK: Setup po kroku 5 — umístění Vombatů]
+> *(Screenshot z reálné hry doplníme po prvním testování — zatím viz živou demo na produkční URL.)*
 
 ### Krok 6: Startovní nákup
 Každý hráč si musí koupit **alespoň 1 kostku**. Zbylé brambory zůstávají do hry.
@@ -136,6 +134,8 @@ Podrobněji v § 6.
 ---
 
 ## 6. Tah hráče
+
+![Schéma průběhu tahu — hod kostkami → výběr akce → konec tahu](docs/images/tah-flow.svg)
 
 ### Standardní průběh
 
@@ -188,7 +188,7 @@ Pokud sousedíš s živou Kočkou a hodíš součet 11–14, můžeš Kočku **r
 #### Konec tahu při pohybu
 Pohyb **ukončuje tvůj tah** — kromě případu dovednosti **Sprint**, která ti dovolí v témže tahu navíc využít pole, na které jsi se přesunul.
 
-[OBRÁZEK: Příklad pohybu — Vombat se posunul na Záhon]
+![Příklad pohybu — hod 6 aktivuje Záhon a Houští, ale ne Hlínu ani Eukalyptus](docs/images/pohyb-priklad.svg)
 
 ### 6.2. Využití pole
 
@@ -220,6 +220,8 @@ skóre = tvůj ukazatel Mrkve (🥕)
 | 8+ | 1k20 |
 
 > **Příklad:** Máš ukazatel Mrkve = 3 (3 zasazené mrkve) a Hlína sousedí se 2 poli soupeře. Skóre = 3 + 2 = **5** → získáš **1k12**.
+
+![Příklad Vyformuj kostku — výpočet skóre 3+2=5 → 1k12](docs/images/vyformuj-priklad.svg)
 
 > 💡 Akce **Vyformuj** podporuje agresivní hru — čím blíž soupeři jsi, tím větší kostku dostaneš.
 
@@ -291,7 +293,7 @@ Dovednosti jsou trvalé bonusy, které tě posouvají na další úroveň. **Zí
 
 > **Cena:** Každá dovednost vyžaduje **1 strom** (Eukalyptus). Pokud nemáš dost stromů, můžeš chybějící zaplatit **3 brambory za 1 strom**.
 
-[OBRÁZEK: Karta dovednosti — Třídění]
+> *(Náhled karet dovedností v sidebar panelu hry — doplníme screenshotem po testování.)*
 
 ---
 
@@ -341,7 +343,7 @@ Jakmile máš všechna 4 zranění zasazená, musíš **v dalším hodu** se zby
 
 > **Výjimka:** Pokud do boje vstoupíš s **už zasazenými 4 zraněními** z minulých tahů a úvodní hod sám dá 25+, je to platná smrtelná rána. *(Jediný případ, kdy úvodní hod může zabít.)*
 
-[OBRÁZEK: Příklad souboje — 3 sloty zranění obsazené, 4. visí]
+![Souboj s Čertem — 4 sloty zranění + smrtelná rána ≥25](docs/images/souboj-cert.svg)
 
 ---
 
@@ -375,7 +377,7 @@ Formace (Přímka 5, Obklíčení, Průzkumník) navíc dávají **kostku podle 
 | 3. hráč | 1k6 |
 | 4.+ | Žádná (schopnost ano) |
 
-[OBRÁZEK: Panel úkolů a přiřazení schopností]
+![Příklad náhodného přiřazení 5 dovedností k 5 úkolům v jedné konkrétní hře](docs/images/ukoly-mapping.svg)
 
 ---
 

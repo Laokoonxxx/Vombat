@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" font-family="Segoe UI, system-ui, sans-serif">
+  <rect width="800" height="380" fill="#f3ece0"/>
+  <text x="400" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#2d2418">Náhodné přiřazení dovedností úkolům</text>
+  <text x="400" y="50" text-anchor="middle" font-size="12" fill="#6e624c">Každou hru se 5 dovedností 1:1 namapuje na 5 úkolů. Příklad jedné konkrétní hry:</text>
+
+  <!-- Two columns: Úkoly + Dovednosti -->
+  <text x="200" y="90" text-anchor="middle" font-size="14" font-weight="700" fill="#8e4f25">ÚKOLY</text>
+  <text x="600" y="90" text-anchor="middle" font-size="14" font-weight="700" fill="#8e4f25">DOVEDNOSTI</text>
+
+  <!-- Pairs (random example mapping) -->
+  <g transform="translate(0, 110)" font-size="13" fill="#2d2418">
+    <!-- Pair 1 -->
+    <g transform="translate(0, 0)">
+      <rect x="60" y="0" width="280" height="36" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="1.5"/>
+      <text x="200" y="22" text-anchor="middle" font-weight="600">📏 Přímka 5</text>
+      <line x1="340" y1="18" x2="460" y2="18" stroke="#6e624c" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="460" y="0" width="280" height="36" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="1.5"/>
+      <text x="600" y="22" text-anchor="middle" font-weight="700" fill="#2d4f1a">🌀 Třídění</text>
+    </g>
+    <!-- Pair 2 -->
+    <g transform="translate(0, 50)">
+      <rect x="60" y="0" width="280" height="36" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="1.5"/>
+      <text x="200" y="22" text-anchor="middle" font-weight="600">🛡️ Obklíčení</text>
+      <line x1="340" y1="18" x2="460" y2="18" stroke="#6e624c" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="460" y="0" width="280" height="36" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="1.5"/>
+      <text x="600" y="22" text-anchor="middle" font-weight="700" fill="#2d4f1a">📦 Kapacita</text>
+    </g>
+    <!-- Pair 3 -->
+    <g transform="translate(0, 100)">
+      <rect x="60" y="0" width="280" height="36" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="1.5"/>
+      <text x="200" y="22" text-anchor="middle" font-weight="600">🧭 Průzkumník</text>
+      <line x1="340" y1="18" x2="460" y2="18" stroke="#6e624c" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="460" y="0" width="280" height="36" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="1.5"/>
+      <text x="600" y="22" text-anchor="middle" font-weight="700" fill="#2d4f1a">🏃 Sprint</text>
+    </g>
+    <!-- Pair 4 -->
+    <g transform="translate(0, 150)">
+      <rect x="60" y="0" width="280" height="36" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="1.5"/>
+      <text x="200" y="22" text-anchor="middle" font-weight="600">🐱 Rozmačkání Kočky</text>
+      <line x1="340" y1="18" x2="460" y2="18" stroke="#6e624c" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="460" y="0" width="280" height="36" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="1.5"/>
+      <text x="600" y="22" text-anchor="middle" font-weight="700" fill="#2d4f1a">♨️ Lázně</text>
+    </g>
+    <!-- Pair 5 -->
+    <g transform="translate(0, 200)">
+      <rect x="60" y="0" width="280" height="36" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="1.5"/>
+      <text x="200" y="22" text-anchor="middle" font-weight="600">⚔️ Zranění Čerta</text>
+      <line x1="340" y1="18" x2="460" y2="18" stroke="#6e624c" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="460" y="0" width="280" height="36" rx="8" fill="#c6e9b8" stroke="#4a8a2a" stroke-width="1.5"/>
+      <text x="600" y="22" text-anchor="middle" font-weight="700" fill="#2d4f1a">🌳 Žvýkání</text>
+    </g>
+  </g>
+
+  <text x="400" y="365" text-anchor="middle" font-size="11" fill="#6e624c" font-style="italic">Toto je pouze příklad. V příští hře bude pravděpodobně jiné přiřazení.</text>
+</svg>

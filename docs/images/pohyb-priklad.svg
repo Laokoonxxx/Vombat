@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <filter id="sh3"><feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.4"/></filter>
+    <linearGradient id="hl-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5a05c"/><stop offset="50%" stop-color="#c47820"/><stop offset="100%" stop-color="#6a3a0a"/></linearGradient>
+    <linearGradient id="hl-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a8b48a"/><stop offset="50%" stop-color="#7a8a5a"/><stop offset="100%" stop-color="#4a5a30"/></linearGradient>
+    <linearGradient id="hl-t" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9bd0e8"/><stop offset="50%" stop-color="#3a82b3"/><stop offset="100%" stop-color="#103658"/></linearGradient>
+    <linearGradient id="hl-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9cd070"/><stop offset="50%" stop-color="#4a8a30"/><stop offset="100%" stop-color="#1c4a10"/></linearGradient>
+    <linearGradient id="gloss2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.3"/><stop offset="100%" stop-color="#000" stop-opacity="0.3"/></linearGradient>
+    <marker id="movearr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b86e3a"/></marker>
+  </defs>
+  <rect width="800" height="320" fill="#f3ece0"/>
+  <text x="400" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#2d2418">Příklad: Pohyb</text>
+  <text x="400" y="50" text-anchor="middle" font-size="12" fill="#6e624c">Hodil jsi součet 6. Kam se můžeš pohnout?</text>
+
+  <!-- Center: Vombat hex -->
+  <g transform="translate(400, 175)">
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#hl-d)" stroke="#1a0e02" stroke-width="2" filter="url(#sh3)"/>
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#gloss2)"/>
+    <!-- Vombat token -->
+    <circle r="14" fill="#1a0e02"/>
+    <circle r="11" fill="#d94a4a" stroke="#fff" stroke-width="1.5"/>
+    <circle r="8" fill="#fff8dc"/>
+    <text y="3" text-anchor="middle" font-size="11">🐾</text>
+  </g>
+
+  <!-- Neighbor 1: Hlína (2-4) — NOT reachable with 6 -->
+  <g transform="translate(330, 105)">
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#hl-d)" stroke="#1a0e02" stroke-width="2" opacity="0.5" filter="url(#sh3)"/>
+    <text y="0" text-anchor="middle" font-size="20" opacity="0.5">🟫</text>
+    <text y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf3d3">2–4</text>
+    <text y="56" text-anchor="middle" font-size="11" font-weight="700" fill="#c33">✕ moc vysoko</text>
+  </g>
+
+  <!-- Neighbor 2: Záhon (4-6) — REACHABLE -->
+  <g transform="translate(470, 105)">
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#hl-b)" stroke="#4a8a2a" stroke-width="3.5" filter="url(#sh3)"/>
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#gloss2)"/>
+    <text y="2" text-anchor="middle" font-size="20">🌱</text>
+    <text y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf3d3">4–6</text>
+    <text y="56" text-anchor="middle" font-size="11" font-weight="700" fill="#4a8a2a">✓ trefíš!</text>
+  </g>
+
+  <!-- Arrow to Záhon -->
+  <line x1="425" y1="160" x2="455" y2="130" stroke="#b86e3a" stroke-width="3" marker-end="url(#movearr)"/>
+
+  <!-- Neighbor 3: Houští (5-9) — REACHABLE too -->
+  <g transform="translate(470, 245)">
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#hl-g)" stroke="#4a8a2a" stroke-width="3.5" filter="url(#sh3)"/>
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#gloss2)"/>
+    <text y="2" text-anchor="middle" font-size="20">🌵</text>
+    <text y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf3d3">5–9</text>
+    <text y="-50" text-anchor="middle" font-size="11" font-weight="700" fill="#4a8a2a">✓ trefíš taky</text>
+  </g>
+
+  <!-- Neighbor 4: Eukalyptus (7-8) — NOT reachable -->
+  <g transform="translate(330, 245)">
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#hl-t)" stroke="#1a0e02" stroke-width="2" opacity="0.5" filter="url(#sh3)"/>
+    <text y="0" text-anchor="middle" font-size="20" opacity="0.5">🐨</text>
+    <text y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf3d3">7–8</text>
+    <text y="-50" text-anchor="middle" font-size="11" font-weight="700" fill="#c33">✕ moc nízko</text>
+  </g>
+
+  <!-- Roll indicator -->
+  <g transform="translate(40, 60)">
+    <rect width="120" height="50" rx="8" fill="#fff5e0" stroke="#b86e3a" stroke-width="2"/>
+    <text x="60" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#8e4f25">Tvůj hod</text>
+    <text x="60" y="42" text-anchor="middle" font-size="20" font-weight="800" fill="#2d2418">Σ = 6</text>
+  </g>
+</svg>
