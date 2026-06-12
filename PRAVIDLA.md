@@ -205,6 +205,7 @@ Pokud sousedíš s živou Kočkou a hodíš součet 11–14, můžeš Kočku **r
 **Co získáš:**
 - 1k8 do své sbírky
 - Pole se mění na tunel (= bonus fast-travel)
+- **Tvoji značku na pole** — počítá se do úkolů (formace, viz § 9), tunel zůstává průchozí
 - Plus **odměna za úkol** „Rozmačkání Kočky" (viz § 9), pokud je to tvoje první kočka
 
 #### Konec tahu při pohybu
@@ -348,6 +349,8 @@ Kostka tě zraní Čerta, pokud její **hodnota** odpovídá:
 - **10+** → kostka padla 10 nebo víc
 
 > **V souboji se každá kostka hodnotí zvlášť**, ne jako součet (jako u běžných polí).
+
+**Značka za zranění:** Za každé zasazené zranění položíš **svoji značku na pole Čerta**. Pokud tam už značka je (soupeř Čerta zranil dřív), **mění se majitel** — značka je teď tvoje. Značka slouží **jen pro úkoly** (formace, viz § 9) — pole Čerta funguje dál normálně (tunel, boj).
 
 ### Průběh boje
 1. **Hod 1:** Hodíš všemi kostkami v Ruce.

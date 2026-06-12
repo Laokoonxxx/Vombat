@@ -662,6 +662,43 @@ function buildTooltip(c: BoardCell, isBlockedThorn: boolean): string {
 }
 
 // =============================================================================
+// WOMBAT TOKEN — top-down figurine silhouette, fits in r≈10
+// =============================================================================
+
+function renderWombatSilhouette(): JSX.Element {
+  const cream = 'rgba(255,248,210,0.93)';
+  const dark = '#160802';
+  const nose = '#7a3020';
+  return (
+    <g>
+      {/* Body */}
+      <ellipse cx={0} cy={1} rx={5.8} ry={4.2} fill={cream} />
+      {/* Head */}
+      <circle cx={0} cy={-5.2} r={3.8} fill={cream} />
+      {/* Ears */}
+      <ellipse cx={-2.2} cy={-8.6} rx={1.3} ry={0.9} transform="rotate(-20 -2.2 -8.6)" fill={cream} />
+      <ellipse cx={2.2} cy={-8.6} rx={1.3} ry={0.9} transform="rotate(20 2.2 -8.6)" fill={cream} />
+      {/* Nose */}
+      <ellipse cx={0} cy={-9} rx={1.2} ry={0.65} fill={nose} />
+      {/* Eyes */}
+      <circle cx={-1.5} cy={-5.5} r={0.65} fill={dark} />
+      <circle cx={1.5} cy={-5.5} r={0.65} fill={dark} />
+      {/* Eye shine dots */}
+      <circle cx={-1.1} cy={-5.8} r={0.22} fill="rgba(255,255,255,0.8)" />
+      <circle cx={1.9} cy={-5.8} r={0.22} fill="rgba(255,255,255,0.8)" />
+      {/* Front legs */}
+      <ellipse cx={-7.2} cy={-0.5} rx={1.6} ry={0.95} transform="rotate(-25 -7.2 -0.5)" fill={cream} />
+      <ellipse cx={7.2} cy={-0.5} rx={1.6} ry={0.95} transform="rotate(25 7.2 -0.5)" fill={cream} />
+      {/* Back legs */}
+      <ellipse cx={-6.2} cy={4.8} rx={1.6} ry={0.95} transform="rotate(20 -6.2 4.8)" fill={cream} />
+      <ellipse cx={6.2} cy={4.8} rx={1.6} ry={0.95} transform="rotate(-20 6.2 4.8)" fill={cream} />
+      {/* Tail */}
+      <ellipse cx={0} cy={5.5} rx={1.1} ry={0.62} fill={cream} />
+    </g>
+  );
+}
+
+// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
@@ -717,6 +754,33 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
   }, [cells]);
 
   const corners = useMemo(() => hexCorners(HEX_SIZE), []);
+
+  // Collect all vombats across all players, group shared-hex vombats for offset
+  const vombatOverlay = useMemo(() => {
+    const hexGroups = new Map<string, { color: string; id: string; hex: Hex }[]>();
+    for (const p of state.players) {
+      for (const v of p.vombats) {
+        const k = hexKey(v.hex);
+        if (!hexGroups.has(k)) hexGroups.set(k, []);
+        hexGroups.get(k)!.push({ color: p.color, id: v.id, hex: v.hex });
+      }
+    }
+    const result: { id: string; color: string; svgX: number; svgY: number; offsetX: number }[] = [];
+    hexGroups.forEach((group) => {
+      const n = group.length;
+      group.forEach(({ id, color, hex }, i) => {
+        const { x, y } = hexToPixel(hex, HEX_SIZE);
+        result.push({
+          id,
+          color,
+          svgX: x,
+          svgY: y + HEX_SIZE * 0.22,
+          offsetX: (i - (n - 1) / 2) * 24,
+        });
+      });
+    });
+    return result;
+  }, [state.players]);
 
   return (
     <svg
@@ -789,6 +853,18 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
           <rect width="9" height="9" fill="transparent" />
           <line x1="0" y1="0" x2="0" y2="9" stroke="rgba(0,0,0,0.4)" strokeWidth="2.5" />
         </pattern>
+
+        {/* Vombat token — 3D dome shine (upper-left light source) */}
+        <radialGradient id="token-shine" cx="28%" cy="22%" r="68%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.55)" />
+          <stop offset="55%" stopColor="rgba(255,255,255,0.08)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
+        </radialGradient>
+
+        {/* Vombat token drop shadow */}
+        <filter id="vombat-shadow" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodOpacity="0.75" floodColor="#050200" />
+        </filter>
       </defs>
 
       {cells.map((c) => {
@@ -957,49 +1033,30 @@ export function HexBoard({ state, clickableHexes, actionableHexes, selectedHex, 
               );
             })()}
 
-            {/* 12. Vombat(s) — medallion token */}
-            {state.players.map((p) =>
-              p.vombats
-                .filter((v) => v.hex.q === c.hex.q && v.hex.r === c.hex.r)
-                .map((v, i) => (
-                  <g key={v.id} style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.7))' }}>
-                    {/* Outer dark ring */}
-                    <circle
-                      cx={x - HEX_SIZE * 0.5 + i * 19}
-                      cy={y + HEX_SIZE * 0.4}
-                      r={17}
-                      fill="#1a0e02"
-                    />
-                    {/* Player color disc */}
-                    <circle
-                      cx={x - HEX_SIZE * 0.5 + i * 19}
-                      cy={y + HEX_SIZE * 0.4}
-                      r={14}
-                      fill={p.color}
-                      stroke="#fff"
-                      strokeWidth={1.5}
-                    />
-                    {/* Inner cream emblem */}
-                    <circle
-                      cx={x - HEX_SIZE * 0.5 + i * 19}
-                      cy={y + HEX_SIZE * 0.4}
-                      r={10}
-                      fill="rgba(255, 248, 220, 0.94)"
-                    />
-                    <text
-                      x={x - HEX_SIZE * 0.5 + i * 19}
-                      y={y + HEX_SIZE * 0.4 + 1}
-                      className="hex-label"
-                      fontSize={15}
-                    >
-                      🐾
-                    </text>
-                  </g>
-                ))
-            )}
           </g>
         );
       })}
+
+      {/* Vombat overlay — outside hex loop so CSS transition animates movement */}
+      {vombatOverlay.map(({ id, color, svgX, svgY, offsetX }) => (
+        <g
+          key={id}
+          transform={`translate(${svgX + offsetX}, ${svgY})`}
+          style={{ transition: 'transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          filter="url(#vombat-shadow)"
+        >
+          {/* Ground shadow */}
+          <ellipse cx={0} cy={7} rx={15} ry={7.5} fill="rgba(0,0,0,0.38)" />
+          {/* Dark outer rim */}
+          <circle r={18} fill="#0e0600" />
+          {/* Player color disc */}
+          <circle r={16} fill={color} />
+          {/* 3D dome shine (upper-left light) */}
+          <circle r={16} fill="url(#token-shine)" />
+          {/* Wombat figurine */}
+          {renderWombatSilhouette()}
+        </g>
+      ))}
     </svg>
   );
 }
