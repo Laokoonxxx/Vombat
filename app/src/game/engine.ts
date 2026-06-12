@@ -966,8 +966,11 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
   if (smashedCat) {
     targetCell.catAlive = false;
     targetCell.isTunnel = true;
+    // Značka za poraženou Kočku — slouží jen pro úkoly (formace), nemění
+    // countery (bobekTrack) ani neblokuje tunel.
+    targetCell.marker = { playerId: p.id, kind: 'bobek' };
     dieAcquisitionPaused = addDieOrPending(s, p, 8, 'rozmačkaná Kočka');
-    logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k8 a vzniká tunel.`);
+    logEntry(s, `🎉 ${p.name} chrupavčitým zadkem rozdrtil Kočku! Získává 1k8, značku a vzniká tunel.`);
     // Úkol: 1. rozmačkaná Kočka → schopnost přiřazená v taskRewards.catSmash
     grantTaskReward(s, p, 'catSmash');
   } else {
@@ -984,10 +987,14 @@ export function moveVombat(state: GameState, vombatId: string, targetHex: Hex): 
     s.phase = 'using_field';
     logEntry(s, `${p.name} přesunul Vombata. Díky Sprintu může okamžitě využít toto pole.`);
   } else if (dieAcquisitionPaused) {
-    // Cat smash: 1k20 needs human placement first; defer endTurn.
+    // Cat smash (human): kostka čeká na umístění; formace z nové značky
+    // zkontroluje resolveDieAcquisition (volá processPendingFormations).
     s.pendingPostAcquisition = 'end_turn';
+  } else if (smashedCat) {
+    // Cat smash (AI / auto-place): nová značka může dokončit formaci.
+    finishMarkerAction(s);
   } else {
-    if (p.skills.has('sprint') && !smashedCat) {
+    if (p.skills.has('sprint')) {
       // Sprint nelze využít na tomto poli → krátká zpráva, ať hráč ví proč.
       logEntry(s, `${p.name} přesunul Vombata. Sprint nelze využít (cílové pole nevyhovuje).`);
     }
@@ -1526,6 +1533,23 @@ export function beginDevilCombat(state: GameState, rng?: RNG): GameState {
   return s;
 }
 
+// Najdi hex Čerta, u kterého hráč právě bojuje: nejdřív pole, na kterém
+// Vombat stojí, jinak sousední černé pole. Null pokud žádné (nemělo by
+// v boji nastat).
+function findFightingDevilHex(state: GameState, p: PlayerState): Hex | null {
+  for (const v of p.vombats) {
+    const standing = state.board.get(hexKey(v.hex));
+    if (standing?.type === 'devil') return standing.hex;
+  }
+  for (const v of p.vombats) {
+    for (const nb of hexNeighbors(v.hex)) {
+      const c = state.board.get(hexKey(nb));
+      if (c?.type === 'devil') return c.hex;
+    }
+  }
+  return null;
+}
+
 // Apply a die to a wound slot.
 export function applyDevilWound(state: GameState, diceIndex: number, wound: WoundType): GameState {
   const s = cloneState(state);
@@ -1551,6 +1575,23 @@ export function applyDevilWound(state: GameState, diceIndex: number, wound: Woun
   logEntry(s, `${p.name} zranil Čerta na ${wound} (kostka 1k${dieLvl}, hod ${val}).`);
   // Úkol: 1. zranění Čerta → schopnost přiřazená v taskRewards.devilWound
   grantTaskReward(s, p, 'devilWound');
+  // Značka za zranění Čerta — pokládá se na pole Čerta, u kterého hráč
+  // bojuje. Pokud tam už značka je (cizí z dřívějšího zranění), MĚNÍ SE
+  // MAJITEL. Značka slouží jen pro úkoly (formace) — countery se nemění,
+  // tunel zůstává průchozí.
+  const devilHex = findFightingDevilHex(s, p);
+  if (devilHex) {
+    const devilCell = s.board.get(hexKey(devilHex))!;
+    const prevOwner = devilCell.marker?.playerId;
+    devilCell.marker = { playerId: p.id, kind: 'bobek' };
+    if (prevOwner && prevOwner !== p.id) {
+      const prev = s.players.find((pp) => pp.id === prevOwner);
+      logEntry(s, `🏴 ${p.name} přebral značku na Čertovi${prev ? ` od ${prev.name}` : ''}.`);
+    }
+    // Nová značka může dokončit formaci. V boji NEukončujeme tah — případná
+    // pick_die_acquisition volba se vyřeší modálem a boj pokračuje.
+    processPendingFormations(s, p.id);
+  }
   // POZN: Smrtelná rána (sum ≥25) vyžaduje SAMOSTATNÝ hod — leftover po
   // odevzdání kostky na zranění se nepočítá. Hráč musí kliknout "Hoď znovu"
   // a teprve nový hod (devilContinueRoll) může zabít.
