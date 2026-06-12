@@ -589,20 +589,33 @@ function processPendingFormations(s: GameState, playerId: string): boolean {
     const reward = FORMATION_REWARDS[Math.min(rank, FORMATION_REWARDS.length - 1)];
     s.completedFormations.push({ formation: f, playerId, turn: s.turnNumber });
     const rankLabel = ['1.', '2.', '3.', '4.+'][Math.min(rank, 3)];
+    // Souřadnice do logu — deska se může později změnit (převzetí značky,
+    // flip na Čertovi), takže hráč jinak nemá jak ověřit KDE se formace
+    // splnila. Diagnostiky vrací aktuální (= právě splněnou) konfiguraci.
+    let whereDetail = '';
+    if (f === 'obkliceni') {
+      const d = obkliceniDiagnostic(s, playerId);
+      if (d.targetOppHex) whereDetail = ` [obklíčená značka na (${d.targetOppHex.q},${d.targetOppHex.r})]`;
+    } else if (f === 'primka5') {
+      const d = primka5Diagnostic(s, playerId);
+      if (d.isComplete && d.bestRun.length >= 5) {
+        whereDetail = ` [řada: ${d.bestRun.slice(0, 5).map((h) => `(${h.q},${h.r})`).join(' ')}]`;
+      }
+    }
     // Aditivní odměna: přiřazená schopnost (jednou per hráč) PLUS dice odměna
     // za pořadí. Skill granted first — tak ho hráč vidí dřív v logu.
     grantTaskReward(s, p, f);
     if (reward != null) {
       logEntry(
         s,
-        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) → odměna 1k${reward}.`
+        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) → odměna 1k${reward}.${whereDetail}`
       );
       const paused = addDieOrPending(s, p, reward, `úkol ${FORMATION_LABEL[f]}`);
       if (paused) return true;
     } else {
       logEntry(
         s,
-        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) — bez kostkové odměny (pozdě).`
+        `🏅 ${p.name} splnil úkol "${FORMATION_LABEL[f]}" (${rankLabel} v pořadí) — bez kostkové odměny (pozdě).${whereDetail}`
       );
     }
   }

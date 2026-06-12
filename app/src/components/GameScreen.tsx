@@ -1439,12 +1439,12 @@ function FormationsPanel({ state }: { state: GameState }) {
               <div style={{ fontSize: 11, marginTop: 2 }}>
                 {state.players.map((pl) => {
                   const diag = primka5Diagnostic(state, pl.id);
-                  const alreadyDone = state.completedFormations.some(
+                  const completion = state.completedFormations.find(
                     (c) => c.playerId === pl.id && c.formation === 'primka5'
                   );
                   let detail: string;
-                  if (alreadyDone) {
-                    detail = '✅ splněno';
+                  if (completion) {
+                    detail = `✅ splněno (tah ${completion.turn} — deska se od té doby mohla změnit)`;
                   } else if (diag.isComplete) {
                     detail = `✅ ${diag.bestRunLen} v řadě (čeká na detekci)`;
                   } else if (diag.bestRunLen >= 5 && diag.blockerOppHex) {
@@ -1464,12 +1464,12 @@ function FormationsPanel({ state }: { state: GameState }) {
               <div style={{ fontSize: 11, marginTop: 2 }}>
                 {state.players.map((pl) => {
                   const diag = obkliceniDiagnostic(state, pl.id);
-                  const alreadyDone = state.completedFormations.some(
+                  const completion = state.completedFormations.find(
                     (c) => c.playerId === pl.id && c.formation === 'obkliceni'
                   );
                   let detail: string;
-                  if (alreadyDone) {
-                    detail = '✅ splněno';
+                  if (completion) {
+                    detail = `✅ splněno (tah ${completion.turn} — deska se od té doby mohla změnit)`;
                   } else if (diag.isComplete) {
                     detail = `✅ ${diag.maxNeighbors}/6 (čeká na detekci)`;
                   } else {
