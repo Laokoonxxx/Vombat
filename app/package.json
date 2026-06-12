@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "research:sim": "tsx src/research/simulate.ts",
     "research:analyze": "tsx src/research/analyze.ts --latest",
-    "research:run": "npm run research:sim -- 1000 400 && npm run research:analyze"
+    "research:run": "npm run research:sim -- 1000 400 && npm run research:analyze",
+    "research:evolve": "tsx src/research/evolve.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

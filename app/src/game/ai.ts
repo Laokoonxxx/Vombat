@@ -14,10 +14,13 @@
 //   7. Once 5+ dice with at least one k10+ and adjacent to Devil → fight
 // =============================================================================
 
-import type { BoardCell, GameState, Hex, DiceLevel, PlayerState, SkillId, WoundType } from './types';
+import type { BoardCell, GameState, Hex, DiceLevel, PlayerState, SkillId, TaskKey, WoundType } from './types';
 import { hexKey, WOUND_TYPES } from './types';
 import { hexNeighbors, cubeDistance } from './hex';
 import { pSumInRange, pSumLessThan } from './probabilities';
+import { W } from './ai-weights';
+export { setAiWeights, getAiWeights, resetAiWeights, DEFAULT_WEIGHTS } from './ai-weights';
+export type { AiWeights } from './ai-weights';
 import {
   currentPlayer,
   rollDice,
@@ -236,8 +239,8 @@ function aiStartTurn(state: GameState): GameState {
   //
   // Threshold tuning: 2 brambor ≈ 3-4 score units (5 🥔 = skill). We pick
   // 3.0 to be conservative — only skip when roll is clearly bad.
-  const POTATO_CAP = 8;
-  const SKIP_THRESHOLD = 3.0;
+  const POTATO_CAP = W.potatoCap;
+  const SKIP_THRESHOLD = W.skipThreshold;
   if (p.hand.length > 0 && p.potatoes < POTATO_CAP) {
     const targets = computeSwapTargets(state, p);
     if (targets.length > 0) {
@@ -390,11 +393,10 @@ function canPlayerUseFieldType(_state: GameState, p: PlayerState, cell: BoardCel
 }
 
 // Weight for "I want to move onto this cell this turn".
-function movementWeight(cell: BoardCell, p: PlayerState, _state: GameState, devilReady: boolean): number {
+function movementWeight(cell: BoardCell, p: PlayerState, state: GameState, devilReady: boolean): number {
   if (cell.type === 'cat' && cell.catAlive) {
-    // Cat smash: 1k8 + tunnel + milestone Lázně (if first)
-    const milestoneBonus = !p.skills.has('koupel') ? 10 : 0;
-    return 18 + milestoneBonus;
+    // Cat smash: 1k8 + tunel + (poprvé) schopnost za úkol catSmash
+    return 18 + taskSkillBonus(state, p, 'catSmash');
   }
   if (cell.type === 'devil') return devilReady ? 30 : 2;
   if (cell.marker) return 1; // already used by someone — low value to walk onto
@@ -420,10 +422,9 @@ function useFieldWeight(cell: BoardCell, p: PlayerState, state: GameState): numb
       return nb && nb.marker && nb.marker.playerId !== p.id;
     }).length;
     const score = p.carrotTrack + adjOpp;
-    if (score >= 6) return 16; // k12+
-    if (score >= 4) return 12; // k8/k10
+    if (score >= 5) return 16; // k12+
+    if (score >= 4) return 12; // k8
     if (score >= 2) return 8;  // k4/k6
-    if (bestAffordableSkill(p) != null) return 14; // could learn skill instead
     return 4; // plant for ramp
   }
   if (cell.type === 'bed') return p.carrotTrack < 5 ? 10 : 3;
@@ -520,48 +521,66 @@ function pickPreRollSwap(state: GameState, p: PlayerState): import('./engine').S
   return bestOp;
 }
 
+// Je soupeř blízko výhry? → AI sníží svůj práh opatrnosti (zoufalý režim).
+function anyOpponentClose(state: GameState, p: PlayerState): boolean {
+  return state.players.some((opp) => {
+    if (opp.id === p.id) return false;
+    const oWounds = state.devilWounds.woundsByPlayer[opp.id];
+    const oWoundsTaken = WOUND_TYPES.filter((w) => oWounds[w] != null).length;
+    const oHandMax = opp.hand.length ? Math.max(...opp.hand) : 0;
+    return oWoundsTaken >= 2 || (oWoundsTaken >= 1 && oHandMax >= 12);
+  });
+}
+
+// NOVÁ PRAVIDLA (2026-06): smrtelná rána = SAMOSTATNÝ hod ≥ 25 (leftover
+// z hodu, ve kterém padla zranění, se nepočítá). To dramaticky mění
+// matematiku připravenosti:
+//   - po zasazení zbývajících zranění se z ruky ODEČTOU kostky (1 per slot),
+//   - ZBYTEK ruky musí na čerstvém hodu dát ≥ 25.
+// Místo "max součtu" proto modelujeme přímo P(sum ≥ 25) přes pSumInRange
+// na simulované ruce po odečtení wound-kostek.
 function readyToFightDevil(state: GameState, p: PlayerState): boolean {
   if (p.hand.length === 0) return false;
   const wounds = state.devilWounds.woundsByPlayer[p.id];
   const woundsTaken = WOUND_TYPES.filter((w) => wounds[w] != null).length;
-  const remainingWounds = 4 - woundsTaken;
+
+  const pThreshold = anyOpponentClose(state, p) ? W.devilFinalPDesperate : W.devilFinalP;
+
+  // Všechna 4 zranění zasazena → celá ruka jde na finální hod.
+  if (woundsTaken === 4) {
+    return pSumInRange(p.hand, 25, 9999) >= pThreshold;
+  }
+
+  // Schopnostní check: na slot 10+ je nutná kostka ≥ k12 (k8 max hodí 8),
+  // na 7+ alespoň k8.
   const handMax = Math.max(...p.hand);
-  const sumPotential = p.hand.reduce((a, lvl) => a + lvl, 0);
-
-  // Opponent-aware: if no opponent looks close to winning, we can be more
-  // patient and accumulate a stronger hand. Specifically: if opponent has
-  // ≤ 1 wound on their Devil AND a weak hand (max die < 10), we raise our
-  // own readiness bar (require bigger sumPotential).
-  const opponents = state.players.filter((pp) => pp.id !== p.id);
-  const opponentClose = opponents.some((opp) => {
-    const oWounds = state.devilWounds.woundsByPlayer[opp.id];
-    const oWoundsTaken = WOUND_TYPES.filter((w) => oWounds[w] != null).length;
-    const oHandMax = opp.hand.length ? Math.max(...opp.hand) : 0;
-    return oWoundsTaken >= 2 || (oWoundsTaken >= 1 && oHandMax >= 10);
-  });
-  // Reduced from 8 to 4: AI was too conservative — sat next to Devil with
-  // 10 dice but didn't attack because sumPotential was ~57 (need 25+24+8=57+).
-  const patienceBoost = opponentClose ? 0 : 4;
-
-  // Final blow — all 4 wounds done; we just need to ROLL 25+ in one shot.
-  // sumPotential is the MAX possible sum; avg roll is sumPotential/2.
-  // Require sumPotential >= 32 (or 40 if opponent is far behind).
-  if (woundsTaken === 4) return sumPotential >= 32 + patienceBoost;
-
-  // Capability: must be able to hit each remaining wound type.
-  if (wounds['10+'] == null && handMax < 10) return false;
+  if (wounds['10+'] == null && handMax < 12) return false;
   if (wounds['7+'] == null && handMax < 8) return false;
 
-  // Hand size guard: each wound costs 1 die. Need ≥2 dice left for 25+ check.
-  if (p.hand.length < remainingWounds + 2) return false;
+  // Sloty 1 a 2 trefují nejlépe malé kostky (k2 má P=0.5 na každý).
+  // Pokud chybí oba nízké sloty a v ruce není dost malých kostek, hrozí
+  // série hodů bez zásahu → útok Čerta. Soft-požadavek dle váhy.
+  const lowSlotsMissing = (wounds['1'] == null ? 1 : 0) + (wounds['2'] == null ? 1 : 0);
+  if (lowSlotsMissing === 2) {
+    const smallDice = p.hand.filter((d) => d <= 6).length;
+    if (smallDice < W.devilSmallDiceForLowWounds) return false;
+  }
 
-  // Sum potential safety: total potential must comfortably exceed 25 + wound cost.
-  // Estimate wound dice cost (avg): k4-k8 used for wounds ≈ 6 each. Remaining
-  // sum ≈ sumPotential - 6 * remainingWounds. Want remaining >= 25.
-  // Plus patience boost when opponent is far behind.
-  if (sumPotential < 25 + 6 * remainingWounds + patienceBoost) return false;
+  // Simulace: odeber z ruky kostky, které padnou na zbývající sloty
+  // (10+ → nejmenší ≥ k12, 7+ → nejmenší ≥ k8, 1 a 2 → nejmenší).
+  const sim = [...p.hand].sort((a, b) => a - b);
+  const removeSmallestAtLeast = (min: number) => {
+    const idx = sim.findIndex((d) => d >= min);
+    sim.splice(idx >= 0 ? idx : 0, 1);
+  };
+  if (wounds['10+'] == null) removeSmallestAtLeast(12);
+  if (wounds['7+'] == null) removeSmallestAtLeast(8);
+  if (wounds['1'] == null) sim.splice(0, 1);
+  if (wounds['2'] == null) sim.splice(0, 1);
 
-  return true;
+  if (sim.length === 0) return false;
+  // Zbytek ruky musí mít rozumnou šanci na čerstvý hod ≥ 25.
+  return pSumInRange(sim as DiceLevel[], 25, 9999) >= pThreshold;
 }
 
 // ----- After roll: pick best action ----------------------------------------
@@ -632,8 +651,8 @@ function aiChooseAction(state: GameState): GameState {
   // Performance: 10 samples × ~1ms per lookahead ≈ 10ms per AI decision.
   // Invisible in UI (700ms tick); for headless sim, ~3-4× slower (acceptable).
   const K = 6;
-  const MY_TURN_LOOKAHEAD = 3; // how many of my own turns to roll forward
-  const MC_SAMPLES = 10; // Monte Carlo samples per candidate
+  const MY_TURN_LOOKAHEAD = W.myTurnLookahead; // how many of my own turns to roll forward
+  const MC_SAMPLES = W.mcSamples; // Monte Carlo samples per candidate
   candidates.sort((a, b) => b.heur - a.heur);
   const top = candidates.slice(0, K);
 
@@ -754,26 +773,40 @@ function stateValue(state: GameState, myId: string): number {
 
   let v = 0;
   // Wounds dominate — biggest step toward winning.
-  v += woundsTaken * 200;
+  v += woundsTaken * W.svWound;
   // Skills: zero in state value. Their benefit shows up through gameplay
   // (canAddDieToHand, devil-fight readiness). Adding bonus causes AI to
   // farm skills instead of progressing.
-  // v += p.skills.size * 0;
-  v += p.bobekTrack * 4;
-  v += p.carrotTrack * 5;
-  v += p.potatoes * 0.15;
+  v += p.bobekTrack * W.svBobek;
+  v += p.carrotTrack * W.svCarrot;
+  v += p.potatoes * W.svPotato;
 
   const allDice = [...p.hand, ...p.reserve];
   // Sum of die levels — dice are what fight Devil
-  v += allDice.reduce((s, d) => s + d, 0) * 3;
+  v += allDice.reduce((s, d) => s + d, 0) * W.svDie;
   v += p.hand.length * 1;
   // Reserve dice less valuable than Hand (need to swap)
   v += p.reserve.length * 0.5;
   v += p.pendingDice.reduce((s, d) => s + d, 0) * 0.5; // partial credit
 
+  // Průzkumník progres: pokrytí dílků vlastními značkami (formace = kostka
+  // + schopnost zdarma; lookahead by jinak formace ignoroval).
+  const donePruzkumnik = state.completedFormations.some(
+    (c) => c.playerId === myId && c.formation === 'pruzkumnik'
+  );
+  if (!donePruzkumnik) {
+    const myTiles = new Set<number>();
+    state.board.forEach((c) => {
+      if (c.marker && c.marker.playerId === myId) myTiles.add(c.tileId);
+    });
+    v += Math.min(myTiles.size, 6) * W.svTile;
+  }
+  // Dokončené formace mají hodnotu samy o sobě (kostka už je v allDice,
+  // schopnost se projevuje v gameplay) — nepřičítáme dvojitě.
+
   // Position bonus: when combat-ready, being close to Devil is good
   const handMax = p.hand.length ? Math.max(...p.hand) : 0;
-  if (woundsTaken < 4 && allDice.length >= 4 && handMax >= 10) {
+  if (woundsTaken < 4 && allDice.length >= 4 && handMax >= 12) {
     const devilHexes: Hex[] = [];
     state.board.forEach((c) => { if (c.type === 'devil') devilHexes.push(c.hex); });
     let minDist = Infinity;
@@ -783,7 +816,7 @@ function stateValue(state: GameState, myId: string): number {
         if (d < minDist) minDist = d;
       }
     }
-    if (minDist < Infinity) v += Math.max(0, 30 - minDist * 5);
+    if (minDist < Infinity) v += Math.max(0, W.svDevilDistMax - minDist * W.svDevilDistPer);
   }
 
   return v;
@@ -872,24 +905,112 @@ function computeStashBigDice(p: PlayerState): import('./engine').SwapOp[] {
   return ops;
 }
 
+// =============================================================================
+// FORMACE + TASK-AWARENESS
+// =============================================================================
+// Úkoly dávají kostky (formace: k20/k12/k6 dle pořadí) + náhodně přiřazenou
+// schopnost (první splnění per hráč). AI je dřív plnila jen náhodou — teď
+// dostává explicitní bonusy za tahy, které ji k úkolům přibližují.
+
+// Hodnota schopnosti pro AI (vyšší = chce ji dřív). Nevlastněná schopnost
+// přiřazená úkolu zvyšuje atraktivitu daného úkolu.
+const SKILL_VALUE: Record<SkillId, number> = {
+  kapacita: 10,
+  klystyr: 8,
+  sprint: 6,
+  masaz_strev: 5,
+  koupel: 4,
+};
+
+// Bonus za schopnost přiřazenou úkolu — jen pokud hráč úkol ještě nesplnil
+// a schopnost nevlastní (jinak je odměna bezcenná).
+function taskSkillBonus(state: GameState, p: PlayerState, task: TaskKey): number {
+  const granted = state.taskRewardsGranted?.[p.id] ?? [];
+  if (granted.includes(task)) return 0;
+  const skill = state.taskRewards?.[task];
+  if (!skill || p.skills.has(skill)) return 0;
+  return SKILL_VALUE[skill] * W.taskSkillScale;
+}
+
+// Tři hex-osy pro detekci přímky (konstantní q / r / s).
+const LINE_DIRS: [number, number][] = [[0, 1], [1, 0], [1, -1]];
+
+// Bonus za umístění VLASTNÍ značky na daný hex z pohledu 3 formací.
+// Volá se ze scoreUseField — každé využití pole pokládá značku.
+function formationBonus(state: GameState, p: PlayerState, hex: Hex): number {
+  let bonus = 0;
+  const myDone = (f: string) =>
+    state.completedFormations.some((c) => c.playerId === p.id && c.formation === f);
+
+  // --- Průzkumník: značka na dílku, kde ještě žádnou nemám -------------------
+  if (!myDone('pruzkumnik')) {
+    const cell = state.board.get(hexKey(hex));
+    if (cell) {
+      const myTiles = new Set<number>();
+      state.board.forEach((c) => {
+        if (c.marker && c.marker.playerId === p.id) myTiles.add(c.tileId);
+      });
+      if (!myTiles.has(cell.tileId)) {
+        // Čím blíž k 6 dílkům, tím cennější (dokončení = kostka + schopnost).
+        const closeScale = myTiles.size >= 4 ? W.pruzkumnikCloseScale : 1;
+        bonus += W.pruzkumnikNewTile * closeScale;
+        if (myTiles.size === 5) bonus += taskSkillBonus(state, p, 'pruzkumnik');
+      }
+    }
+  }
+
+  // --- Obklíčení: přiložit značku k soupeřově značce, kterou už obkličuji ----
+  if (!myDone('obkliceni')) {
+    for (const nb of hexNeighbors(hex)) {
+      const c = state.board.get(hexKey(nb));
+      if (!c?.marker || c.marker.playerId === p.id) continue;
+      const myAdj = hexNeighbors(c.hex).filter((h2) => {
+        const cc = state.board.get(hexKey(h2));
+        return cc?.marker?.playerId === p.id;
+      }).length;
+      bonus += myAdj * W.obklPerAdj;
+      if (myAdj >= 3) bonus += W.obklComplete + taskSkillBonus(state, p, 'obkliceni');
+    }
+  }
+
+  // --- Přímka 5: prodloužit souvislou řadu vlastních značek -------------------
+  if (!myDone('primka5')) {
+    let bestRun = 1;
+    for (const [dq, dr] of LINE_DIRS) {
+      let run = 1;
+      let q = hex.q + dq, r = hex.r + dr;
+      while (state.board.get(`${q},${r}`)?.marker?.playerId === p.id) { run++; q += dq; r += dr; }
+      q = hex.q - dq; r = hex.r - dr;
+      while (state.board.get(`${q},${r}`)?.marker?.playerId === p.id) { run++; q -= dq; r -= dr; }
+      bestRun = Math.max(bestRun, run);
+    }
+    if (bestRun >= 2) bonus += (bestRun - 1) * W.primkaPerRun;
+    if (bestRun >= 5) bonus += W.primkaComplete + taskSkillBonus(state, p, 'primka5');
+  }
+
+  return bonus;
+}
+
 function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
+  // Každé využití pole pokládá značku → progres ve formacích se počítá vždy.
+  const formBonus = formationBonus(state, p, c.hex);
   switch (c.type) {
     case 'thorn': {
       // Free die — VERY high priority (turns a turn into a permanent die)
       const lvl = c.thornDieLevel;
       if (!lvl) return 0;
-      let base = 12 + lvl; // k4=16, k6=18, k8=20
+      let base = W.thornBase + lvl; // k4=16, k6=18, k8=20 (při thornBase 12)
       if (!canAddDieAnywhere(p, lvl as DiceLevel)) base -= 6;
-      return base;
+      return base + formBonus;
     }
     case 'tree': {
       // Trees are strategic capital. Each tree unlocks more skill options.
-      return 14 - p.bobekTrack * 2; // first tree most valuable, plateau later
+      return W.treeUseBase - p.bobekTrack * W.treeUseDecay + formBonus;
     }
     case 'bed': {
       // Záhon = pure Plant action. Heavy priority while ramping carrots
-      // (carrots feed Kakej score). Beyond carrot 5 Kakej caps out.
-      return p.carrotTrack < 5 ? 12 : 3;
+      // (carrots feed Kakej score). Beyond the ramp limit Kakej caps out.
+      return (p.carrotTrack < W.bedRampLimit ? W.bedUseHigh : W.bedUseLow) + formBonus;
     }
     case 'dirt': {
       // Adjacency counts ONLY opponent markers — same as engine's dirtPoop.
@@ -897,24 +1018,19 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
         const nb = state.board.get(hexKey(h));
         return nb && nb.marker && nb.marker.playerId !== p.id;
       }).length;
-      // Engine's Vyformuj kostku formula: carrotTrack + adj opponent markers
-      // (+ potatoes, currently not used). Mapping to dice:
-      //   1→k2, 2→k4, 3→k6, 4→k8, 5→k10, 6-7→k12, 8+→k20
+      // Engine's Vyformuj kostku formula: carrotTrack + adj opponent markers.
+      // Mapping: 1→k2, 2→k4, 3→k6, 4→k8, 5-7→k12, 8+→k20
       const kakejRaw = p.carrotTrack + adj;
-      const couldLearn = bestAffordableSkill(p) != null;
-      if (couldLearn) return 16; // Learning here is gold
 
       // Kakej projection (yields a die)
       let kakejScore = 0;
-      if (kakejRaw >= 6) kakejScore = 16;     // k12+
-      else if (kakejRaw >= 4) kakejScore = 13; // k8/k10
-      else if (kakejRaw >= 2) kakejScore = 8;  // k4
-      // (kakejRaw < 2 → just k2 / nothing → kakejScore=0)
+      if (kakejRaw >= 5) kakejScore = W.kakejHigh;      // k12+
+      else if (kakejRaw >= 4) kakejScore = W.kakejMid;  // k8
+      else if (kakejRaw >= 2) kakejScore = W.kakejLow;  // k4/k6
 
-      // Plant on Hlína: useful early to ramp carrots when Záhon isn't
-      // reachable (sum 2-3 with 2× k2 only matches Hlína range)
-      const plantScore = p.carrotTrack < 4 ? 8 : 0;
-      return Math.max(kakejScore, plantScore);
+      // Plant on Hlína: useful early to ramp carrots when Záhon isn't reachable
+      const plantScore = p.carrotTrack < W.plantLimit ? W.plantScore : 0;
+      return Math.max(kakejScore, plantScore) + formBonus;
     }
     case 'desert': {
       if (!p.skills.has('koupel')) return 0;
@@ -923,9 +1039,7 @@ function scoreUseField(c: BoardCell, p: PlayerState, state: GameState): number {
         const nb = state.board.get(hexKey(h));
         return nb && nb.marker && nb.marker.playerId !== p.id;
       }).length;
-      const couldLearn = bestAffordableSkill(p) != null;
-      const learnScore = couldLearn ? 13 : 0;
-      return Math.max(learnScore, 6 + adj * 2);
+      return 6 + adj * 2 + formBonus;
     }
     default:
       return 0;
@@ -941,18 +1055,16 @@ function canAddDieAnywhere(p: PlayerState, lvl: DiceLevel): boolean {
 function scoreMove(target: BoardCell, p: PlayerState, state: GameState): number {
   let s = 0;
   if (target.type === 'cat' && target.catAlive) {
-    // Cat smash now yields 1k8 (not 1k20) plus tunnel. First cat still gives
-    // milestone Lázně, so weight it higher when player doesn't have Lázně yet.
-    const milestoneBonus = !p.skills.has('koupel') ? 12 : 0;
-    return 20 + milestoneBonus;
+    // Cat smash: 1k8 + tunel + (poprvé) schopnost přiřazená úkolu catSmash.
+    return W.catSmashBase + taskSkillBonus(state, p, 'catSmash');
   }
   if (target.type === 'devil') {
-    if (readyToFightDevil(state, p)) return 25;
+    if (readyToFightDevil(state, p)) return W.devilMoveReady;
     return 2; // mild incentive; don't rush Devil
   }
-  if (target.type === 'tree' && !target.marker) s += 7;
-  if (target.type === 'dirt' && !target.marker) s += 5;
-  if (target.type === 'bed' && !target.marker) s += 5;
+  if (target.type === 'tree' && !target.marker) s += W.treeMoveBase;
+  if (target.type === 'dirt' && !target.marker) s += W.dirtMoveBase;
+  if (target.type === 'bed' && !target.marker) s += W.bedMoveBase;
   if (target.type === 'thorn' && !target.thornDieLevel) s += 2;
   if (target.type === 'desert' && p.skills.has('koupel') && !target.marker) s += 4;
   if (target.isTunnel) s += 1;
@@ -1078,12 +1190,18 @@ function aiSprintField(state: GameState): GameState {
 function aiContinueDevilCombat(state: GameState): GameState | null {
   const p = currentPlayer(state);
   if (!p.lastRoll || p.lastRoll.length === 0) {
-    if (allWoundsTaken(state, p.id) && p.hand.length > 0) return devilContinueRoll(state);
+    if (allWoundsTaken(state, p.id) && p.hand.length > 0) {
+      // Finální hod: rozhodni přes P(sum≥25), ne slepě.
+      const pThreshold = anyOpponentClose(state, p) ? W.devilFinalPDesperate : W.devilFinalP;
+      if (pSumInRange(p.hand, 25, 9999) >= pThreshold) return devilContinueRoll(state);
+    }
     return devilStop(state);
   }
-  // Step 1: try to apply ONE wound this iteration (preference: cheapest die).
+  // Step 1: apply ONE wound per iteration.
+  // Pořadí slotů: 1, 2, pak 10+ PŘED 7+ — hod ≥10 je vzácný a slot 10+ ho
+  // potřebuje; kdybychom napřed plnili 7+, vyplýtvali bychom ho.
   const taken = state.devilWounds.woundsByPlayer[p.id];
-  for (const w of ['1', '2', '7+', '10+'] as WoundType[]) {
+  for (const w of ['1', '2', '10+', '7+'] as WoundType[]) {
     if (taken[w] != null) continue;
     const candidates: { idx: number; val: number; lvl: DiceLevel }[] = [];
     for (let i = 0; i < p.lastRoll.length; i++) {
@@ -1097,40 +1215,50 @@ function aiContinueDevilCombat(state: GameState): GameState | null {
       if (matches) candidates.push({ idx: i, val, lvl });
     }
     if (candidates.length === 0) continue;
-    candidates.sort((a, b) => a.lvl - b.lvl);
+    // Pro slot 7+ šetři hody ≥10, pokud je slot 10+ stále volný — preferuj
+    // kostky s hodnotou 7-9. Sekundárně vždy nejmenší level (nejlevnější).
+    if (w === '7+' && taken['10+'] == null) {
+      candidates.sort((a, b) => {
+        const aPreserves = a.val < 10 ? 0 : 1;
+        const bPreserves = b.val < 10 ? 0 : 1;
+        if (aPreserves !== bPreserves) return aPreserves - bPreserves;
+        return a.lvl - b.lvl;
+      });
+    } else {
+      candidates.sort((a, b) => a.lvl - b.lvl);
+    }
     return applyDevilWound(state, candidates[0].idx, w);
   }
 
-  // Step 2: no wound applicable in current roll. Decide: roll again or stop?
+  // Step 2: no wound applicable in current roll. Roll again, or stop?
   if (allWoundsTaken(state, p.id)) {
-    // All wounds done — going for 25+ blow.
-    const currentSum = p.lastRoll.reduce((a, b) => a + b, 0);
-    // The engine has an instant-win check in devilContinueRoll if current sum >= 25
-    if (currentSum >= 25) return devilContinueRoll(state);
-    // Else re-roll for 25+ if we have a reasonable shot
-    const sumPotential = p.hand.reduce((a, lvl) => a + lvl, 0);
-    if (sumPotential >= 25) return devilContinueRoll(state);
+    // Všechna zranění zasazena. POZOR: leftover součet z TOHOTO hodu se
+    // nepočítá — smrtelná rána vyžaduje NOVÝ hod ≥ 25 (devilContinueRoll).
+    if (p.hand.length === 0) return devilStop(state);
+    const pThreshold = anyOpponentClose(state, p) ? W.devilFinalPDesperate : W.devilFinalP;
+    if (pSumInRange(p.hand, 25, 9999) >= pThreshold) return devilContinueRoll(state);
+    // Slabá šance — zranění zůstávají zasazená i příští tah; radši odejít,
+    // posílit ruku a vrátit se.
     return devilStop(state);
   }
 
   // Wounds remain but current roll missed all. Decide whether to re-roll.
   // Re-rolling risks the engine's "fail if no possible wound" check, which
   // would trigger an attack. Be conservative — preserve dice for next turn.
-  const sumPotential = p.hand.reduce((a, lvl) => a + lvl, 0);
   const handMax = Math.max(...p.hand);
   const remainingWoundList = WOUND_TYPES.filter((w) => taken[w] == null);
   const canStillHitAll = remainingWoundList.every((w) => {
     if (w === '1' || w === '2') return true;
     if (w === '7+') return handMax >= 8;
-    if (w === '10+') return handMax >= 10;
+    if (w === '10+') return handMax >= 12;
     return false;
   });
   if (!canStillHitAll) {
     // Some wounds we can never hit with current hand — stop.
     return devilStop(state);
   }
-  // If we have a strong-enough hand to re-roll, do it. Else stop.
-  if (p.hand.length >= 4 && sumPotential >= 25) return devilContinueRoll(state);
+  // Re-roll jen s dostatečně velkou rukou (jinak hrozí fail → útok Čerta).
+  if (p.hand.length >= W.devilMidRerollMinDice) return devilContinueRoll(state);
   return devilStop(state);
 }
 
